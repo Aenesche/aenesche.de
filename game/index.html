@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI DRONE LAB</title>
+  <title>AENESCHE AI DRONE LAB</title>
   <style>
     :root{
       --bg:#0a0a0a;
@@ -82,6 +82,7 @@
     .k{ color:var(--muted); font-size:11px; margin-bottom:6px; }
     .v{ font-size:16px; }
     .v small{ color:var(--muted); font-size:12px; }
+
     .buttons{
       display:flex;
       gap:10px;
@@ -106,6 +107,7 @@
       border-color:var(--line);
       color:var(--muted);
     }
+
     .hint{
       color:var(--muted);
       font-size:12px;
@@ -119,6 +121,8 @@
       font-size:12px;
       white-space:pre-wrap;
       min-height:180px;
+      max-height:260px;
+      overflow:auto;
     }
     .ok{ color:var(--accent); }
     .bad{ color:var(--warn); }
@@ -145,23 +149,53 @@
       gap:12px;
       flex-wrap:wrap;
     }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-top:10px;
+    }
+    .item{
+      border:1px solid var(--line);
+      background:#0b0b0b;
+      padding:10px;
+    }
+    .itemTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
+    }
+    .itemName{ font-size:12px; color:var(--text); }
+    .itemMeta{ font-size:11px; color:var(--muted); }
+    .itemBtns{
+      margin-top:8px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .mini{
+      padding:7px 10px;
+      font-size:11px;
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="topbar">
       <div>
-        <div class="title">AI DRONE LAB</div>
+        <div class="title">AENESCHE AI DRONE LAB</div>
         <div class="sub">Compute → GPU → Train Model → Deploy Drone → Research</div>
       </div>
       <div class="sub">
-        <span class="tag" id="saveTag">autosave: ON</span>
+        <span class="tag" id="statusTag">autosave: ON</span>
         <a href="/">home</a>
       </div>
     </div>
 
     <div class="row">
-      <!-- LEFT: Core -->
+      <!-- LEFT -->
       <div class="panel">
         <h2>STATUS</h2>
         <div class="stats">
@@ -197,21 +231,18 @@
           <button id="resetBtn" title="löscht nur deinen lokalen Save">RESET SAVE</button>
         </div>
 
-        <div class="hint">
-          <span class="ok">TRAIN STEP</span> erzeugt Compute und reduziert Loss (kostet etwas Compute ab AI-Level 2).<br>
-          <span class="ok">DEPLOY DRONE</span> bringt große Rewards, abhängig von AI + Loss. Mission läuft kurz (Countdown).
-        </div>
+        <div class="hint" id="hintLine"></div>
 
         <h2 style="margin-top:16px;">CONSOLE</h2>
         <div class="mono" id="log"></div>
 
         <div class="footer">
           <div>Save: <span id="saveInfo">—</span></div>
-          <div>Build v0.1 · localStorage</div>
+          <div>Build v0.2 · drones + RP</div>
         </div>
       </div>
 
-      <!-- RIGHT: Systems -->
+      <!-- RIGHT -->
       <div>
         <div class="panel">
           <h2>GPU SYSTEM</h2>
@@ -229,15 +260,26 @@
           <div class="buttons">
             <button id="gpuUpBtn">UPGRADE GPU</button>
           </div>
-          <div class="hint">
-            Upgrade erhöht passives Compute. Alle Kosten skalieren hoch (wie Cookie Clicker).
-          </div>
         </div>
 
+        <!-- DROHNE / UPGRADES PANEL (hier wolltest du es) -->
         <div class="panel" style="margin-top:16px;">
-          <h2>AI / DRONE UPGRADES</h2>
+          <h2>DRONE HANGAR</h2>
+
+          <div class="stat" style="margin-bottom:10px;">
+            <div class="k">Selected Drone</div>
+            <div class="v"><span id="droneName">—</span> <small id="droneTier">T1</small></div>
+            <div class="k" style="margin-top:8px;">Mission</div>
+            <div class="v" style="font-size:12px;color:var(--muted);line-height:1.35" id="droneInfo">—</div>
+          </div>
+
+          <div class="list" id="droneList"></div>
+
+          <h2 style="margin-top:16px;">RESEARCH UPGRADES</h2>
+          <div class="list" id="upgradeList"></div>
+
           <div class="hint">
-            v0.1: AI wird durch Training besser, Drohne durch AI-Stats.<br>
+            RP schaltet Drohnen + Upgrades frei. Click bleibt relevant: er skaliert mit AI+GPU.
           </div>
         </div>
       </div>
@@ -246,16 +288,33 @@
 
 <script>
 (() => {
-  const KEY = "aenesche_ai_drone_lab_v01";
+  const KEY = "aenesche_ai_drone_lab_v02";
 
+  // ---------- CONFIG ----------
   const GPU_TIERS = [
-    { name: "CPU",        baseCps: 0,   baseCost: 0,     desc: "Bootstrap mode. Click training to start generating compute." },
-    { name: "GTX",        baseCps: 2,   baseCost: 50,    desc: "Entry GPU. Solid passive compute. Cheap upgrades." },
-    { name: "RTX",        baseCps: 10,  baseCost: 300,   desc: "Real training speed. Drones become profitable." },
-    { name: "CLUSTER",    baseCps: 45,  baseCost: 2000,  desc: "Multi-GPU cluster. Autonomy feels real." },
-    { name: "DATACENTER", baseCps: 220, baseCost: 15000, desc: "Datacenter scale. You are the infrastructure." },
+    { name: "CPU",        baseCps: 0,    baseCost: 0 },
+    { name: "GTX",        baseCps: 2.5,  baseCost: 60 },
+    { name: "RTX",        baseCps: 12,   baseCost: 360 },
+    { name: "CLUSTER",    baseCps: 55,   baseCost: 2400 },
+    { name: "DATACENTER", baseCps: 260,  baseCost: 18000 },
   ];
 
+  const DRONES = [
+    { id:"temu",     tier:1, name:"Temu Drone",       unlockRP:0,   baseSuccess:70, durationMs:6500,  costBase:18,  rewardBase:65,  rpMin:1, rpMax:2, riskLossOnFail:0.02 },
+    { id:"amazon",   tier:2, name:"Amazon Drone",     unlockRP:5,   baseSuccess:62, durationMs:7500,  costBase:40,  rewardBase:140, rpMin:1, rpMax:3, riskLossOnFail:0.03 },
+    { id:"air3s",    tier:3, name:"DJI Air 3S",       unlockRP:20,  baseSuccess:56, durationMs:8500,  costBase:90,  rewardBase:280, rpMin:2, rpMax:4, riskLossOnFail:0.04 },
+    { id:"cine",     tier:4, name:"FPV Cinelifter",   unlockRP:60,  baseSuccess:48, durationMs:9500,  costBase:170, rewardBase:520, rpMin:3, rpMax:6, riskLossOnFail:0.06 },
+    { id:"matrice",  tier:5, name:"DJI Matrice",      unlockRP:150, baseSuccess:42, durationMs:11000, costBase:320, rewardBase:980, rpMin:5, rpMax:9, riskLossOnFail:0.08 },
+  ];
+
+  const UPGRADES = [
+    { id:"cooling",   name:"Cooling",        costRP:8,   desc:"+10% GPU compute", apply:(s)=>s.bonusGpuMult=1.10 },
+    { id:"dataset",   name:"Dataset++",      costRP:12,  desc:"+15% click power", apply:(s)=>s.bonusClickMult=1.15 },
+    { id:"autonomy",  name:"Autonomy",       costRP:18,  desc:"-15% mission time", apply:(s)=>s.bonusMissionTimeMult=0.85 },
+    { id:"frame",     name:"Reinforced Frame",costRP:25, desc:"fail penalty reduced", apply:(s)=>s.bonusFailLossMult=0.65 },
+  ];
+
+  // ---------- DOM ----------
   const $ = (id) => document.getElementById(id);
   const el = {
     compute: $("compute"),
@@ -266,10 +325,20 @@
     success: $("success"),
     log: $("log"),
     saveInfo: $("saveInfo"),
+    statusTag: $("statusTag"),
+
     gpuTierName: $("gpuTierName"),
     gpuLevel: $("gpuLevel"),
     gpuDesc: $("gpuDesc"),
-    saveTag: $("saveTag"),
+
+    droneName: $("droneName"),
+    droneTier: $("droneTier"),
+    droneInfo: $("droneInfo"),
+    droneList: $("droneList"),
+    upgradeList: $("upgradeList"),
+
+    hintLine: $("hintLine"),
+
     trainBtn: $("trainBtn"),
     deployBtn: $("deployBtn"),
     gpuUpBtn: $("gpuUpBtn"),
@@ -277,6 +346,7 @@
   };
 
   const now = () => Date.now();
+  const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 
   function defaultState(){
     return {
@@ -286,9 +356,20 @@
       loss: 1.0,
       gpuTier: 0,
       gpuLevel: 0,
-      mission: { active: false, endsAt: 0, startedAt: 0 },
+
+      selectedDroneId: "temu",
+      purchasedUpgrades: {},
+
+      // derived bonuses (computed from purchasedUpgrades)
+      bonusGpuMult: 1.0,
+      bonusClickMult: 1.0,
+      bonusMissionTimeMult: 1.0,
+      bonusFailLossMult: 1.0,
+
+      mission: { active:false, endsAt:0, startedAt:0, droneId:null },
       lastTick: now(),
       createdAt: now(),
+      lastConsoleClear: now(),
     };
   }
 
@@ -309,6 +390,7 @@
   }
 
   function fmt(n){
+    n = Number(n) || 0;
     if (n < 1000) return String(Math.floor(n));
     const units = ["k","M","B","T"];
     let u = -1;
@@ -316,13 +398,20 @@
     return (n < 10 ? n.toFixed(2) : n < 100 ? n.toFixed(1) : n.toFixed(0)) + units[u];
   }
 
-  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+  // ---------- CONSOLE (auto-trim + soft clear) ----------
+  const MAX_LOG_LINES = 80;
+  const SOFT_CLEAR_MS = 90_000;
 
   function log(line, cls=""){
     const t = new Date().toLocaleTimeString();
-    const span = document.createElement("div");
-    span.innerHTML = `[${t}] ${cls ? `<span class="${cls}">` : ""}${escapeHtml(line)}${cls ? `</span>` : ""}`;
-    el.log.appendChild(span);
+    const div = document.createElement("div");
+    div.innerHTML = `[${t}] ${cls ? `<span class="${cls}">` : ""}${escapeHtml(line)}${cls ? `</span>` : ""}`;
+    el.log.appendChild(div);
+
+    // trim
+    while(el.log.childNodes.length > MAX_LOG_LINES){
+      el.log.removeChild(el.log.firstChild);
+    }
     el.log.scrollTop = el.log.scrollHeight;
   }
 
@@ -333,117 +422,48 @@
       .replaceAll(">","&gt;");
   }
 
+  function maybeSoftClear(){
+    if(now() - state.lastConsoleClear >= SOFT_CLEAR_MS){
+      el.log.innerHTML = "";
+      state.lastConsoleClear = now();
+      log("console cleared (auto)", "ok");
+    }
+  }
+
+  // ---------- BONUSES ----------
+  function recomputeBonuses(){
+    state.bonusGpuMult = 1.0;
+    state.bonusClickMult = 1.0;
+    state.bonusMissionTimeMult = 1.0;
+    state.bonusFailLossMult = 1.0;
+
+    for(const up of UPGRADES){
+      if(state.purchasedUpgrades[up.id]){
+        up.apply(state);
+      }
+    }
+  }
+
+  // ---------- GPU ----------
   function gpuCps(){
     const tier = GPU_TIERS[state.gpuTier];
-    const level = state.gpuLevel;
-    // scale passive compute with level; starts from baseCps and grows
-    const mult = Math.pow(1.15, level);
-    return tier.baseCps * mult;
+    const mult = Math.pow(1.15, state.gpuLevel);
+    return tier.baseCps * mult * state.bonusGpuMult;
   }
 
   function gpuUpgradeCost(){
     const nextTier = (state.gpuTier === 0) ? 1 : state.gpuTier;
     const tier = GPU_TIERS[nextTier];
-    // If at CPU, first upgrade buys GTX level 0 -> cost baseCost
-    // Otherwise upgrades increase level cost
-    const level = (state.gpuTier === 0) ? 0 : state.gpuLevel + 1;
+    const level = (state.gpuTier === 0) ? 0 : (state.gpuLevel + 1);
     return tier.baseCost * Math.pow(1.18, level);
   }
 
   function maybeTierUp(){
-    // Tier upgrades happen automatically at certain GPU levels for simplicity
-    // You can tweak thresholds later
-    const thresholds = [0, 0, 8, 16, 26]; // tier index -> level required to unlock next tier
+    // thresholds tuned to feel smoother
+    const thresholds = [0, 0, 10, 20, 32];
     if(state.gpuTier < GPU_TIERS.length - 1 && state.gpuLevel >= thresholds[state.gpuTier + 1]){
       state.gpuTier += 1;
       log(`GPU TIER UPGRADE → ${GPU_TIERS[state.gpuTier].name}`, "ok");
-    }
-  }
-
-  function trainStep(){
-    // Training generates compute directly + improves AI
-    // Mild cost once AI grows: "training consumes compute"
-    const baseGain = 1 + state.aiLevel * 0.6;
-    const gain = baseGain * (1 + state.research * 0.01);
-
-    // cost kicks in after AI level 2
-    const cost = (state.aiLevel >= 2) ? (0.25 * state.aiLevel) : 0;
-
-    if(state.compute < cost){
-      log(`TRAIN aborted: need ${fmt(cost)} CU`, "bad");
-      return;
-    }
-
-    state.compute = Math.max(0, state.compute - cost);
-    state.compute += gain;
-
-    // reduce loss, diminishing returns; never below 0.05
-    const delta = 0.02 / (1 + state.aiLevel * 0.12);
-    state.loss = clamp(state.loss - delta, 0.05, 1.0);
-
-    // level up when loss reaches certain milestones
-    const target = Math.max(0.06, 1.0 / (1 + state.aiLevel * 0.35));
-    if(state.loss <= target){
-      state.aiLevel += 1;
-      // bump loss slightly to keep progress interesting
-      state.loss = clamp(state.loss + 0.08, 0.05, 1.0);
-      log(`MODEL LEVEL UP → L${state.aiLevel}`, "ok");
-    } else {
-      log(`train: +${fmt(gain)} CU, loss -${delta.toFixed(4)}`);
-    }
-  }
-
-  function successChance(){
-    // chance increases with AI and lower loss; capped
-    const ai = state.aiLevel;
-    const loss = state.loss;
-    const base = 35 + ai * 4.5;           // AI helps
-    const penalty = (loss * 55);          // loss hurts
-    const gpuBonus = Math.log10(1 + gpuCps()) * 8; // some benefit
-    return clamp(base - penalty + gpuBonus, 5, 95);
-  }
-
-  function deployDrone(){
-    if(state.mission.active){
-      log("Mission already active.", "bad");
-      return;
-    }
-    const minCost = 25 + state.aiLevel * 10;
-    if(state.compute < minCost){
-      log(`Need ${fmt(minCost)} CU to deploy drone.`, "bad");
-      return;
-    }
-
-    state.compute -= minCost;
-
-    // Mission duration scales slightly
-    const durMs = 8000;
-    state.mission = { active: true, startedAt: now(), endsAt: now() + durMs };
-
-    log(`DRONE DEPLOYED (cost ${fmt(minCost)} CU). ETA 8s...`, "ok");
-  }
-
-  function resolveMission(){
-    state.mission.active = false;
-    const chance = successChance();
-    const roll = Math.random() * 100;
-
-    if(roll <= chance){
-      // Rewards scale with AI and GPU
-      const gpu = gpuCps();
-      const computeReward = (150 + state.aiLevel * 80) * (1 + Math.log10(1 + gpu));
-      const rpReward = clamp((chance / 35) + (state.aiLevel / 12), 1, 6);
-
-      state.compute += computeReward;
-      state.research += Math.floor(rpReward);
-
-      log(`MISSION SUCCESS → +${fmt(computeReward)} CU, +${Math.floor(rpReward)} RP`, "ok");
-    } else {
-      // Failure: small consolation and slight loss increase
-      const consolation = 15 + state.aiLevel * 8;
-      state.compute += consolation;
-      state.loss = clamp(state.loss + 0.03, 0.05, 1.0);
-      log(`MISSION FAIL → +${fmt(consolation)} CU consolation, loss +0.03`, "bad");
     }
   }
 
@@ -456,7 +476,7 @@
     state.compute -= cost;
 
     if(state.gpuTier === 0){
-      state.gpuTier = 1; // first purchase: move to GTX
+      state.gpuTier = 1;
       state.gpuLevel = 0;
       log(`GPU ONLINE → ${GPU_TIERS[state.gpuTier].name}`, "ok");
     } else {
@@ -466,32 +486,235 @@
     }
   }
 
-  function resetSave(){
-    localStorage.removeItem(KEY);
-    state = defaultState();
-    log("Save wiped. Fresh boot.", "bad");
-    render();
-    save();
+  // ---------- CLICK / TRAIN ----------
+  function clickPower(){
+    // stays relevant later
+    const ai = state.aiLevel;
+    const gpu = state.gpuTier;
+    const rp = state.research;
+
+    const base = 1 + ai * 0.55 + gpu * 2.0;
+    const rpBonus = 1 + Math.min(0.25, rp * 0.005); // up to +25%
+    return base * rpBonus * state.bonusClickMult;
   }
 
-  function tick(){
-    const t = now();
-    const dt = (t - state.lastTick) / 1000;
-    state.lastTick = t;
+  function trainStep(){
+    const gain = clickPower();
 
-    // Passive compute
-    const cps = gpuCps();
-    state.compute += cps * dt;
+    // small cost scaling to avoid infinite click-only, but not annoying early
+    const cost = Math.max(0, (state.aiLevel - 1) * 0.20);
+    if(state.compute < cost){
+      log(`TRAIN aborted: need ${fmt(cost)} CU`, "bad");
+      return;
+    }
+    state.compute -= cost;
+    state.compute += gain;
 
-    // Mission countdown
-    if(state.mission.active && t >= state.mission.endsAt){
-      resolveMission();
+    // Loss reduction (diminishing returns)
+    const delta = 0.018 / (1 + state.aiLevel * 0.10);
+    state.loss = clamp(state.loss - delta, 0.05, 1.0);
+
+    // Level up rule (smoother)
+    const target = Math.max(0.07, 0.95 / (1 + state.aiLevel * 0.30));
+    if(state.loss <= target){
+      state.aiLevel += 1;
+      state.loss = clamp(state.loss + 0.07, 0.05, 1.0);
+      log(`MODEL LEVEL UP → L${state.aiLevel}`, "ok");
+    } else {
+      log(`train: +${fmt(gain)} CU, loss -${delta.toFixed(4)}`);
+    }
+  }
+
+  // ---------- DRONES ----------
+  function getDrone(id){
+    return DRONES.find(d => d.id === id) || DRONES[0];
+  }
+
+  function unlocked(drone){
+    return state.research >= drone.unlockRP;
+  }
+
+  function successChance(drone){
+    // Fair early, capped later
+    const aiBoost = state.aiLevel * 3.2;
+    const lossPenalty = state.loss * 38;
+    const gpuBonus = Math.log10(1 + gpuCps()) * 7;
+
+    let s = drone.baseSuccess + aiBoost - lossPenalty + gpuBonus;
+
+    // tiers add slight risk
+    s -= (drone.tier - 1) * 2.0;
+
+    // cap so it never becomes "permanent win"
+    return clamp(s, 25, 92);
+  }
+
+  function missionDuration(drone){
+    return Math.round(drone.durationMs * state.bonusMissionTimeMult);
+  }
+
+  function missionCost(drone){
+    // cost scales with tier + ai a bit
+    return drone.costBase + (drone.tier * 10) + state.aiLevel * 4;
+  }
+
+  function missionReward(drone){
+    // rewards scale nicely but not runaway: sqrt/log style
+    const ai = state.aiLevel;
+    const gpu = gpuCps();
+    const base = drone.rewardBase;
+    const aiScale = 1 + Math.sqrt(ai) * 0.35;
+    const gpuScale = 1 + Math.log10(1 + gpu) * 0.55;
+    return base * aiScale * gpuScale;
+  }
+
+  function deployDrone(){
+    if(state.mission.active){
+      log("Mission already active.", "bad");
+      return;
+    }
+    const drone = getDrone(state.selectedDroneId);
+    if(!unlocked(drone)){
+      log(`Locked: need ${drone.unlockRP} RP for ${drone.name}`, "bad");
+      return;
     }
 
-    render();
+    const cost = missionCost(drone);
+    if(state.compute < cost){
+      log(`Need ${fmt(cost)} CU to deploy ${drone.name}.`, "bad");
+      return;
+    }
+
+    state.compute -= cost;
+    const dur = missionDuration(drone);
+
+    state.mission = { active:true, startedAt: now(), endsAt: now() + dur, droneId: drone.id };
+    log(`DEPLOY → ${drone.name} (cost ${fmt(cost)} CU). ETA ${Math.ceil(dur/1000)}s`, "ok");
   }
 
+  function resolveMission(){
+    const drone = getDrone(state.mission.droneId || state.selectedDroneId);
+    state.mission.active = false;
+
+    const chance = successChance(drone);
+    const roll = Math.random() * 100;
+
+    if(roll <= chance){
+      const rewardCU = missionReward(drone);
+
+      // RP reward: tier based range + small ai factor
+      const rp = Math.floor(clamp(
+        drone.rpMin + (Math.random() * (drone.rpMax - drone.rpMin + 1)) + (state.aiLevel / 18),
+        drone.rpMin, drone.rpMax + 2
+      ));
+
+      state.compute += rewardCU;
+      state.research += rp;
+
+      log(`SUCCESS → ${drone.name}: +${fmt(rewardCU)} CU, +${rp} RP`, "ok");
+    } else {
+      const consolation = Math.max(10, missionReward(drone) * 0.10);
+      state.compute += consolation;
+
+      const lossAdd = drone.riskLossOnFail * state.bonusFailLossMult;
+      state.loss = clamp(state.loss + lossAdd, 0.05, 1.0);
+
+      log(`FAIL → ${drone.name}: +${fmt(consolation)} CU consolation, loss +${lossAdd.toFixed(2)}`, "bad");
+    }
+  }
+
+  // ---------- RP UPGRADES ----------
+  function canBuyUpgrade(up){
+    return !state.purchasedUpgrades[up.id] && state.research >= up.costRP;
+  }
+
+  function buyUpgrade(up){
+    if(state.purchasedUpgrades[up.id]){
+      log(`Upgrade already active: ${up.name}`, "bad");
+      return;
+    }
+    if(state.research < up.costRP){
+      log(`Need ${up.costRP} RP for ${up.name}`, "bad");
+      return;
+    }
+    state.research -= up.costRP;
+    state.purchasedUpgrades[up.id] = true;
+    recomputeBonuses();
+    log(`RESEARCH COMPLETE → ${up.name}`, "ok");
+  }
+
+  // ---------- UI LISTS ----------
+  function renderDroneList(){
+    el.droneList.innerHTML = "";
+    for(const d of DRONES){
+      const box = document.createElement("div");
+      box.className = "item";
+
+      const isUnlocked = unlocked(d);
+      const isSelected = state.selectedDroneId === d.id;
+
+      const chance = Math.round(successChance(d));
+      const dur = Math.ceil(missionDuration(d)/1000);
+      const cost = missionCost(d);
+
+      box.innerHTML = `
+        <div class="itemTop">
+          <div class="itemName">${d.name} <span style="color:var(--muted);font-size:11px;">(T${d.tier})</span></div>
+          <div class="itemMeta">${isUnlocked ? "unlocked" : `locked · ${d.unlockRP} RP`}</div>
+        </div>
+        <div class="itemMeta" style="margin-top:6px;">
+          success ~${chance}% · ETA ${dur}s · cost ${fmt(cost)} CU
+        </div>
+        <div class="itemBtns">
+          <button class="mini" ${isUnlocked ? "" : "disabled"} data-select="${d.id}">${isSelected ? "SELECTED" : "SELECT"}</button>
+        </div>
+      `;
+      el.droneList.appendChild(box);
+    }
+
+    el.droneList.querySelectorAll("button[data-select]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.selectedDroneId = btn.getAttribute("data-select");
+        log(`Selected drone → ${getDrone(state.selectedDroneId).name}`, "ok");
+        render();
+      });
+    });
+  }
+
+  function renderUpgradeList(){
+    el.upgradeList.innerHTML = "";
+    for(const up of UPGRADES){
+      const active = !!state.purchasedUpgrades[up.id];
+      const box = document.createElement("div");
+      box.className = "item";
+
+      box.innerHTML = `
+        <div class="itemTop">
+          <div class="itemName">${up.name}</div>
+          <div class="itemMeta">${active ? "active" : `${up.costRP} RP`}</div>
+        </div>
+        <div class="itemMeta" style="margin-top:6px;">${up.desc}</div>
+        <div class="itemBtns">
+          <button class="mini" ${active ? "disabled" : ""} data-buy="${up.id}">${active ? "ACTIVE" : "BUY"}</button>
+        </div>
+      `;
+      el.upgradeList.appendChild(box);
+    }
+
+    el.upgradeList.querySelectorAll("button[data-buy]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-buy");
+        const up = UPGRADES.find(u => u.id === id);
+        if(up) buyUpgrade(up);
+        render();
+      });
+    });
+  }
+
+  // ---------- RENDER ----------
   function render(){
+    recomputeBonuses();
+
     el.compute.textContent = fmt(state.compute);
     el.research.textContent = fmt(state.research);
     el.aiLevel.textContent = state.aiLevel;
@@ -500,53 +723,94 @@
     const cps = gpuCps();
     el.cps.textContent = cps.toFixed(cps < 10 ? 2 : 1);
 
-    const chance = Math.round(successChance());
+    const d = getDrone(state.selectedDroneId);
+    el.droneName.textContent = d.name;
+    el.droneTier.textContent = `T${d.tier}`;
+
+    const chance = Math.round(successChance(d));
     el.success.textContent = chance;
+
+    const dur = Math.ceil(missionDuration(d)/1000);
+    const cost = missionCost(d);
+    const reward = missionReward(d);
+
+    el.droneInfo.textContent =
+      `${unlocked(d) ? "unlocked" : `locked (${d.unlockRP} RP)`} · success ~${chance}% · ETA ${dur}s · cost ${fmt(cost)} CU · reward ~${fmt(reward)} CU`;
 
     el.gpuTierName.textContent = GPU_TIERS[state.gpuTier].name;
     el.gpuLevel.textContent = state.gpuLevel;
 
-    // GPU description + next cost
-    const cost = gpuUpgradeCost();
+    const gpuCost = gpuUpgradeCost();
     const tierPreview = (state.gpuTier === 0) ? GPU_TIERS[1].name : GPU_TIERS[state.gpuTier].name;
     el.gpuDesc.textContent =
-      `Next upgrade cost: ${fmt(cost)} CU · Tier: ${tierPreview} · Passive: ${cps.toFixed(cps < 10 ? 2 : 1)} CU/s`;
+      `Next upgrade cost: ${fmt(gpuCost)} CU · Tier: ${tierPreview} · Passive: ${cps.toFixed(cps < 10 ? 2 : 1)} CU/s`;
 
-    // Buttons
-    const missionActive = state.mission.active;
-    el.deployBtn.disabled = missionActive;
-    el.trainBtn.textContent = missionActive
-      ? `TRAIN STEP`
-      : `TRAIN STEP`;
+    // hint line
+    el.hintLine.innerHTML =
+      `<span class="ok">TRAIN STEP</span> +${fmt(clickPower())} CU (skalierend) · ` +
+      `<span class="ok">DEPLOY</span> nutzt die ausgewählte Drohne (RP unlockt Tiers + Upgrades).`;
 
-    el.deployBtn.textContent = missionActive
-      ? `MISSION IN PROGRESS…`
-      : `DEPLOY DRONE`;
+    // buttons
+    el.deployBtn.disabled = state.mission.active;
+    el.deployBtn.textContent = state.mission.active ? "MISSION IN PROGRESS…" : "DEPLOY DRONE";
 
-    // Show countdown in log area tag
-    if(missionActive){
+    // status tag
+    if(state.mission.active){
       const left = Math.max(0, state.mission.endsAt - now());
-      el.saveTag.textContent = `mission: ${Math.ceil(left/1000)}s`;
-      el.saveTag.style.borderColor = "var(--accent)";
-      el.saveTag.style.color = "var(--accent)";
+      el.statusTag.textContent = `mission: ${Math.ceil(left/1000)}s`;
+      el.statusTag.style.borderColor = "var(--accent)";
+      el.statusTag.style.color = "var(--accent)";
     } else {
-      el.saveTag.textContent = "autosave: ON";
-      el.saveTag.style.borderColor = "var(--line)";
-      el.saveTag.style.color = "var(--muted)";
+      el.statusTag.textContent = "autosave: ON";
+      el.statusTag.style.borderColor = "var(--line)";
+      el.statusTag.style.color = "var(--muted)";
     }
+
+    renderDroneList();
+    renderUpgradeList();
   }
 
-  let state = load();
+  // ---------- LOOP ----------
+  function tick(){
+    maybeSoftClear();
 
-  // Boot message
+    const t = now();
+    const dt = (t - state.lastTick) / 1000;
+    state.lastTick = t;
+
+    // passive compute
+    state.compute += gpuCps() * dt;
+
+    // mission done?
+    if(state.mission.active && t >= state.mission.endsAt){
+      state.mission.active = false; // mark before resolving to prevent double
+      resolveMission();
+    }
+
+    render();
+  }
+
+  // ---------- RESET ----------
+  function resetSave(){
+    localStorage.removeItem(KEY);
+    state = defaultState();
+    boot();
+    render();
+    save();
+  }
+
+  // ---------- BOOT ----------
   function boot(){
     el.log.innerHTML = "";
-    log("boot: ai_drone_lab v0.1");
-    log("storage: localStorage enabled");
-    log("tip: get a GPU for passive compute.", "ok");
+    log("boot: ai_drone_lab v0.2", "ok");
+    log("changes: drone tiers + RP unlocks + click scaling", "ok");
+    log("tip: buy GPU → passive CU, then farm RP with Temu/Amazon", "ok");
   }
 
-  // Events
+  // ---------- EVENTS ----------
+  let state = load();
+  recomputeBonuses();
+
   el.trainBtn.addEventListener("click", () => { trainStep(); render(); });
   el.deployBtn.addEventListener("click", () => { deployDrone(); render(); });
   el.gpuUpBtn.addEventListener("click", () => { upgradeGpu(); render(); });
@@ -555,15 +819,15 @@
     if(ok) resetSave();
   });
 
-  // Autosave
+  // autosave
   setInterval(save, 5000);
   window.addEventListener("beforeunload", save);
 
-  // Main loop
+  // start
   boot();
   render();
   save();
-  setInterval(tick, 100);
+  setInterval(tick, 120);
 })();
 </script>
 </body>
