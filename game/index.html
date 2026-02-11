@@ -228,7 +228,7 @@
         <div class="buttons">
           <button id="trainBtn">TRAIN STEP</button>
           <button id="deployBtn">DEPLOY DRONE</button>
-          <button id="resetBtn" title="löscht nur deinen lokalen Save">RESET SAVE</button>
+          <button id="resetBtn" title="löscht nur deinen lokalen Save">RESET ALL</button>
         </div>
 
         <div class="hint" id="hintLine"></div>
@@ -279,7 +279,7 @@
           <div class="list" id="upgradeList"></div>
 
           <div class="hint">
-            RP schaltet Drohnen + Upgrades frei. Click bleibt relevant: er skaliert mit AI+GPU.
+            RP schaltet Drohnen + Upgrades frei. Click skaliert mit AI+GPU.
           </div>
         </div>
       </div>
@@ -738,7 +738,7 @@
 
     el.hintLine.innerHTML =
       `<span class="ok">TRAIN STEP</span> +${fmt(clickPower())} CU · ` +
-      `<span class="ok">DEPLOY</span> nutzt die ausgewählte Drohne (Kosten jetzt stabil).`;
+      `<span class="ok">DEPLOY</span> nutzt die ausgewählte Drohne.`;
 
     // buttons + status tag
     if(state.mission.active){
