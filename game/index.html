@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AENESCHE AI DRONE LAB</title>
+  <style>
+    :root{
+      --bg:#0a0a0a;
+      --panel:#0f0f0f;
+      --text:#eaeaea;
+      --muted:#7a7a7a;
+      --line:#1f1f1f;
+      --accent:#00ff88;
+      --warn:#ff4444;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      letter-spacing: .2px;
+    }
+    a{ color:var(--accent); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 16px 64px;
+    }
+    .topbar{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      border-bottom:1px solid var(--line);
+      padding-bottom:12px;
+      margin-bottom:16px;
+    }
+    .title{
+      font-size: 16px;
+      line-height: 1.2;
+    }
+    .sub{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:6px;
+    }
+    .row{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:16px;
+      margin-top:16px;
+    }
+    @media (max-width: 860px){
+      .row{ grid-template-columns: 1fr; }
+    }
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      padding:14px;
+    }
+    .panel h2{
+      margin:0 0 10px;
+      font-size:13px;
+      color:var(--accent);
+      font-weight:600;
+      letter-spacing:.6px;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:8px;
+    }
+    .stat{
+      border:1px solid var(--line);
+      padding:10px;
+      background:#0b0b0b;
+    }
+    .k{ color:var(--muted); font-size:11px; margin-bottom:6px; }
+    .v{ font-size:16px; }
+    .v small{ color:var(--muted); font-size:12px; }
+    .buttons{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    button{
+      appearance:none;
+      background:transparent;
+      color:var(--text);
+      border:1px solid var(--line);
+      padding:10px 12px;
+      cursor:pointer;
+      font-family:inherit;
+      font-size:12px;
+      letter-spacing:.3px;
+    }
+    button:hover{ border-color:var(--accent); color:var(--accent); }
+    button:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+      border-color:var(--line);
+      color:var(--muted);
+    }
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:10px;
+      line-height:1.35;
+    }
+    .mono{
+      border:1px solid var(--line);
+      background:#050505;
+      padding:10px;
+      font-size:12px;
+      white-space:pre-wrap;
+      min-height:180px;
+    }
+    .ok{ color:var(--accent); }
+    .bad{ color:var(--warn); }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .tag{
+      display:inline-block;
+      border:1px solid var(--line);
+      padding:3px 6px;
+      font-size:11px;
+      color:var(--muted);
+      margin-right:6px;
+    }
+    .footer{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <div class="title">AENESCHE AI DRONE LAB</div>
+        <div class="sub">Compute → GPU → Train Model → Deploy Drone → Research</div>
+      </div>
+      <div class="sub">
+        <span class="tag" id="saveTag">autosave: ON</span>
+        <a href="/">home</a>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- LEFT: Core -->
+      <div class="panel">
+        <h2>STATUS</h2>
+        <div class="stats">
+          <div class="stat">
+            <div class="k">Compute</div>
+            <div class="v"><span id="compute">0</span> <small>CU</small></div>
+          </div>
+          <div class="stat">
+            <div class="k">Research</div>
+            <div class="v"><span id="research">0</span> <small>RP</small></div>
+          </div>
+          <div class="stat">
+            <div class="k">AI Level</div>
+            <div class="v"><span id="aiLevel">1</span></div>
+          </div>
+          <div class="stat">
+            <div class="k">Loss</div>
+            <div class="v"><span id="loss">1.000</span></div>
+          </div>
+          <div class="stat">
+            <div class="k">Compute / sec</div>
+            <div class="v"><span id="cps">0</span> <small>CU/s</small></div>
+          </div>
+          <div class="stat">
+            <div class="k">Drone Success</div>
+            <div class="v"><span id="success">0</span><small>%</small></div>
+          </div>
+        </div>
+
+        <div class="buttons">
+          <button id="trainBtn">TRAIN STEP</button>
+          <button id="deployBtn">DEPLOY DRONE</button>
+          <button id="resetBtn" title="löscht nur deinen lokalen Save">RESET SAVE</button>
+        </div>
+
+        <div class="hint">
+          <span class="ok">TRAIN STEP</span> erzeugt Compute und reduziert Loss (kostet etwas Compute ab AI-Level 2).<br>
+          <span class="ok">DEPLOY DRONE</span> bringt große Rewards, abhängig von AI + Loss. Mission läuft kurz (Countdown).
+        </div>
+
+        <h2 style="margin-top:16px;">CONSOLE</h2>
+        <div class="mono" id="log"></div>
+
+        <div class="footer">
+          <div>Save: <span id="saveInfo">—</span></div>
+          <div>Build v0.1 · localStorage</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Systems -->
+      <div>
+        <div class="panel">
+          <h2>GPU SYSTEM</h2>
+          <div class="grid2">
+            <div class="stat">
+              <div class="k">Tier</div>
+              <div class="v"><span id="gpuTierName">CPU</span></div>
+            </div>
+            <div class="stat">
+              <div class="k">GPU Level</div>
+              <div class="v"><span id="gpuLevel">0</span></div>
+            </div>
+          </div>
+          <div class="hint" id="gpuDesc"></div>
+          <div class="buttons">
+            <button id="gpuUpBtn">UPGRADE GPU</button>
+          </div>
+          <div class="hint">
+            Upgrade erhöht passives Compute. Alle Kosten skalieren hoch (wie Cookie Clicker).
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:16px;">
+          <h2>AI / DRONE UPGRADES</h2>
+          <div class="hint">
+            Diese v0.1 hält’s minimal: AI wird durch Training besser, Drohne durch AI-Stats.<br>
+            Nächste Version könnte: Cooling / Dataset / Learning Rate / neue Drone-Typen.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const KEY = "aenesche_ai_drone_lab_v01";
+
+  const GPU_TIERS = [
+    { name: "CPU",        baseCps: 0,   baseCost: 0,     desc: "Bootstrap mode. Click training to start generating compute." },
+    { name: "GTX",        baseCps: 2,   baseCost: 50,    desc: "Entry GPU. Solid passive compute. Cheap upgrades." },
+    { name: "RTX",        baseCps: 10,  baseCost: 300,   desc: "Real training speed. Drones become profitable." },
+    { name: "CLUSTER",    baseCps: 45,  baseCost: 2000,  desc: "Multi-GPU cluster. Autonomy feels real." },
+    { name: "DATACENTER", baseCps: 220, baseCost: 15000, desc: "Datacenter scale. You are the infrastructure." },
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const el = {
+    compute: $("compute"),
+    research: $("research"),
+    aiLevel: $("aiLevel"),
+    loss: $("loss"),
+    cps: $("cps"),
+    success: $("success"),
+    log: $("log"),
+    saveInfo: $("saveInfo"),
+    gpuTierName: $("gpuTierName"),
+    gpuLevel: $("gpuLevel"),
+    gpuDesc: $("gpuDesc"),
+    saveTag: $("saveTag"),
+    trainBtn: $("trainBtn"),
+    deployBtn: $("deployBtn"),
+    gpuUpBtn: $("gpuUpBtn"),
+    resetBtn: $("resetBtn"),
+  };
+
+  const now = () => Date.now();
+
+  function defaultState(){
+    return {
+      compute: 0,
+      research: 0,
+      aiLevel: 1,
+      loss: 1.0,
+      gpuTier: 0,
+      gpuLevel: 0,
+      mission: { active: false, endsAt: 0, startedAt: 0 },
+      lastTick: now(),
+      createdAt: now(),
+    };
+  }
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return defaultState();
+      const s = JSON.parse(raw);
+      return { ...defaultState(), ...s };
+    } catch {
+      return defaultState();
+    }
+  }
+
+  function save(){
+    localStorage.setItem(KEY, JSON.stringify(state));
+    el.saveInfo.textContent = new Date().toLocaleTimeString();
+  }
+
+  function fmt(n){
+    if (n < 1000) return String(Math.floor(n));
+    const units = ["k","M","B","T"];
+    let u = -1;
+    while(n >= 1000 && u < units.length-1){ n/=1000; u++; }
+    return (n < 10 ? n.toFixed(2) : n < 100 ? n.toFixed(1) : n.toFixed(0)) + units[u];
+  }
+
+  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+  function log(line, cls=""){
+    const t = new Date().toLocaleTimeString();
+    const span = document.createElement("div");
+    span.innerHTML = `[${t}] ${cls ? `<span class="${cls}">` : ""}${escapeHtml(line)}${cls ? `</span>` : ""}`;
+    el.log.appendChild(span);
+    el.log.scrollTop = el.log.scrollHeight;
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;");
+  }
+
+  function gpuCps(){
+    const tier = GPU_TIERS[state.gpuTier];
+    const level = state.gpuLevel;
+    // scale passive compute with level; starts from baseCps and grows
+    const mult = Math.pow(1.15, level);
+    return tier.baseCps * mult;
+  }
+
+  function gpuUpgradeCost(){
+    const nextTier = (state.gpuTier === 0) ? 1 : state.gpuTier;
+    const tier = GPU_TIERS[nextTier];
+    // If at CPU, first upgrade buys GTX level 0 -> cost baseCost
+    // Otherwise upgrades increase level cost
+    const level = (state.gpuTier === 0) ? 0 : state.gpuLevel + 1;
+    return tier.baseCost * Math.pow(1.18, level);
+  }
+
+  function maybeTierUp(){
+    // Tier upgrades happen automatically at certain GPU levels for simplicity
+    // You can tweak thresholds later
+    const thresholds = [0, 0, 8, 16, 26]; // tier index -> level required to unlock next tier
+    if(state.gpuTier < GPU_TIERS.length - 1 && state.gpuLevel >= thresholds[state.gpuTier + 1]){
+      state.gpuTier += 1;
+      log(`GPU TIER UPGRADE → ${GPU_TIERS[state.gpuTier].name}`, "ok");
+    }
+  }
+
+  function trainStep(){
+    // Training generates compute directly + improves AI
+    // Mild cost once AI grows: "training consumes compute"
+    const baseGain = 1 + state.aiLevel * 0.6;
+    const gain = baseGain * (1 + state.research * 0.01);
+
+    // cost kicks in after AI level 2
+    const cost = (state.aiLevel >= 2) ? (0.25 * state.aiLevel) : 0;
+
+    if(state.compute < cost){
+      log(`TRAIN aborted: need ${fmt(cost)} CU`, "bad");
+      return;
+    }
+
+    state.compute = Math.max(0, state.compute - cost);
+    state.compute += gain;
+
+    // reduce loss, diminishing returns; never below 0.05
+    const delta = 0.02 / (1 + state.aiLevel * 0.12);
+    state.loss = clamp(state.loss - delta, 0.05, 1.0);
+
+    // level up when loss reaches certain milestones
+    const target = Math.max(0.06, 1.0 / (1 + state.aiLevel * 0.35));
+    if(state.loss <= target){
+      state.aiLevel += 1;
+      // bump loss slightly to keep progress interesting
+      state.loss = clamp(state.loss + 0.08, 0.05, 1.0);
+      log(`MODEL LEVEL UP → L${state.aiLevel}`, "ok");
+    } else {
+      log(`train: +${fmt(gain)} CU, loss -${delta.toFixed(4)}`);
+    }
+  }
+
+  function successChance(){
+    // chance increases with AI and lower loss; capped
+    const ai = state.aiLevel;
+    const loss = state.loss;
+    const base = 35 + ai * 4.5;           // AI helps
+    const penalty = (loss * 55);          // loss hurts
+    const gpuBonus = Math.log10(1 + gpuCps()) * 8; // some benefit
+    return clamp(base - penalty + gpuBonus, 5, 95);
+  }
+
+  function deployDrone(){
+    if(state.mission.active){
+      log("Mission already active.", "bad");
+      return;
+    }
+    const minCost = 25 + state.aiLevel * 10;
+    if(state.compute < minCost){
+      log(`Need ${fmt(minCost)} CU to deploy drone.`, "bad");
+      return;
+    }
+
+    state.compute -= minCost;
+
+    // Mission duration scales slightly
+    const durMs = 8000;
+    state.mission = { active: true, startedAt: now(), endsAt: now() + durMs };
+
+    log(`DRONE DEPLOYED (cost ${fmt(minCost)} CU). ETA 8s...`, "ok");
+  }
+
+  function resolveMission(){
+    state.mission.active = false;
+    const chance = successChance();
+    const roll = Math.random() * 100;
+
+    if(roll <= chance){
+      // Rewards scale with AI and GPU
+      const gpu = gpuCps();
+      const computeReward = (150 + state.aiLevel * 80) * (1 + Math.log10(1 + gpu));
+      const rpReward = clamp((chance / 35) + (state.aiLevel / 12), 1, 6);
+
+      state.compute += computeReward;
+      state.research += Math.floor(rpReward);
+
+      log(`MISSION SUCCESS → +${fmt(computeReward)} CU, +${Math.floor(rpReward)} RP`, "ok");
+    } else {
+      // Failure: small consolation and slight loss increase
+      const consolation = 15 + state.aiLevel * 8;
+      state.compute += consolation;
+      state.loss = clamp(state.loss + 0.03, 0.05, 1.0);
+      log(`MISSION FAIL → +${fmt(consolation)} CU consolation, loss +0.03`, "bad");
+    }
+  }
+
+  function upgradeGpu(){
+    const cost = gpuUpgradeCost();
+    if(state.compute < cost){
+      log(`GPU upgrade needs ${fmt(cost)} CU`, "bad");
+      return;
+    }
+    state.compute -= cost;
+
+    if(state.gpuTier === 0){
+      state.gpuTier = 1; // first purchase: move to GTX
+      state.gpuLevel = 0;
+      log(`GPU ONLINE → ${GPU_TIERS[state.gpuTier].name}`, "ok");
+    } else {
+      state.gpuLevel += 1;
+      maybeTierUp();
+      log(`GPU upgraded → level ${state.gpuLevel}`, "ok");
+    }
+  }
+
+  function resetSave(){
+    localStorage.removeItem(KEY);
+    state = defaultState();
+    log("Save wiped. Fresh boot.", "bad");
+    render();
+    save();
+  }
+
+  function tick(){
+    const t = now();
+    const dt = (t - state.lastTick) / 1000;
+    state.lastTick = t;
+
+    // Passive compute
+    const cps = gpuCps();
+    state.compute += cps * dt;
+
+    // Mission countdown
+    if(state.mission.active && t >= state.mission.endsAt){
+      resolveMission();
+    }
+
+    render();
+  }
+
+  function render(){
+    el.compute.textContent = fmt(state.compute);
+    el.research.textContent = fmt(state.research);
+    el.aiLevel.textContent = state.aiLevel;
+    el.loss.textContent = state.loss.toFixed(3);
+
+    const cps = gpuCps();
+    el.cps.textContent = cps.toFixed(cps < 10 ? 2 : 1);
+
+    const chance = Math.round(successChance());
+    el.success.textContent = chance;
+
+    el.gpuTierName.textContent = GPU_TIERS[state.gpuTier].name;
+    el.gpuLevel.textContent = state.gpuLevel;
+
+    // GPU description + next cost
+    const cost = gpuUpgradeCost();
+    const tierPreview = (state.gpuTier === 0) ? GPU_TIERS[1].name : GPU_TIERS[state.gpuTier].name;
+    el.gpuDesc.textContent =
+      `Next upgrade cost: ${fmt(cost)} CU · Tier: ${tierPreview} · Passive: ${cps.toFixed(cps < 10 ? 2 : 1)} CU/s`;
+
+    // Buttons
+    const missionActive = state.mission.active;
+    el.deployBtn.disabled = missionActive;
+    el.trainBtn.textContent = missionActive
+      ? `TRAIN STEP`
+      : `TRAIN STEP`;
+
+    el.deployBtn.textContent = missionActive
+      ? `MISSION IN PROGRESS…`
+      : `DEPLOY DRONE`;
+
+    // Show countdown in log area tag
+    if(missionActive){
+      const left = Math.max(0, state.mission.endsAt - now());
+      el.saveTag.textContent = `mission: ${Math.ceil(left/1000)}s`;
+      el.saveTag.style.borderColor = "var(--accent)";
+      el.saveTag.style.color = "var(--accent)";
+    } else {
+      el.saveTag.textContent = "autosave: ON";
+      el.saveTag.style.borderColor = "var(--line)";
+      el.saveTag.style.color = "var(--muted)";
+    }
+  }
+
+  let state = load();
+
+  // Boot message
+  function boot(){
+    el.log.innerHTML = "";
+    log("boot: ai_drone_lab v0.1");
+    log("storage: localStorage enabled");
+    log("tip: get a GPU for passive compute.", "ok");
+  }
+
+  // Events
+  el.trainBtn.addEventListener("click", () => { trainStep(); render(); });
+  el.deployBtn.addEventListener("click", () => { deployDrone(); render(); });
+  el.gpuUpBtn.addEventListener("click", () => { upgradeGpu(); render(); });
+  el.resetBtn.addEventListener("click", () => {
+    const ok = confirm("Reset save? (löscht nur dein lokales Savegame)");
+    if(ok) resetSave();
+  });
+
+  // Autosave
+  setInterval(save, 5000);
+  window.addEventListener("beforeunload", save);
+
+  // Main loop
+  boot();
+  render();
+  save();
+  setInterval(tick, 100);
+})();
+</script>
+</body>
+</html>
