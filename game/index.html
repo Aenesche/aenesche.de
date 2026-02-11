@@ -288,9 +288,8 @@
 
 <script>
 (() => {
-  const KEY = "aenesche_ai_drone_lab_v02";
+  const KEY = "aenesche_ai_drone_lab_v021";
 
-  // ---------- CONFIG ----------
   const GPU_TIERS = [
     { name: "CPU",        baseCps: 0,    baseCost: 0 },
     { name: "GTX",        baseCps: 2.5,  baseCost: 60 },
@@ -300,21 +299,20 @@
   ];
 
   const DRONES = [
-    { id:"temu",     tier:1, name:"Temu Drone",       unlockRP:0,   baseSuccess:70, durationMs:6500,  costBase:18,  rewardBase:65,  rpMin:1, rpMax:2, riskLossOnFail:0.02 },
-    { id:"amazon",   tier:2, name:"Amazon Drone",     unlockRP:5,   baseSuccess:62, durationMs:7500,  costBase:40,  rewardBase:140, rpMin:1, rpMax:3, riskLossOnFail:0.03 },
-    { id:"air3s",    tier:3, name:"DJI Air 3S",       unlockRP:20,  baseSuccess:56, durationMs:8500,  costBase:90,  rewardBase:280, rpMin:2, rpMax:4, riskLossOnFail:0.04 },
-    { id:"cine",     tier:4, name:"FPV Cinelifter",   unlockRP:60,  baseSuccess:48, durationMs:9500,  costBase:170, rewardBase:520, rpMin:3, rpMax:6, riskLossOnFail:0.06 },
-    { id:"matrice",  tier:5, name:"DJI Matrice",      unlockRP:150, baseSuccess:42, durationMs:11000, costBase:320, rewardBase:980, rpMin:5, rpMax:9, riskLossOnFail:0.08 },
+    { id:"temu",    tier:1, name:"Temu Drone",       unlockRP:0,   baseSuccess:70, durationMs:6500,  costBase:18,  rewardBase:65,  rpMin:1, rpMax:2, riskLossOnFail:0.02 },
+    { id:"amazon",  tier:2, name:"Amazon Drone",     unlockRP:5,   baseSuccess:62, durationMs:7500,  costBase:40,  rewardBase:140, rpMin:1, rpMax:3, riskLossOnFail:0.03 },
+    { id:"air3s",   tier:3, name:"DJI Air 3S",       unlockRP:20,  baseSuccess:56, durationMs:8500,  costBase:90,  rewardBase:280, rpMin:2, rpMax:4, riskLossOnFail:0.04 },
+    { id:"cine",    tier:4, name:"FPV Cinelifter",   unlockRP:60,  baseSuccess:48, durationMs:9500,  costBase:170, rewardBase:520, rpMin:3, rpMax:6, riskLossOnFail:0.06 },
+    { id:"matrice", tier:5, name:"DJI Matrice",      unlockRP:150, baseSuccess:42, durationMs:11000, costBase:320, rewardBase:980, rpMin:5, rpMax:9, riskLossOnFail:0.08 },
   ];
 
   const UPGRADES = [
-    { id:"cooling",   name:"Cooling",        costRP:8,   desc:"+10% GPU compute", apply:(s)=>s.bonusGpuMult=1.10 },
-    { id:"dataset",   name:"Dataset++",      costRP:12,  desc:"+15% click power", apply:(s)=>s.bonusClickMult=1.15 },
-    { id:"autonomy",  name:"Autonomy",       costRP:18,  desc:"-15% mission time", apply:(s)=>s.bonusMissionTimeMult=0.85 },
-    { id:"frame",     name:"Reinforced Frame",costRP:25, desc:"fail penalty reduced", apply:(s)=>s.bonusFailLossMult=0.65 },
+    { id:"cooling",   name:"Cooling",          costRP:8,  desc:"+10% GPU compute",         apply:(s)=>s.bonusGpuMult=1.10 },
+    { id:"dataset",   name:"Dataset++",        costRP:12, desc:"+15% click power",         apply:(s)=>s.bonusClickMult=1.15 },
+    { id:"autonomy",  name:"Autonomy",         costRP:18, desc:"-15% mission time",        apply:(s)=>s.bonusMissionTimeMult=0.85 },
+    { id:"frame",     name:"Reinforced Frame", costRP:25, desc:"fail penalty reduced",     apply:(s)=>s.bonusFailLossMult=0.65 },
   ];
 
-  // ---------- DOM ----------
   const $ = (id) => document.getElementById(id);
   const el = {
     compute: $("compute"),
@@ -360,7 +358,6 @@
       selectedDroneId: "temu",
       purchasedUpgrades: {},
 
-      // derived bonuses (computed from purchasedUpgrades)
       bonusGpuMult: 1.0,
       bonusClickMult: 1.0,
       bonusMissionTimeMult: 1.0,
@@ -398,22 +395,9 @@
     return (n < 10 ? n.toFixed(2) : n < 100 ? n.toFixed(1) : n.toFixed(0)) + units[u];
   }
 
-  // ---------- CONSOLE (auto-trim + soft clear) ----------
-  const MAX_LOG_LINES = 80;
+  // ---------- CONSOLE ----------
+  const MAX_LOG_LINES = 60;
   const SOFT_CLEAR_MS = 90_000;
-
-  function log(line, cls=""){
-    const t = new Date().toLocaleTimeString();
-    const div = document.createElement("div");
-    div.innerHTML = `[${t}] ${cls ? `<span class="${cls}">` : ""}${escapeHtml(line)}${cls ? `</span>` : ""}`;
-    el.log.appendChild(div);
-
-    // trim
-    while(el.log.childNodes.length > MAX_LOG_LINES){
-      el.log.removeChild(el.log.firstChild);
-    }
-    el.log.scrollTop = el.log.scrollHeight;
-  }
 
   function escapeHtml(s){
     return String(s)
@@ -422,12 +406,31 @@
       .replaceAll(">","&gt;");
   }
 
+  function log(line, cls=""){
+    const t = new Date().toLocaleTimeString();
+    const div = document.createElement("div");
+    div.innerHTML = `[${t}] ${cls ? `<span class="${cls}">` : ""}${escapeHtml(line)}${cls ? `</span>` : ""}`;
+    el.log.appendChild(div);
+    while(el.log.childNodes.length > MAX_LOG_LINES){
+      el.log.removeChild(el.log.firstChild);
+    }
+    el.log.scrollTop = el.log.scrollHeight;
+  }
+
   function maybeSoftClear(){
     if(now() - state.lastConsoleClear >= SOFT_CLEAR_MS){
       el.log.innerHTML = "";
       state.lastConsoleClear = now();
       log("console cleared (auto)", "ok");
     }
+  }
+
+  // ---------- HELPERS ----------
+  function getDrone(id){
+    return DRONES.find(d => d.id === id) || DRONES[0];
+  }
+  function unlocked(drone){
+    return state.research >= drone.unlockRP;
   }
 
   // ---------- BONUSES ----------
@@ -459,7 +462,6 @@
   }
 
   function maybeTierUp(){
-    // thresholds tuned to feel smoother
     const thresholds = [0, 0, 10, 20, 32];
     if(state.gpuTier < GPU_TIERS.length - 1 && state.gpuLevel >= thresholds[state.gpuTier + 1]){
       state.gpuTier += 1;
@@ -488,20 +490,16 @@
 
   // ---------- CLICK / TRAIN ----------
   function clickPower(){
-    // stays relevant later
     const ai = state.aiLevel;
     const gpu = state.gpuTier;
     const rp = state.research;
-
     const base = 1 + ai * 0.55 + gpu * 2.0;
-    const rpBonus = 1 + Math.min(0.25, rp * 0.005); // up to +25%
+    const rpBonus = 1 + Math.min(0.25, rp * 0.005);
     return base * rpBonus * state.bonusClickMult;
   }
 
   function trainStep(){
     const gain = clickPower();
-
-    // small cost scaling to avoid infinite click-only, but not annoying early
     const cost = Math.max(0, (state.aiLevel - 1) * 0.20);
     if(state.compute < cost){
       log(`TRAIN aborted: need ${fmt(cost)} CU`, "bad");
@@ -510,11 +508,9 @@
     state.compute -= cost;
     state.compute += gain;
 
-    // Loss reduction (diminishing returns)
     const delta = 0.018 / (1 + state.aiLevel * 0.10);
     state.loss = clamp(state.loss - delta, 0.05, 1.0);
 
-    // Level up rule (smoother)
     const target = Math.max(0.07, 0.95 / (1 + state.aiLevel * 0.30));
     if(state.loss <= target){
       state.aiLevel += 1;
@@ -525,27 +521,13 @@
     }
   }
 
-  // ---------- DRONES ----------
-  function getDrone(id){
-    return DRONES.find(d => d.id === id) || DRONES[0];
-  }
-
-  function unlocked(drone){
-    return state.research >= drone.unlockRP;
-  }
-
+  // ---------- DRONES (FIXED COST + NO REFUND ON FAIL) ----------
   function successChance(drone){
-    // Fair early, capped later
     const aiBoost = state.aiLevel * 3.2;
     const lossPenalty = state.loss * 38;
     const gpuBonus = Math.log10(1 + gpuCps()) * 7;
-
     let s = drone.baseSuccess + aiBoost - lossPenalty + gpuBonus;
-
-    // tiers add slight risk
     s -= (drone.tier - 1) * 2.0;
-
-    // cap so it never becomes "permanent win"
     return clamp(s, 25, 92);
   }
 
@@ -553,13 +535,14 @@
     return Math.round(drone.durationMs * state.bonusMissionTimeMult);
   }
 
+  // ✅ FIX: cost no longer depends on AI or “attempts”
   function missionCost(drone){
-    // cost scales with tier + ai a bit
-    return drone.costBase + (drone.tier * 10) + state.aiLevel * 4;
+    // stable per drone tier (small tier factor only)
+    const tierMult = 1 + (drone.tier - 1) * 0.18;
+    return Math.round(drone.costBase * tierMult);
   }
 
   function missionReward(drone){
-    // rewards scale nicely but not runaway: sqrt/log style
     const ai = state.aiLevel;
     const gpu = gpuCps();
     const base = drone.rewardBase;
@@ -587,47 +570,33 @@
 
     state.compute -= cost;
     const dur = missionDuration(drone);
-
     state.mission = { active:true, startedAt: now(), endsAt: now() + dur, droneId: drone.id };
     log(`DEPLOY → ${drone.name} (cost ${fmt(cost)} CU). ETA ${Math.ceil(dur/1000)}s`, "ok");
   }
 
   function resolveMission(){
     const drone = getDrone(state.mission.droneId || state.selectedDroneId);
-    state.mission.active = false;
-
     const chance = successChance(drone);
     const roll = Math.random() * 100;
 
     if(roll <= chance){
       const rewardCU = missionReward(drone);
-
-      // RP reward: tier based range + small ai factor
       const rp = Math.floor(clamp(
         drone.rpMin + (Math.random() * (drone.rpMax - drone.rpMin + 1)) + (state.aiLevel / 18),
         drone.rpMin, drone.rpMax + 2
       ));
-
       state.compute += rewardCU;
       state.research += rp;
-
       log(`SUCCESS → ${drone.name}: +${fmt(rewardCU)} CU, +${rp} RP`, "ok");
     } else {
-      const consolation = Math.max(10, missionReward(drone) * 0.10);
-      state.compute += consolation;
-
+      // ✅ FIX: no compute refund on fail
       const lossAdd = drone.riskLossOnFail * state.bonusFailLossMult;
       state.loss = clamp(state.loss + lossAdd, 0.05, 1.0);
-
-      log(`FAIL → ${drone.name}: +${fmt(consolation)} CU consolation, loss +${lossAdd.toFixed(2)}`, "bad");
+      log(`FAIL → ${drone.name}: loss +${lossAdd.toFixed(2)} (no refund)`, "bad");
     }
   }
 
   // ---------- RP UPGRADES ----------
-  function canBuyUpgrade(up){
-    return !state.purchasedUpgrades[up.id] && state.research >= up.costRP;
-  }
-
   function buyUpgrade(up){
     if(state.purchasedUpgrades[up.id]){
       log(`Upgrade already active: ${up.name}`, "bad");
@@ -643,72 +612,94 @@
     log(`RESEARCH COMPLETE → ${up.name}`, "ok");
   }
 
-  // ---------- UI LISTS ----------
-  function renderDroneList(){
+  // ---------- BUILD LISTS ONCE (FIX BUTTONS) ----------
+  const droneRowEls = new Map();
+  const upgradeRowEls = new Map();
+
+  function initDroneList(){
     el.droneList.innerHTML = "";
     for(const d of DRONES){
       const box = document.createElement("div");
       box.className = "item";
+      box.innerHTML = `
+        <div class="itemTop">
+          <div class="itemName" id="dn_${d.id}">${d.name} <span style="color:var(--muted);font-size:11px;">(T${d.tier})</span></div>
+          <div class="itemMeta" id="dm_${d.id}"></div>
+        </div>
+        <div class="itemMeta" style="margin-top:6px;" id="ds_${d.id}"></div>
+        <div class="itemBtns">
+          <button class="mini" id="db_${d.id}">SELECT</button>
+        </div>
+      `;
+      el.droneList.appendChild(box);
 
+      droneRowEls.set(d.id, {
+        meta: box.querySelector(`#dm_${d.id}`),
+        stats: box.querySelector(`#ds_${d.id}`),
+        btn:  box.querySelector(`#db_${d.id}`),
+      });
+
+      droneRowEls.get(d.id).btn.addEventListener("click", () => {
+        state.selectedDroneId = d.id;
+        log(`Selected drone → ${getDrone(state.selectedDroneId).name}`, "ok");
+        render();
+      });
+    }
+  }
+
+  function initUpgradeList(){
+    el.upgradeList.innerHTML = "";
+    for(const up of UPGRADES){
+      const box = document.createElement("div");
+      box.className = "item";
+      box.innerHTML = `
+        <div class="itemTop">
+          <div class="itemName">${up.name}</div>
+          <div class="itemMeta" id="um_${up.id}"></div>
+        </div>
+        <div class="itemMeta" style="margin-top:6px;">${up.desc}</div>
+        <div class="itemBtns">
+          <button class="mini" id="ub_${up.id}">BUY</button>
+        </div>
+      `;
+      el.upgradeList.appendChild(box);
+
+      upgradeRowEls.set(up.id, {
+        meta: box.querySelector(`#um_${up.id}`),
+        btn:  box.querySelector(`#ub_${up.id}`),
+      });
+
+      upgradeRowEls.get(up.id).btn.addEventListener("click", () => {
+        buyUpgrade(up);
+        render();
+      });
+    }
+  }
+
+  function updateDroneList(){
+    for(const d of DRONES){
+      const row = droneRowEls.get(d.id);
       const isUnlocked = unlocked(d);
       const isSelected = state.selectedDroneId === d.id;
-
       const chance = Math.round(successChance(d));
       const dur = Math.ceil(missionDuration(d)/1000);
       const cost = missionCost(d);
 
-      box.innerHTML = `
-        <div class="itemTop">
-          <div class="itemName">${d.name} <span style="color:var(--muted);font-size:11px;">(T${d.tier})</span></div>
-          <div class="itemMeta">${isUnlocked ? "unlocked" : `locked · ${d.unlockRP} RP`}</div>
-        </div>
-        <div class="itemMeta" style="margin-top:6px;">
-          success ~${chance}% · ETA ${dur}s · cost ${fmt(cost)} CU
-        </div>
-        <div class="itemBtns">
-          <button class="mini" ${isUnlocked ? "" : "disabled"} data-select="${d.id}">${isSelected ? "SELECTED" : "SELECT"}</button>
-        </div>
-      `;
-      el.droneList.appendChild(box);
+      row.meta.textContent = isUnlocked ? "unlocked" : `locked · ${d.unlockRP} RP`;
+      row.stats.textContent = `success ~${chance}% · ETA ${dur}s · cost ${fmt(cost)} CU`;
+      row.btn.disabled = !isUnlocked;
+      row.btn.textContent = isSelected ? "SELECTED" : "SELECT";
     }
-
-    el.droneList.querySelectorAll("button[data-select]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        state.selectedDroneId = btn.getAttribute("data-select");
-        log(`Selected drone → ${getDrone(state.selectedDroneId).name}`, "ok");
-        render();
-      });
-    });
   }
 
-  function renderUpgradeList(){
-    el.upgradeList.innerHTML = "";
+  function updateUpgradeList(){
     for(const up of UPGRADES){
+      const row = upgradeRowEls.get(up.id);
       const active = !!state.purchasedUpgrades[up.id];
-      const box = document.createElement("div");
-      box.className = "item";
-
-      box.innerHTML = `
-        <div class="itemTop">
-          <div class="itemName">${up.name}</div>
-          <div class="itemMeta">${active ? "active" : `${up.costRP} RP`}</div>
-        </div>
-        <div class="itemMeta" style="margin-top:6px;">${up.desc}</div>
-        <div class="itemBtns">
-          <button class="mini" ${active ? "disabled" : ""} data-buy="${up.id}">${active ? "ACTIVE" : "BUY"}</button>
-        </div>
-      `;
-      el.upgradeList.appendChild(box);
+      row.meta.textContent = active ? "active" : `${up.costRP} RP`;
+      row.btn.disabled = active;
+      row.btn.textContent = active ? "ACTIVE" : "BUY";
     }
-
-    el.upgradeList.querySelectorAll("button[data-buy]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-buy");
-        const up = UPGRADES.find(u => u.id === id);
-        if(up) buyUpgrade(up);
-        render();
-      });
-    });
   }
 
   // ---------- RENDER ----------
@@ -745,52 +736,47 @@
     el.gpuDesc.textContent =
       `Next upgrade cost: ${fmt(gpuCost)} CU · Tier: ${tierPreview} · Passive: ${cps.toFixed(cps < 10 ? 2 : 1)} CU/s`;
 
-    // hint line
     el.hintLine.innerHTML =
-      `<span class="ok">TRAIN STEP</span> +${fmt(clickPower())} CU (skalierend) · ` +
-      `<span class="ok">DEPLOY</span> nutzt die ausgewählte Drohne (RP unlockt Tiers + Upgrades).`;
+      `<span class="ok">TRAIN STEP</span> +${fmt(clickPower())} CU · ` +
+      `<span class="ok">DEPLOY</span> nutzt die ausgewählte Drohne (Kosten jetzt stabil).`;
 
-    // buttons
-    el.deployBtn.disabled = state.mission.active;
-    el.deployBtn.textContent = state.mission.active ? "MISSION IN PROGRESS…" : "DEPLOY DRONE";
-
-    // status tag
+    // buttons + status tag
     if(state.mission.active){
       const left = Math.max(0, state.mission.endsAt - now());
       el.statusTag.textContent = `mission: ${Math.ceil(left/1000)}s`;
       el.statusTag.style.borderColor = "var(--accent)";
       el.statusTag.style.color = "var(--accent)";
+      el.deployBtn.disabled = true;
+      el.deployBtn.textContent = "MISSION IN PROGRESS…";
     } else {
       el.statusTag.textContent = "autosave: ON";
       el.statusTag.style.borderColor = "var(--line)";
       el.statusTag.style.color = "var(--muted)";
+      el.deployBtn.disabled = false;
+      el.deployBtn.textContent = "DEPLOY DRONE";
     }
 
-    renderDroneList();
-    renderUpgradeList();
+    updateDroneList();
+    updateUpgradeList();
   }
 
   // ---------- LOOP ----------
   function tick(){
     maybeSoftClear();
-
     const t = now();
     const dt = (t - state.lastTick) / 1000;
     state.lastTick = t;
 
-    // passive compute
     state.compute += gpuCps() * dt;
 
-    // mission done?
     if(state.mission.active && t >= state.mission.endsAt){
-      state.mission.active = false; // mark before resolving to prevent double
+      state.mission.active = false;
       resolveMission();
     }
 
     render();
   }
 
-  // ---------- RESET ----------
   function resetSave(){
     localStorage.removeItem(KEY);
     state = defaultState();
@@ -799,17 +785,20 @@
     save();
   }
 
-  // ---------- BOOT ----------
   function boot(){
     el.log.innerHTML = "";
-    log("boot: ai_drone_lab v0.2", "ok");
-    log("changes: drone tiers + RP unlocks + click scaling", "ok");
-    log("tip: buy GPU → passive CU, then farm RP with Temu/Amazon", "ok");
+    log("boot: ai_drone_lab v0.21", "ok");
+    log("fix: reliable buttons (no rerender spam)", "ok");
+    log("fix: stable drone costs + no fail refunds", "ok");
+    log("tip: Temu → farm RP → unlock Amazon/Air 3S", "ok");
   }
 
-  // ---------- EVENTS ----------
+  // ---------- START ----------
   let state = load();
   recomputeBonuses();
+
+  initDroneList();
+  initUpgradeList();
 
   el.trainBtn.addEventListener("click", () => { trainStep(); render(); });
   el.deployBtn.addEventListener("click", () => { deployDrone(); render(); });
@@ -819,15 +808,13 @@
     if(ok) resetSave();
   });
 
-  // autosave
   setInterval(save, 5000);
   window.addEventListener("beforeunload", save);
 
-  // start
   boot();
   render();
   save();
-  setInterval(tick, 120);
+  setInterval(tick, 200);
 })();
 </script>
 </body>
