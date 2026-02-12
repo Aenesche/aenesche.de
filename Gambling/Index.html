@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Aenesche / Gambling</title>
+  <meta name="theme-color" content="#0b0e14" />
+  <style>
+    :root{
+      --bg:#0b0e14;
+      --card:#101624cc;
+      --border:#1f2a44;
+      --text:#eaf0ff;
+      --muted:#9fb0d0;
+      --accent:#7c5cff;
+      --accent2:#2ee9a6;
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius:18px;
+      --blur: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(124,92,255,.18), transparent 60%),
+                  radial-gradient(900px 600px at 80% 25%, rgba(46,233,166,.10), transparent 55%),
+                  linear-gradient(180deg, #060810, #0b0e14 40%, #05070d);
+      overflow-x:hidden;
+    }
+    .bg-glow{
+      position:fixed; inset:-120px; z-index:-1; opacity:.9;
+      background: radial-gradient(circle at 20% 30%, rgba(124,92,255,.20), transparent 40%),
+                  radial-gradient(circle at 70% 60%, rgba(46,233,166,.12), transparent 45%),
+                  radial-gradient(circle at 50% 90%, rgba(255,77,109,.08), transparent 45%);
+      filter: blur(40px);
+    }
+    .muted{color:var(--muted)}
+    .small{font-size:.88rem}
+    .tiny{font-size:.82rem; opacity:.9}
+    .mono{font-family:var(--mono)}
+
+    .topbar{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:18px 20px;
+      max-width:1150px; margin:0 auto;
+    }
+    .brand{display:flex; gap:12px; align-items:center}
+    .logo-dot{
+      width:14px; height:14px; border-radius:999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 0 0 6px rgba(124,92,255,.12);
+    }
+    .brand-title{font-weight:800; letter-spacing:.2px}
+    .brand-sub{font-size:.9rem; color:var(--muted); margin-top:2px}
+
+    .wallet{display:flex; gap:10px; align-items:center}
+    .pill{
+      display:flex; gap:10px; align-items:baseline;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      background: rgba(16,22,36,.55);
+      border-radius:999px;
+      backdrop-filter: blur(var(--blur));
+    }
+    .balance{font-weight:800; font-size:1.05rem}
+
+    .wrap{max-width:1150px; margin:0 auto; padding:0 20px 40px}
+
+    .card{
+      background: linear-gradient(180deg, rgba(16,22,36,.85), rgba(12,16,28,.78));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(var(--blur));
+    }
+    .hero{
+      padding:22px;
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:18px;
+      margin-bottom:18px;
+    }
+    .hero h1{margin:0 0 10px; font-size:2.0rem; letter-spacing:-.3px}
+    .hero p{margin:0 0 16px; line-height:1.35}
+
+    .work-row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+    .work-info{
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: rgba(10,14,24,.35);
+      min-width:140px;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+    }
+    .stat{
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: rgba(10,14,24,.35);
+    }
+    #equippedCosmetics{
+      margin-top:12px;
+      padding:10px 12px;
+      border:1px dashed rgba(159,176,208,.35);
+      border-radius:14px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:14px;
+    }
+    .card > *{padding:16px}
+    .card-head{
+      display:flex; justify-content:space-between; align-items:center;
+      padding-bottom:0;
+    }
+    .card-head h2{margin:0; font-size:1.15rem}
+    .tag{
+      font-size:.78rem;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(159,176,208,.25);
+      color:rgba(234,240,255,.85);
+      background: rgba(10,14,24,.35);
+    }
+
+    .row{display:flex; gap:10px; align-items:center; margin-top:12px}
+    .label{width:92px; color:var(--muted); font-size:.92rem}
+    .input{
+      flex:1;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(159,176,208,.20);
+      background: rgba(7,10,18,.45);
+      color:var(--text);
+      outline:none;
+    }
+    .input:focus{border-color: rgba(124,92,255,.55); box-shadow: 0 0 0 4px rgba(124,92,255,.12)}
+
+    .seg{display:flex; gap:8px; flex-wrap:wrap}
+    .segbtn{
+      padding:9px 11px;
+      border-radius:12px;
+      border:1px solid rgba(159,176,208,.20);
+      background: rgba(7,10,18,.35);
+      color:rgba(234,240,255,.9);
+      cursor:pointer;
+      transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+    }
+    .segbtn:hover{transform: translateY(-1px)}
+    .segbtn.active{border-color: rgba(124,92,255,.6); background: rgba(124,92,255,.14)}
+    .segbtn:disabled{opacity:.55; cursor:not-allowed; transform:none}
+
+    .btn{
+      width:100%;
+      margin-top:12px;
+      padding:11px 14px;
+      border-radius:14px;
+      border:1px solid rgba(159,176,208,.22);
+      background: rgba(10,14,24,.45);
+      color:var(--text);
+      cursor:pointer;
+      font-weight:700;
+      transition: transform .06s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
+    }
+    .btn:hover{transform: translateY(-1px); border-color: rgba(124,92,255,.45)}
+    .btn:active{transform: translateY(0px)}
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(124,92,255,.85), rgba(46,233,166,.55));
+      border-color: rgba(255,255,255,.12);
+    }
+    .btn.ghost{
+      width:auto;
+      padding:10px 12px;
+      margin-top:0;
+      background: rgba(10,14,24,.22);
+    }
+    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none}
+
+    .out{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(159,176,208,.18);
+      background: rgba(7,10,18,.30);
+      min-height:42px;
+      display:flex;
+      align-items:center;
+    }
+
+    .slots{display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-top:12px}
+    .reel{
+      padding:16px 10px;
+      text-align:center;
+      border-radius:14px;
+      border:1px solid rgba(159,176,208,.20);
+      background: rgba(7,10,18,.35);
+      font-size:1.4rem;
+    }
+
+    .store{margin-top:14px}
+    .store-grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+      padding-top:12px;
+    }
+    .item{
+      padding:14px;
+      border-radius:16px;
+      border:1px solid rgba(159,176,208,.18);
+      background: rgba(7,10,18,.28);
+    }
+    .item h3{margin:0 0 6px; font-size:1.0rem}
+    .item .price{font-weight:900}
+    .item .desc{margin:6px 0 10px; color:var(--muted); font-size:.9rem; line-height:1.25}
+    .item .row2{display:flex; justify-content:space-between; align-items:center; gap:10px}
+
+    .footer{max-width:1150px; margin:12px auto 30px; padding:0 20px; opacity:.9}
+
+    /* Cosmetics hooks */
+    body.theme-gold{ --accent:#ffcc66; --accent2:#ffdca6; }
+    body.theme-neon{ --accent:#00e5ff; --accent2:#b100ff; }
+    body.card-glass .card{
+      background: linear-gradient(180deg, rgba(16,22,36,.60), rgba(10,12,20,.50));
+      border-color: rgba(159,176,208,.22);
+    }
+    body.coin-glow .pill{
+      box-shadow: 0 0 0 1px rgba(124,92,255,.18), 0 0 26px rgba(124,92,255,.18);
+    }
+    body.vip .brand-sub::after{
+      content:" • VIP";
+      color: rgba(255,220,166,.95);
+      font-weight:800;
+    }
+
+    /* DogeCoin mini chart */
+    .chart{
+      margin-top:12px;
+      height:80px;
+      border-radius:14px;
+      border:1px solid rgba(159,176,208,.18);
+      background: rgba(7,10,18,.30);
+      overflow:hidden;
+      display:flex;
+      align-items:flex-end;
+      padding:10px;
+      gap:3px;
+    }
+    .bar{
+      width:100%;
+      border-radius:6px 6px 0 0;
+      background: rgba(124,92,255,.35);
+    }
+    .split{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+    @media (max-width: 900px){
+      .hero{grid-template-columns: 1fr}
+      .grid{grid-template-columns: 1fr}
+      .store-grid{grid-template-columns: 1fr}
+      .split{grid-template-columns: 1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-dot"></div>
+      <div>
+        <div class="brand-title">Aenesche</div>
+        <div class="brand-sub">Gambling</div>
+      </div>
+    </div>
+
+    <div class="wallet">
+      <div class="pill">
+        <span class="muted">Aenesche Coin</span>
+        <span id="balance" class="balance">0</span>
+      </div>
+      <button id="resetBtn" class="btn ghost" title="Local Save zurücksetzen">Reset</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero card">
+      <div class="hero-left">
+        <h1>Work. Bet. Flex.</h1>
+        <p class="muted">
+          Work gibt dir kleine, zufällige Coins (immer im gleichen Range).
+          Dann setzt du sie in Games oder tradest DogeCoin. Für viel Geld gibt’s Cosmetics.
+        </p>
+
+        <div class="work-row">
+          <button id="workBtn" class="btn primary">Work</button>
+          <div class="work-info">
+            <div class="muted small">Work Range</div>
+            <div id="workRange" class="mono">+0</div>
+          </div>
+          <div class="work-info">
+            <div class="muted small">Cooldown</div>
+            <div id="cooldownText" class="mono">bereit</div>
+          </div>
+        </div>
+
+        <div class="tiny muted">
+          Hinweis: Fun-Game (kein Echtgeld). Alles lokal im Browser gespeichert.
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="stats">
+          <div class="stat">
+            <div class="muted small">Wins</div>
+            <div id="wins" class="mono">0</div>
+          </div>
+          <div class="stat">
+            <div class="muted small">Losses</div>
+            <div id="losses" class="mono">0</div>
+          </div>
+          <div class="stat">
+            <div class="muted small">Streak</div>
+            <div id="streak" class="mono">0</div>
+          </div>
+        </div>
+        <div id="equippedCosmetics" class="equipped muted small">Equipped: —</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <!-- ROULETTE -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Roulette</h2>
+          <span class="tag">0–36</span>
+        </div>
+
+        <div class="row">
+          <label class="label">Bet</label>
+          <input id="rouletteBet" class="input mono" type="number" min="1" step="1" value="10" />
+        </div>
+
+        <div class="row">
+          <label class="label">Choice</label>
+          <div class="seg">
+            <button class="segbtn" data-roul="red">Rot (x2)</button>
+            <button class="segbtn" data-roul="black">Schwarz (x2)</button>
+            <button class="segbtn" data-roul="green">Grün/0 (x14)</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <label class="label">Oder Zahl</label>
+          <input id="rouletteNumber" class="input mono" type="number" min="0" max="36" placeholder="0-36 (x36)" />
+        </div>
+
+        <button id="rouletteSpin" class="btn">Spin</button>
+        <div id="rouletteOut" class="out mono">—</div>
+      </div>
+
+      <!-- DOGECOIN INVEST -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Invest in DogeCoin</h2>
+          <span class="tag mono" id="coinTicker">DOGECOIN</span>
+        </div>
+
+        <div class="split">
+          <div>
+            <div class="row">
+              <label class="label">Price</label>
+              <div class="input mono" id="coinPrice">—</div>
+            </div>
+            <div class="row">
+              <label class="label">You own</label>
+              <div class="input mono" id="coinOwned">—</div>
+            </div>
+            <div class="row">
+              <label class="label">Value</label>
+              <div class="input mono" id="coinValue">—</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="row">
+              <label class="label">Spend</label>
+              <input id="coinSpend" class="input mono" type="number" min="1" step="1" value="25" />
+            </div>
+
+            <div class="row">
+              <label class="label">Sell %</label>
+              <input id="coinSellPct" class="input mono" type="number" min="1" max="100" step="1" value="50" />
+            </div>
+          </div>
+        </div>
+
+        <div class="seg" style="margin-top:12px">
+          <button id="coinBuy" class="segbtn">Buy</button>
+          <button id="coinSell" class="segbtn">Sell</button>
+          <button id="coinToggleAuto" class="segbtn">Auto: ON</button>
+          <button id="coinTick" class="segbtn">Next Tick</button>
+          <button id="coinPump" class="segbtn">Pump (cooldown)</button>
+        </div>
+
+        <div class="chart" id="coinChart" aria-label="price chart"></div>
+        <div id="coinOut" class="out mono">—</div>
+        <div class="tiny muted">
+          Auto-Tick bewegt den Kurs automatisch. Pump hat Cooldown und kann auch backfiren.
+        </div>
+      </div>
+
+      <!-- COINFLIP -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Coinflip</h2>
+          <span class="tag">50/50</span>
+        </div>
+
+        <div class="row">
+          <label class="label">Bet</label>
+          <input id="flipBet" class="input mono" type="number" min="1" step="1" value="10" />
+        </div>
+
+        <div class="row">
+          <label class="label">Pick</label>
+          <div class="seg">
+            <button class="segbtn" data-flip="heads">Heads (x2)</button>
+            <button class="segbtn" data-flip="tails">Tails (x2)</button>
+          </div>
+        </div>
+
+        <button id="flipGo" class="btn">Flip</button>
+        <div id="flipOut" class="out mono">—</div>
+      </div>
+
+      <!-- SLOTS -->
+      <div class="card">
+        <div class="card-head">
+          <h2>Slots</h2>
+          <span class="tag">3-Reel</span>
+        </div>
+
+        <div class="row">
+          <label class="label">Bet</label>
+          <input id="slotsBet" class="input mono" type="number" min="1" step="1" value="10" />
+        </div>
+
+        <div class="slots">
+          <div id="reel1" class="reel mono">—</div>
+          <div id="reel2" class="reel mono">—</div>
+          <div id="reel3" class="reel mono">—</div>
+        </div>
+
+        <div class="tiny muted">
+          3 gleich: x8 • 2 gleich: x2 • sonst 0
+        </div>
+
+        <button id="slotsGo" class="btn">Spin</button>
+        <div id="slotsOut" class="out mono">—</div>
+      </div>
+    </section>
+
+    <section class="card store">
+      <div class="card-head">
+        <h2>Cosmetics Store</h2>
+        <span class="tag">nur Optik</span>
+      </div>
+      <div class="store-grid" id="storeGrid"></div>
+    </section>
+  </main>
+
+  <footer class="footer muted small">
+    © Aenesche — coins only — no real money — saved in your browser.
+  </footer>
+
+  <script>
+    const LS_KEY = "aenesche_gambling_singlefile_v2_autotick";
+
+    const CONFIG = {
+      workMin: 7,
+      workMax: 23,
+      workCooldownMs: 3500,
+
+      roulette: { redBlackMult: 2, greenMult: 14, numberMult: 36 },
+      coinflipMult: 2,
+      slots: { twoKindMult: 2, threeKindMult: 8, symbols: ["🍒","🍋","🔔","⭐","💎","7️⃣"] },
+
+      // DogeCoin model + Auto tick
+      doge: {
+        name: "DogeCoin",
+        ticker: "DOGECOIN",
+        startPrice: 1.75,
+        minPrice: 0.05,
+        maxPrice: 9999,
+        historyLen: 30,
+
+        drift: 0.001,
+        vol: 0.065,
+        spikeChance: 0.08,
+        spikeVol: 0.30,
+
+        pumpCooldownMs: 6500,
+
+        autoTickMs: 2500
+      }
+    };
+
+    const DEFAULT_STATE = {
+      balance: 100,
+      wins: 0,
+      losses: 0,
+      streak: 0,
+      lastWorkAt: 0,
+
+      cosmeticsOwned: {},
+      cosmeticsEquipped: { theme:"default", cardStyle:"default", coinGlow:false, vip:false },
+
+      coin: {
+        price: CONFIG.doge.startPrice,
+        owned: 0,
+        history: [CONFIG.doge.startPrice],
+        lastPumpAt: 0,
+        autoOn: true
+      }
+    };
+
+    const COSMETICS = [
+      { id:"theme_gold", name:"Theme: Gold", desc:"Warm, premium look.", price:2500,
+        onEquip:(s)=>s.cosmeticsEquipped.theme="gold" },
+      { id:"theme_neon", name:"Theme: Neon", desc:"Cyber-clean, high contrast.", price:2500,
+        onEquip:(s)=>s.cosmeticsEquipped.theme="neon" },
+      { id:"card_glass", name:"Cards: Glass", desc:"Mehr Glass-Vibe.", price:1800,
+        onEquip:(s)=>s.cosmeticsEquipped.cardStyle="glass" },
+      { id:"coin_glow", name:"Coin Glow", desc:"Wallet glüht dezent.", price:1200,
+        onEquip:(s)=>s.cosmeticsEquipped.coinGlow=true },
+      { id:"vip_badge", name:"VIP Badge", desc:"Brand zeigt VIP.", price:5000,
+        onEquip:(s)=>s.cosmeticsEquipped.vip=true },
+      { id:"style_reset", name:"Style Reset", desc:"Setzt Cosmetics zurück (Coins bleiben).", price:600,
+        onEquip:(s)=>s.cosmeticsEquipped={theme:"default", cardStyle:"default", coinGlow:false, vip:false} },
+    ];
+
+    let state = loadState();
+    let selectedRoulette = "red";
+    let selectedFlip = "heads";
+    let autoTimer = null;
+
+    const $ = (id)=>document.getElementById(id);
+    const clampInt = (n)=> (Number.isFinite(+n) ? Math.max(0, Math.floor(+n)) : 0);
+    const randInt = (min,max)=> Math.floor(Math.random()*(max-min+1))+min;
+
+    function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return structuredClone(DEFAULT_STATE);
+        const p = JSON.parse(raw);
+
+        const merged = structuredClone(DEFAULT_STATE);
+        Object.assign(merged, p);
+        merged.cosmeticsOwned = { ...DEFAULT_STATE.cosmeticsOwned, ...(p.cosmeticsOwned||{}) };
+        merged.cosmeticsEquipped = { ...DEFAULT_STATE.cosmeticsEquipped, ...(p.cosmeticsEquipped||{}) };
+        merged.coin = { ...DEFAULT_STATE.coin, ...(p.coin||{}) };
+
+        if(!Array.isArray(merged.coin.history) || merged.coin.history.length===0){
+          merged.coin.history = [merged.coin.price || CONFIG.doge.startPrice];
+        }
+        return merged;
+      }catch{
+        return structuredClone(DEFAULT_STATE);
+      }
+    }
+
+    function setBalance(delta){
+      state.balance = clampInt(state.balance + delta);
+      saveState();
+      renderWallet();
+    }
+    function canAfford(a){ return state.balance >= a; }
+
+    function recordWin(){
+      state.wins++;
+      state.streak = state.streak >= 0 ? state.streak + 1 : 1;
+      saveState(); renderStats();
+    }
+    function recordLoss(){
+      state.losses++;
+      state.streak = state.streak <= 0 ? state.streak - 1 : -1;
+      saveState(); renderStats();
+    }
+
+    function renderWallet(){ $("balance").textContent = state.balance.toLocaleString("de-DE"); }
+    function renderStats(){
+      $("wins").textContent = state.wins.toLocaleString("de-DE");
+      $("losses").textContent = state.losses.toLocaleString("de-DE");
+      $("streak").textContent = state.streak.toLocaleString("de-DE");
+    }
+    function applyCosmetics(){
+      document.body.classList.remove("theme-gold","theme-neon","card-glass","coin-glow","vip");
+      if(state.cosmeticsEquipped.theme==="gold") document.body.classList.add("theme-gold");
+      if(state.cosmeticsEquipped.theme==="neon") document.body.classList.add("theme-neon");
+      if(state.cosmeticsEquipped.cardStyle==="glass") document.body.classList.add("card-glass");
+      if(state.cosmeticsEquipped.coinGlow) document.body.classList.add("coin-glow");
+      if(state.cosmeticsEquipped.vip) document.body.classList.add("vip");
+
+      const eq=[];
+      if(state.cosmeticsEquipped.theme!=="default") eq.push("Theme:"+state.cosmeticsEquipped.theme);
+      if(state.cosmeticsEquipped.cardStyle!=="default") eq.push("Cards:"+state.cosmeticsEquipped.cardStyle);
+      if(state.cosmeticsEquipped.coinGlow) eq.push("CoinGlow");
+      if(state.cosmeticsEquipped.vip) eq.push("VIP");
+      $("equippedCosmetics").textContent = eq.length ? "Equipped: " + eq.join(" • ") : "Equipped: —";
+    }
+
+    function renderWorkMeta(){ $("workRange").textContent = `+${CONFIG.workMin} … +${CONFIG.workMax}`; }
+    function workCooldownRemaining(){
+      const now=Date.now();
+      const elapsed = now - (state.lastWorkAt||0);
+      return Math.max(0, CONFIG.workCooldownMs - elapsed);
+    }
+    function renderCooldown(){
+      const rem = workCooldownRemaining();
+      if(rem<=0){
+        $("cooldownText").textContent="bereit";
+        $("workBtn").disabled=false;
+        return;
+      }
+      $("workBtn").disabled=true;
+      $("cooldownText").textContent = `${Math.ceil(rem/1000)}s`;
+    }
+    function tickCooldown(){ renderCooldown(); requestAnimationFrame(tickCooldown); }
+
+    function out(id,msg){ $(id).textContent=msg; }
+
+    function spendBet(amount){
+      amount = clampInt(amount);
+      if(amount<=0) return {ok:false, reason:"Bet muss > 0 sein."};
+      if(!canAfford(amount)) return {ok:false, reason:"Nicht genug Coins."};
+      setBalance(-amount);
+      return {ok:true, amount};
+    }
+    function payout(mult, bet){
+      const winAmount = clampInt(bet * mult);
+      setBalance(winAmount);
+    }
+
+    function setupSegButtons(){
+      document.querySelectorAll("[data-roul]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          selectedRoulette = btn.getAttribute("data-roul");
+          document.querySelectorAll("[data-roul]").forEach(b=>b.classList.remove("active"));
+          btn.classList.add("active");
+        });
+      });
+      document.querySelector('[data-roul="red"]').classList.add("active");
+
+      document.querySelectorAll("[data-flip]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          selectedFlip = btn.getAttribute("data-flip");
+          document.querySelectorAll("[data-flip]").forEach(b=>b.classList.remove("active"));
+          btn.classList.add("active");
+        });
+      });
+      document.querySelector('[data-flip="heads"]').classList.add("active");
+    }
+
+    function rouletteSpin(){
+      const bet = clampInt($("rouletteBet").value);
+      const numPickRaw = $("rouletteNumber").value;
+      const hasNumberPick = numPickRaw !== "" && numPickRaw !== null;
+      const numberPick = clampInt(numPickRaw);
+
+      const s = spendBet(bet);
+      if(!s.ok) return out("rouletteOut", `✗ ${s.reason}`);
+
+      const result = randInt(0,36);
+      const color = result===0 ? "green" : (result%2===0 ? "black" : "red");
+
+      if(hasNumberPick){
+        if(numberPick<0 || numberPick>36){
+          setBalance(bet);
+          return out("rouletteOut", "✗ Zahl muss 0–36 sein.");
+        }
+        if(result===numberPick){
+          payout(CONFIG.roulette.numberMult, bet);
+          recordWin();
+          return out("rouletteOut", `✓ Treffer! ${result} (${color}) — Gewinn x${CONFIG.roulette.numberMult}`);
+        } else {
+          recordLoss();
+          return out("rouletteOut", `✗ ${result} (${color}) — du hattest ${numberPick}`);
+        }
+      }
+
+      if(color===selectedRoulette){
+        const mult = selectedRoulette==="green" ? CONFIG.roulette.greenMult : CONFIG.roulette.redBlackMult;
+        payout(mult, bet);
+        recordWin();
+        return out("rouletteOut", `✓ ${result} (${color}) — Gewinn x${mult}`);
+      } else {
+        recordLoss();
+        return out("rouletteOut", `✗ ${result} (${color}) — du hattest ${selectedRoulette}`);
+      }
+    }
+
+    function coinflip(){
+      const bet = clampInt($("flipBet").value);
+      const s = spendBet(bet);
+      if(!s.ok) return out("flipOut", `✗ ${s.reason}`);
+
+      const res = Math.random()<0.5 ? "heads":"tails";
+      if(res===selectedFlip){
+        payout(CONFIG.coinflipMult, bet);
+        recordWin();
+        return out("flipOut", `✓ ${res.toUpperCase()} — Gewinn x${CONFIG.coinflipMult}`);
+      } else {
+        recordLoss();
+        return out("flipOut", `✗ ${res.toUpperCase()} — du hattest ${selectedFlip}`);
+      }
+    }
+
+    function slots(){
+      const bet = clampInt($("slotsBet").value);
+      const s = spendBet(bet);
+      if(!s.ok) return out("slotsOut", `✗ ${s.reason}`);
+
+      const sym = CONFIG.slots.symbols;
+      const r1 = sym[randInt(0,sym.length-1)];
+      const r2 = sym[randInt(0,sym.length-1)];
+      const r3 = sym[randInt(0,sym.length-1)];
+
+      $("reel1").textContent=r1; $("reel2").textContent=r2; $("reel3").textContent=r3;
+
+      const all3 = (r1===r2 && r2===r3);
+      const any2 = (r1===r2 || r2===r3 || r1===r3);
+
+      if(all3){
+        payout(CONFIG.slots.threeKindMult, bet);
+        recordWin();
+        return out("slotsOut", `✓ ${r1}${r2}${r3} — 3 gleich! Gewinn x${CONFIG.slots.threeKindMult}`);
+      } else if(any2){
+        payout(CONFIG.slots.twoKindMult, bet);
+        recordWin();
+        return out("slotsOut", `✓ ${r1}${r2}${r3} — 2 gleich! Gewinn x${CONFIG.slots.twoKindMult}`);
+      } else {
+        recordLoss();
+        return out("slotsOut", `✗ ${r1}${r2}${r3} — nix.`);
+      }
+    }
+
+    function doWork(){
+      const rem = workCooldownRemaining();
+      if(rem>0) return;
+      const amount = randInt(CONFIG.workMin, CONFIG.workMax);
+      state.lastWorkAt = Date.now();
+      saveState();
+      setBalance(amount);
+    }
+
+    // ===== DogeCoin logic + Auto tick =====
+    function coinNetWorth(){ return state.coin.owned * state.coin.price; }
+    function formatPrice(p){
+      if(p < 1) return p.toFixed(4);
+      if(p < 10) return p.toFixed(3);
+      if(p < 100) return p.toFixed(2);
+      return p.toFixed(1);
+    }
+
+    function renderCoin(){
+      $("coinTicker").textContent = CONFIG.doge.ticker;
+      $("coinPrice").textContent = formatPrice(state.coin.price) + " AC";
+      $("coinOwned").textContent = (state.coin.owned).toFixed(4);
+      $("coinValue").textContent = coinNetWorth().toFixed(2) + " AC";
+      renderCoinChart();
+      renderPumpButton();
+      renderAutoButton();
+    }
+
+    function renderCoinChart(){
+      const hist = state.coin.history.slice(-CONFIG.doge.historyLen);
+      const min = Math.min(...hist);
+      const max = Math.max(...hist);
+      const range = Math.max(0.000001, max - min);
+
+      const chart = $("coinChart");
+      chart.innerHTML = "";
+      for(const v of hist){
+        const h = 8 + Math.round(((v - min) / range) * 62);
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.height = h + "px";
+        chart.appendChild(bar);
+      }
+    }
+
+    function coinTick(isPump=false){
+      const c = CONFIG.doge;
+      let vol = c.vol;
+      let drift = c.drift;
+
+      const spike = Math.random() < c.spikeChance;
+      if(spike) vol += c.spikeVol;
+
+      if(isPump){
+        drift += 0.06;
+        vol += 0.10;
+        if(Math.random() < 0.25) drift -= 0.12; // backfire
+      }
+
+      const noise = (Math.random()*2 - 1) * vol;
+      const step = 1 + drift + noise;
+
+      let newPrice = state.coin.price * step;
+      newPrice = Math.min(c.maxPrice, Math.max(c.minPrice, newPrice));
+
+      state.coin.price = newPrice;
+      state.coin.history.push(newPrice);
+      if(state.coin.history.length > c.historyLen * 3){
+        state.coin.history = state.coin.history.slice(-c.historyLen * 3);
+      }
+
+      saveState();
+      renderCoin();
+
+      out("coinOut", `${isPump ? "PUMP" : "TICK"}: price → ${formatPrice(newPrice)} AC`);
+    }
+
+    function coinBuy(){
+      const spend = clampInt($("coinSpend").value);
+      if(spend<=0) return out("coinOut","✗ Spend muss > 0 sein.");
+      if(!canAfford(spend)) return out("coinOut","✗ Nicht genug Coins.");
+
+      const coins = spend / state.coin.price;
+      setBalance(-spend);
+      state.coin.owned += coins;
+
+      saveState();
+      renderCoin();
+      out("coinOut", `✓ Bought ${coins.toFixed(4)} ${CONFIG.doge.ticker} für ${spend} AC`);
+    }
+
+    function coinSell(){
+      const pct = Math.max(1, Math.min(100, clampInt($("coinSellPct").value)));
+      if(state.coin.owned <= 0) return out("coinOut","✗ Du besitzt keine Coins.");
+
+      const sellCoins = state.coin.owned * (pct/100);
+      const gain = sellCoins * state.coin.price;
+
+      state.coin.owned -= sellCoins;
+      setBalance(Math.floor(gain));
+
+      saveState();
+      renderCoin();
+      out("coinOut", `✓ Sold ${sellCoins.toFixed(4)} (${pct}%) für ~${Math.floor(gain)} AC`);
+    }
+
+    function pumpRemaining(){
+      const now = Date.now();
+      const elapsed = now - (state.coin.lastPumpAt||0);
+      return Math.max(0, CONFIG.doge.pumpCooldownMs - elapsed);
+    }
+    function renderPumpButton(){
+      const rem = pumpRemaining();
+      const btn = $("coinPump");
+      if(rem<=0){
+        btn.disabled=false;
+        btn.textContent="Pump (cooldown)";
+      } else {
+        btn.disabled=true;
+        btn.textContent=`Pump (${Math.ceil(rem/1000)}s)`;
+      }
+    }
+    function coinPump(){
+      const rem = pumpRemaining();
+      if(rem>0) return;
+      state.coin.lastPumpAt = Date.now();
+      saveState();
+      coinTick(true);
+    }
+
+    // Auto tick toggle
+    function renderAutoButton(){
+      const btn = $("coinToggleAuto");
+      btn.textContent = state.coin.autoOn ? "Auto: ON" : "Auto: OFF";
+      btn.classList.toggle("active", state.coin.autoOn);
+    }
+    function startAuto(){
+      stopAuto();
+      autoTimer = setInterval(()=>{
+        if(state.coin.autoOn) coinTick(false);
+      }, CONFIG.doge.autoTickMs);
+    }
+    function stopAuto(){
+      if(autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+    }
+    function toggleAuto(){
+      state.coin.autoOn = !state.coin.autoOn;
+      saveState();
+      renderAutoButton();
+      if(state.coin.autoOn) startAuto();
+    }
+
+    // ===== Store =====
+    function renderStore(){
+      const grid = $("storeGrid");
+      grid.innerHTML = "";
+      for(const item of COSMETICS){
+        const owned = !!state.cosmeticsOwned[item.id];
+        const div = document.createElement("div");
+        div.className="item";
+        div.innerHTML = `
+          <h3>${item.name}</h3>
+          <div class="row2">
+            <div class="price mono">${item.price.toLocaleString("de-DE")} AC</div>
+            <div class="muted small">${owned ? "owned" : "not owned"}</div>
+          </div>
+          <div class="desc">${item.desc}</div>
+          <button class="btn ${owned ? "ghost":""}">${owned ? "Equip" : "Buy"}</button>
+        `;
+        div.querySelector("button").addEventListener("click", ()=>{
+          if(!owned){
+            if(!canAfford(item.price)) return;
+            setBalance(-item.price);
+            state.cosmeticsOwned[item.id]=true;
+          }
+          item.onEquip(state);
+          saveState();
+          applyCosmetics();
+          renderStore();
+        });
+        grid.appendChild(div);
+      }
+    }
+
+    function resetAll(){
+      localStorage.removeItem(LS_KEY);
+      state = structuredClone(DEFAULT_STATE);
+      saveState();
+      renderAll();
+      out("coinOut","Reset done.");
+    }
+
+    function renderAll(){
+      renderWallet();
+      renderStats();
+      renderWorkMeta();
+      applyCosmetics();
+      renderStore();
+      renderCooldown();
+      renderCoin();
+    }
+
+    function init(){
+      setupSegButtons();
+
+      $("workBtn").addEventListener("click", doWork);
+      $("rouletteSpin").addEventListener("click", rouletteSpin);
+      $("flipGo").addEventListener("click", coinflip);
+      $("slotsGo").addEventListener("click", slots);
+
+      $("coinBuy").addEventListener("click", coinBuy);
+      $("coinSell").addEventListener("click", coinSell);
+      $("coinTick").addEventListener("click", ()=>coinTick(false));
+      $("coinPump").addEventListener("click", coinPump);
+      $("coinToggleAuto").addEventListener("click", toggleAuto);
+
+      $("resetBtn").addEventListener("click", resetAll);
+
+      renderAll();
+      tickCooldown();
+
+      // keep pump label fresh + start auto tick
+      (function tickPump(){
+        renderPumpButton();
+        requestAnimationFrame(tickPump);
+      })();
+
+      if(state.coin.autoOn) startAuto();
+    }
+
+    init();
+  </script>
+</body>
+</html>
