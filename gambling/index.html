@@ -236,8 +236,13 @@
       border-color: rgba(159,176,208,.22);
     }
     body.coin-glow .pill{
-      box-shadow: 0 0 0 1px rgba(124,92,255,.18), 0 0 26px rgba(124,92,255,.18);
-    }
+  box-shadow:
+    0 0 0 1px rgba(124,92,255,.35),
+    0 0 12px rgba(124,92,255,.6),
+    0 0 32px rgba(46,233,166,.45);
+  border-color: rgba(124,92,255,.7);
+  transition: box-shadow .2s ease, border-color .2s ease;
+}
     body.vip .brand-sub::after{
       content:" • VIP";
       color: rgba(255,220,166,.95);
