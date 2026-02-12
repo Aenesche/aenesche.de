@@ -11,7 +11,10 @@
       --text:#eaeaea;
       --muted:#7a7a7a;
       --line:#1f1f1f;
-      --accent:#00ff88;
+
+      /* Default = neutral (nicht neon) */
+      --accent:#bdbdbd;
+
       --warn:#ff4444;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
     }
@@ -194,8 +197,8 @@
         </div>
 
         <div class="panel" style="margin-top:14px;">
-          <h2>COSMETICS (COINS)</h2>
-          <div class="hint">Teure Coin-Sinks: Themes & Effekte. (Late-Game Ziel)</div>
+          <h2>COSMETICS</h2>
+          <div class="hint">Themes sind wechselbar. Effekte sind togglable. (Late-Game Ziele)</div>
           <div class="list" id="cosList"></div>
         </div>
       </div>
@@ -206,59 +209,59 @@
 (() => {
   const SAVE_KEY = "aenesche_ai_drone_clicker_v121";
 
-  // ---------- BALANCE (slow start) ----------
-  const PRICE_GROWTH = 1.15;         // per purchase
+  // ---------- BALANCE ----------
+  const PRICE_GROWTH = 1.15;
   const TICK_MS = 200;
 
-  // Experiment: slow RP. Cooldown + tiny scaling with lifetime coins (log).
   const EXPERIMENT_CD_MS = 12000;
 
   // Console
   const MAX_LOG_LINES = 60;
   const SOFT_CLEAR_MS = 120000;
 
-  // Drones = Cookie Clicker producers
+  // Drones
   const DRONES = [
     { id:"temu",     name:"Temu Drone",     icon:"t", baseCps:0.10, basePrice:15,    unlock:{type:"always"} },
-    { id:"amazon",   name:"Amazon Drone",   icon:"a", baseCps:1000000, basePrice:120,   unlock:{type:"owned", id:"temu", n:10} },
+    { id:"amazon",   name:"Amazon Drone",   icon:"a", baseCps:1.00, basePrice:120,   unlock:{type:"owned", id:"temu", n:10} },
     { id:"fpv",      name:"FPV Drone",      icon:"f", baseCps:8.00, basePrice:1100,  unlock:{type:"owned", id:"amazon", n:8} },
     { id:"air3s",    name:"DJI Air 3S",     icon:"D", baseCps:47.0, basePrice:12000, unlock:{type:"owned", id:"fpv", n:8} },
     { id:"cine",     name:"Cinelifter",     icon:"C", baseCps:260,  basePrice:130000,unlock:{type:"owned", id:"air3s", n:6} },
     { id:"matrice",  name:"DJI Matrice",    icon:"M", baseCps:1400, basePrice:1500000, unlock:{type:"owned", id:"cine", n:6} },
   ];
 
-  // Per-drone upgrades (Coins): each level doubles that drone's output. Costs scale hard.
-  // Cost base is tied to drone basePrice to feel Cookie-ish.
   function droneUpgradeCost(droneBasePrice, level){
-    // level 0 -> first upgrade
     const base = droneBasePrice * 12;
     return Math.floor(base * Math.pow(2.6, level));
   }
 
-  // Research tech (RP): long-term, repeatable scaling.
-  // Some are repeatable; some are one-time.
+  // TECH (RP)
   const TECH = [
-    { id:"globalCps", name:"Optimization Pass", desc:"+5% global CPS (repeatable)", type:"repeat", baseCost:6, growth:1.35,
-      apply:(s)=>{ /* handled in multiplier */ } },
-    { id:"droneBoost", name:"Drone Firmware", desc:"+6% drone CPS (repeatable)", type:"repeat", baseCost:10, growth:1.38,
-      apply:(s)=>{} },
-    { id:"clickBoost", name:"Quantization Trick", desc:"+10% click power (repeatable)", type:"repeat", baseCost:12, growth:1.42,
-      apply:(s)=>{} },
+    { id:"globalCps", name:"Optimization Pass", desc:"+5% global CPS (repeatable)", type:"repeat", baseCost:6, growth:1.35 },
+    { id:"droneBoost", name:"Drone Firmware", desc:"+6% drone CPS (repeatable)", type:"repeat", baseCost:10, growth:1.38 },
+
+    // ✅ Change: Click doubles per level
+    { id:"clickBoost", name:"Quantization Trick", desc:"x2 click power (repeatable)", type:"repeat", baseCost:12, growth:1.42 },
+
     { id:"rpLab", name:"Research Lab", desc:"Unlock: buy RP-Lab producer (1-time)", type:"one", baseCost:25, growth:1.0,
       apply:(s)=>{ s.flags.rpLabUnlocked = true; } },
-    { id:"rpLabBoost", name:"Lab Instrumentation", desc:"+25% RP-Lab output (repeatable)", type:"repeat", baseCost:18, growth:1.45,
-      apply:(s)=>{} },
+    { id:"rpLabBoost", name:"Lab Instrumentation", desc:"+25% RP-Lab output (repeatable)", type:"repeat", baseCost:18, growth:1.45 },
   ];
 
-  // RP Lab is a separate producer (VERY slow), unlocked via tech
   const RP_LAB = { id:"rplab", name:"RP-Lab", icon:"R", baseRps:0.02, basePrice:5000, priceGrowth:1.20 };
 
-  // Cosmetics: coin sinks (themes via CSS vars)
-  const COSMETICS = [
-    { id:"themeGreen", name:"Theme: Neon Green", cost:5_000_000, apply:(t)=>setTheme(t, {accent:"#00ff88"}) },
-    { id:"themeAmber", name:"Theme: Amber Terminal", cost:25_000_000, apply:(t)=>setTheme(t, {accent:"#ffb000"}) },
-    { id:"themeIce",   name:"Theme: Ice Blue", cost:60_000_000, apply:(t)=>setTheme(t, {accent:"#66d9ff"}) },
-    { id:"crt", name:"Effect: CRT Scanlines", cost:50_000_000, apply:(t)=>setTheme(t, {scanlines:true}) },
+  // Cosmetics reworked:
+  // - Default theme is neutral (no neon).
+  // - Themes can be activated/switch anytime once owned.
+  // - Scanlines is a toggle effect.
+  const THEMES = [
+    { id:"default",  name:"Theme: Default",   cost:0, unlockByDefault:true, accent:"#bdbdbd" },
+    { id:"green",    name:"Theme: Neon Green",cost:1000, unlockByDefault:false, accent:"#00ff88" },
+    { id:"amber",    name:"Theme: Amber Terminal",cost:25_000_000, unlockByDefault:false, accent:"#ffb000" },
+    { id:"ice",      name:"Theme: Ice Blue",  cost:60_000_000, unlockByDefault:false, accent:"#66d9ff" },
+  ];
+  const EFFECTS = [
+    // ✅ Fix: scanlines implemented in a way that should show on iOS Safari
+    { id:"scanlines", name:"Effect: CRT Scanlines", cost:120_000_000, unlockByDefault:false }
   ];
 
   // ---------- DOM ----------
@@ -285,10 +288,7 @@
   }
 
   function escapeHtml(s){
-    return String(s)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;");
+    return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
   }
 
   function log(line, cls=""){
@@ -310,75 +310,34 @@
     }
   }
 
-  // ---------- THEME ----------
-  function setTheme(themeState, patch){
-    themeState.theme = themeState.theme || { accent:"#00ff88", scanlines:false };
-    themeState.theme = { ...themeState.theme, ...patch };
-    applyTheme(themeState);
-  }
-  function applyTheme(themeState){
-    const t = themeState.theme || { accent:"#00ff88", scanlines:false };
-    document.documentElement.style.setProperty("--accent", t.accent || "#00ff88");
-
-    // Scanlines effect (simple)
-    const id = "scanlines-style";
-    let tag = document.getElementById(id);
-    if(t.scanlines){
-      if(!tag){
-        tag = document.createElement("style");
-        tag.id = id;
-        tag.textContent = `
-          body:before{
-            content:"";
-            position:fixed;
-            inset:0;
-            pointer-events:none;
-            background: repeating-linear-gradient(
-              to bottom,
-              rgba(255,255,255,0.035),
-              rgba(255,255,255,0.035) 1px,
-              rgba(0,0,0,0) 3px,
-              rgba(0,0,0,0) 6px
-            );
-            mix-blend-mode: overlay;
-            opacity: .35;
-          }
-        `;
-        document.head.appendChild(tag);
-      }
-    } else {
-      if(tag) tag.remove();
-    }
-  }
-
   // ---------- STATE ----------
   function defaultState(){
+    const ownedThemes = Object.fromEntries(THEMES.map(t => [t.id, !!t.unlockByDefault]));
+    const ownedEffects = Object.fromEntries(EFFECTS.map(e => [e.id, false]));
+
     return {
       coins: 0,
       lifetimeCoins: 0,
       rp: 0,
 
-      // drones owned
       owned: Object.fromEntries(DRONES.map(d => [d.id, 0])),
-
-      // per-drone upgrade levels (coin upgrades)
       dUp: Object.fromEntries(DRONES.map(d => [d.id, 0])),
 
-      // tech levels (repeatables) + owned (one-time)
       techLvl: Object.fromEntries(TECH.map(t => [t.id, 0])),
       techOwned: Object.fromEntries(TECH.map(t => [t.id, false])),
 
-      // rp-lab owned
       rpLabOwned: 0,
-
       flags: { rpLabUnlocked:false },
 
-      // experiment cooldown
       nextExperimentAt: 0,
 
-      // cosmetics owned
-      cosmetics: Object.fromEntries(COSMETICS.map(c => [c.id, false])),
-      theme: { accent:"#00ff88", scanlines:false },
+      // cosmetics state
+      cosmetics: {
+        themesOwned: ownedThemes,
+        effectsOwned: ownedEffects,
+        activeThemeId: "default",
+        effectsActive: { scanlines:false },
+      },
 
       lastTick: now(),
       lastConsoleClear: now(),
@@ -402,11 +361,17 @@
         if(!(t.id in merged.techLvl)) merged.techLvl[t.id] = 0;
         if(!(t.id in merged.techOwned)) merged.techOwned[t.id] = false;
       }
-      for(const c of COSMETICS){
-        if(!(c.id in merged.cosmetics)) merged.cosmetics[c.id] = false;
-      }
-      merged.flags = merged.flags || { rpLabUnlocked:false };
-      merged.theme = merged.theme || { accent:"#00ff88", scanlines:false };
+
+      // cosmetics migrations
+      merged.cosmetics = merged.cosmetics || defaultState().cosmetics;
+      merged.cosmetics.themesOwned = merged.cosmetics.themesOwned || defaultState().cosmetics.themesOwned;
+      merged.cosmetics.effectsOwned = merged.cosmetics.effectsOwned || defaultState().cosmetics.effectsOwned;
+      merged.cosmetics.effectsActive = merged.cosmetics.effectsActive || { scanlines:false };
+      if(!merged.cosmetics.activeThemeId) merged.cosmetics.activeThemeId = "default";
+
+      // make sure default theme exists
+      merged.cosmetics.themesOwned.default = true;
+
       return merged;
     } catch {
       return defaultState();
@@ -416,6 +381,54 @@
   function save(){
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
     el.statusTag.textContent = "autosave: ON";
+  }
+
+  // ---------- THEME + EFFECTS ----------
+  function applyCosmetics(){
+    // theme
+    const activeTheme = THEMES.find(t => t.id === state.cosmetics.activeThemeId) || THEMES[0];
+    document.documentElement.style.setProperty("--accent", activeTheme.accent);
+
+    // scanlines effect
+    const id = "scanlines-style";
+    let tag = document.getElementById(id);
+
+    const enabled = !!state.cosmetics.effectsActive.scanlines;
+    if(enabled){
+      if(!tag){
+        tag = document.createElement("style");
+        tag.id = id;
+
+        // iOS/Safari friendly scanlines: simple low-alpha overlay (no blend mode)
+        tag.textContent = `
+          body:before{
+            content:"";
+            position:fixed;
+            inset:0;
+            pointer-events:none;
+            background: repeating-linear-gradient(
+              to bottom,
+              rgba(255,255,255,0.05),
+              rgba(255,255,255,0.05) 1px,
+              rgba(0,0,0,0) 3px,
+              rgba(0,0,0,0) 6px
+            );
+            opacity: .35;
+          }
+          body:after{
+            content:"";
+            position:fixed;
+            inset:0;
+            pointer-events:none;
+            background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.04), rgba(0,0,0,0) 60%);
+            opacity: .25;
+          }
+        `;
+        document.head.appendChild(tag);
+      }
+    } else {
+      if(tag) tag.remove();
+    }
   }
 
   // ---------- UNLOCKS ----------
@@ -439,26 +452,24 @@
   }
 
   function droneMultiplier(droneId){
-    // per-drone coin upgrades: each level doubles that drone
     const lvl = state.dUp[droneId] || 0;
     return Math.pow(2, lvl);
   }
 
   function globalCpsMultiplier(){
-    // tech: globalCps repeatable: +5% each level
     const lvl = state.techLvl.globalCps || 0;
     return Math.pow(1.05, lvl);
   }
 
   function droneCpsMultiplier(){
-    // tech: droneBoost repeatable: +6% each level
     const lvl = state.techLvl.droneBoost || 0;
     return Math.pow(1.06, lvl);
   }
 
   function clickMultiplier(){
+    // ✅ doubles per tech level
     const lvl = state.techLvl.clickBoost || 0;
-    return Math.pow(1.10, lvl);
+    return Math.pow(2, lvl);
   }
 
   function rpLabMultiplier(){
@@ -467,7 +478,6 @@
   }
 
   function clickPower(){
-    // Start slow: base 1. Later boosted by tech + (tiny) milestones.
     let base = 1;
 
     // milestone: every 25 Temu drones => +10% click
@@ -492,12 +502,10 @@
   }
 
   function rpPerSecond(){
-    // RP lab is a very slow producer, unlocked via tech
     if(!state.flags.rpLabUnlocked) return 0;
     const owned = state.rpLabOwned || 0;
     if(owned <= 0) return 0;
-    const rps = owned * RP_LAB.baseRps * rpLabMultiplier();
-    return rps;
+    return owned * RP_LAB.baseRps * rpLabMultiplier();
   }
 
   function addCoins(x){
@@ -514,7 +522,8 @@
   }
 
   function buyDrone(drone){
-    if(!isUnlocked(drone.unlock)){
+    const unlocked = isUnlocked(drone.unlock);
+    if(!unlocked){
       log(`locked: ${drone.name}`, "bad");
       return;
     }
@@ -525,18 +534,18 @@
     }
     state.coins -= cost;
     state.owned[drone.id] = (state.owned[drone.id] || 0) + 1;
-    log(`bought ${drone.name} (+${drone.baseCps} CPS base)`, "ok");
+    log(`bought ${drone.name}`, "ok");
   }
 
   function buyDroneUpgrade(drone){
     const lvl = state.dUp[drone.id] || 0;
     const cost = droneUpgradeCost(drone.basePrice, lvl);
-    if(state.coins < cost){
-      log(`need ${fmt(cost)} CP for ${drone.name} upgrade`, "bad");
-      return;
-    }
     if((state.owned[drone.id] || 0) <= 0){
       log(`buy the drone first: ${drone.name}`, "bad");
+      return;
+    }
+    if(state.coins < cost){
+      log(`need ${fmt(cost)} CP for ${drone.name} upgrade`, "bad");
       return;
     }
     state.coins -= cost;
@@ -566,7 +575,7 @@
 
     if(t.type === "one"){
       state.techOwned[t.id] = true;
-      t.apply(state);
+      if(t.apply) t.apply(state);
       log(`tech unlocked: ${t.name}`, "ok");
     } else {
       state.techLvl[t.id] = (state.techLvl[t.id] || 0) + 1;
@@ -586,7 +595,7 @@
     }
     state.coins -= cost;
     state.rpLabOwned += 1;
-    log(`bought RP-Lab (+${RP_LAB.baseRps} RP/s base)`, "ok");
+    log(`bought RP-Lab`, "ok");
   }
 
   function runExperiment(){
@@ -596,71 +605,101 @@
       log(`experiment cooling down (${left}s)`, "bad");
       return;
     }
-    // slow scaling: 1.. maybe 5 over long time
     const gain = 1 + Math.floor(Math.log10(1 + state.lifetimeCoins) * 0.7);
     state.rp += gain;
     state.nextExperimentAt = t + EXPERIMENT_CD_MS;
     log(`experiment complete: +${gain} RP`, "ok");
   }
 
-  function buyCosmetic(c){
-    if(state.cosmetics[c.id]){
-      log(`already owned: ${c.name}`, "bad");
+  // Cosmetics: buy/activate/toggle
+  function buyTheme(theme){
+    if(state.cosmetics.themesOwned[theme.id]){
+      log(`already owned: ${theme.name}`, "bad");
       return;
     }
-    if(state.coins < c.cost){
-      log(`need ${fmt(c.cost)} CP for ${c.name}`, "bad");
+    if(state.coins < theme.cost){
+      log(`need ${fmt(theme.cost)} CP for ${theme.name}`, "bad");
       return;
     }
-    state.coins -= c.cost;
-    state.cosmetics[c.id] = true;
-
-    // apply
-    c.apply(state);
-    applyTheme(state);
-
-    log(`cosmetic unlocked: ${c.name}`, "ok");
+    state.coins -= theme.cost;
+    state.cosmetics.themesOwned[theme.id] = true;
+    log(`unlocked: ${theme.name}`, "ok");
   }
 
-  // ---------- UI BUILD ONCE ----------
+  function activateTheme(themeId){
+    if(!state.cosmetics.themesOwned[themeId]){
+      log("theme not owned", "bad");
+      return;
+    }
+    state.cosmetics.activeThemeId = themeId;
+    applyCosmetics();
+    log(`theme active: ${THEMES.find(t=>t.id===themeId)?.name || themeId}`, "ok");
+  }
+
+  function buyEffect(effect){
+    if(state.cosmetics.effectsOwned[effect.id]){
+      log(`already owned: ${effect.name}`, "bad");
+      return;
+    }
+    if(state.coins < effect.cost){
+      log(`need ${fmt(effect.cost)} CP for ${effect.name}`, "bad");
+      return;
+    }
+    state.coins -= effect.cost;
+    state.cosmetics.effectsOwned[effect.id] = true;
+    log(`unlocked: ${effect.name}`, "ok");
+  }
+
+  function toggleEffect(effectId){
+    if(!state.cosmetics.effectsOwned[effectId]){
+      log("effect not owned", "bad");
+      return;
+    }
+    state.cosmetics.effectsActive[effectId] = !state.cosmetics.effectsActive[effectId];
+    applyCosmetics();
+    log(`effect ${effectId}: ${state.cosmetics.effectsActive[effectId] ? "ON" : "OFF"}`, "ok");
+  }
+
+  // ---------- UI BUILD (drones hidden until unlocked) ----------
   const droneRows = new Map();
   const techRows = new Map();
   const cosRows = new Map();
 
-  function buildDroneList(){
-    el.droneList.innerHTML = "";
-    for(const d of DRONES){
-      const row = document.createElement("div");
-      row.className = "item";
-      row.innerHTML = `
-        <div class="itemTop">
-          <div class="itemName">${d.name}</div>
-          <div class="itemMeta" id="dm_${d.id}"></div>
-        </div>
-        <div class="itemMeta" style="margin-top:6px;" id="ds_${d.id}"></div>
-        <div class="itemBtns">
-          <button class="mini" id="buy_${d.id}">BUY</button>
-          <button class="mini" id="up_${d.id}">UPGRADE x2</button>
-        </div>
-      `;
-      el.droneList.appendChild(row);
+  function ensureDroneRow(drone){
+    if(droneRows.has(drone.id)) return;
 
-      droneRows.set(d.id, {
-        meta: row.querySelector(`#dm_${d.id}`),
-        stats: row.querySelector(`#ds_${d.id}`),
-        buy:  row.querySelector(`#buy_${d.id}`),
-        up:   row.querySelector(`#up_${d.id}`),
-      });
+    const row = document.createElement("div");
+    row.className = "item";
+    row.innerHTML = `
+      <div class="itemTop">
+        <div class="itemName">${drone.name}</div>
+        <div class="itemMeta" id="dm_${drone.id}"></div>
+      </div>
+      <div class="itemMeta" style="margin-top:6px;" id="ds_${drone.id}"></div>
+      <div class="itemBtns">
+        <button class="mini" id="buy_${drone.id}">BUY</button>
+        <button class="mini" id="up_${drone.id}">UPGRADE x2</button>
+      </div>
+    `;
+    el.droneList.appendChild(row);
 
-      droneRows.get(d.id).buy.addEventListener("click", ()=>{ buyDrone(d); render(); });
-      droneRows.get(d.id).up.addEventListener("click", ()=>{ buyDroneUpgrade(d); render(); });
-    }
+    const meta = row.querySelector(`#dm_${drone.id}`);
+    const stats = row.querySelector(`#ds_${drone.id}`);
+    const buy = row.querySelector(`#buy_${drone.id}`);
+    const up = row.querySelector(`#up_${drone.id}`);
+
+    buy.addEventListener("click", ()=>{ buyDrone(drone); render(); });
+    up.addEventListener("click", ()=>{ buyDroneUpgrade(drone); render(); });
+
+    droneRows.set(drone.id, { meta, stats, buy, up });
+
+    log(`unlocked: ${drone.name}`, "ok");
   }
 
   function buildTechList(){
     el.techList.innerHTML = "";
 
-    // Add RP-Lab purchase entry (coins) within tech panel
+    // RP-Lab purchase entry
     const rpLabRow = document.createElement("div");
     rpLabRow.className = "item";
     rpLabRow.innerHTML = `
@@ -682,7 +721,7 @@
     rpl.buy.addEventListener("click", ()=>{ buyRpLab(); render(); });
     techRows.set("RPLAB_PRODUCER", rpl);
 
-    // Tech items
+    // Tech entries
     for(const t of TECH){
       const row = document.createElement("div");
       row.className = "item";
@@ -707,37 +746,95 @@
 
   function buildCosmetics(){
     el.cosList.innerHTML = "";
-    for(const c of COSMETICS){
+
+    // Themes block
+    const themeHeader = document.createElement("div");
+    themeHeader.className = "item";
+    themeHeader.innerHTML = `
+      <div class="itemTop">
+        <div class="itemName">THEMES</div>
+        <div class="itemMeta">switch anytime</div>
+      </div>
+      <div class="itemMeta" style="margin-top:6px;">Default ist neutral. Neon Green ist der günstige Early-Upgrade.</div>
+    `;
+    el.cosList.appendChild(themeHeader);
+
+    for(const th of THEMES){
       const row = document.createElement("div");
       row.className = "item";
       row.innerHTML = `
         <div class="itemTop">
-          <div class="itemName">${c.name}</div>
-          <div class="itemMeta" id="cm_${c.id}"></div>
+          <div class="itemName">${th.name}</div>
+          <div class="itemMeta" id="thm_${th.id}"></div>
         </div>
-        <div class="itemMeta" style="margin-top:6px;">cost: ${fmt(c.cost)} CP</div>
+        <div class="itemMeta" style="margin-top:6px;">cost: ${fmt(th.cost)} CP</div>
         <div class="itemBtns">
-          <button class="mini" id="cb_${c.id}">BUY</button>
+          <button class="mini" id="thb_buy_${th.id}">BUY</button>
+          <button class="mini" id="thb_act_${th.id}">ACTIVATE</button>
         </div>
       `;
       el.cosList.appendChild(row);
-      cosRows.set(c.id, {
-        meta: row.querySelector(`#cm_${c.id}`),
-        buy: row.querySelector(`#cb_${c.id}`)
-      });
-      cosRows.get(c.id).buy.addEventListener("click", ()=>{ buyCosmetic(c); render(); });
+
+      const meta = row.querySelector(`#thm_${th.id}`);
+      const buy = row.querySelector(`#thb_buy_${th.id}`);
+      const act = row.querySelector(`#thb_act_${th.id}`);
+
+      buy.addEventListener("click", ()=>{ buyTheme(th); render(); });
+      act.addEventListener("click", ()=>{ activateTheme(th.id); render(); });
+
+      cosRows.set(`theme_${th.id}`, { meta, buy, act });
+    }
+
+    // Effects block
+    const effHeader = document.createElement("div");
+    effHeader.className = "item";
+    effHeader.style.marginTop = "10px";
+    effHeader.innerHTML = `
+      <div class="itemTop">
+        <div class="itemName">EFFECTS</div>
+        <div class="itemMeta">toggle</div>
+      </div>
+      <div class="itemMeta" style="margin-top:6px;">Effekte sind separat vom Theme.</div>
+    `;
+    el.cosList.appendChild(effHeader);
+
+    for(const ef of EFFECTS){
+      const row = document.createElement("div");
+      row.className = "item";
+      row.innerHTML = `
+        <div class="itemTop">
+          <div class="itemName">${ef.name}</div>
+          <div class="itemMeta" id="efm_${ef.id}"></div>
+        </div>
+        <div class="itemMeta" style="margin-top:6px;">cost: ${fmt(ef.cost)} CP</div>
+        <div class="itemBtns">
+          <button class="mini" id="efb_buy_${ef.id}">BUY</button>
+          <button class="mini" id="efb_tog_${ef.id}">TOGGLE</button>
+        </div>
+      `;
+      el.cosList.appendChild(row);
+
+      const meta = row.querySelector(`#efm_${ef.id}`);
+      const buy = row.querySelector(`#efb_buy_${ef.id}`);
+      const tog = row.querySelector(`#efb_tog_${ef.id}`);
+
+      buy.addEventListener("click", ()=>{ buyEffect(ef); render(); });
+      tog.addEventListener("click", ()=>{ toggleEffect(ef.id); render(); });
+
+      cosRows.set(`effect_${ef.id}`, { meta, buy, tog });
     }
   }
 
   // ---------- HANGAR ----------
   function renderHangar(){
-    // show icons up to a limit; beyond that show a compact line
     const MAX_ICONS_PER_TYPE = 18;
-
     el.hangar.innerHTML = "";
-    for(const d of DRONES){
+
+    // Show only unlocked or owned types
+    const visible = DRONES.filter(d => isUnlocked(d.unlock) || (state.owned[d.id] || 0) > 0);
+
+    for(const d of visible){
       const owned = state.owned[d.id] || 0;
-      if(!isUnlocked(d.unlock) && owned === 0) continue;
 
       const row = document.createElement("div");
       row.className = "hangarRow";
@@ -772,7 +869,6 @@
           icons.appendChild(ic);
         }
       } else {
-        // compact
         const ic = document.createElement("span");
         ic.className = "icon";
         ic.textContent = d.icon;
@@ -783,19 +879,20 @@
         icons.appendChild(cnt);
       }
 
-      // small progress bar to next unlock for locked drones
+      // unlock progress bar for the NEXT locked drone only (nice mystery)
+      const nextLocked = DRONES.find(x => !isUnlocked(x.unlock));
       const unlockBar = document.createElement("div");
       unlockBar.className = "bar";
       const fill = document.createElement("div");
       unlockBar.appendChild(fill);
 
-      // determine progress if this drone is locked by "owned"
-      let prog = 1;
-      if(!isUnlocked(d.unlock) && d.unlock.type === "owned"){
-        const have = state.owned[d.unlock.id] || 0;
-        prog = clamp(have / d.unlock.n, 0, 1);
+      if(nextLocked && nextLocked.unlock.type === "owned"){
+        const have = state.owned[nextLocked.unlock.id] || 0;
+        const prog = clamp(have / nextLocked.unlock.n, 0, 1);
+        fill.style.width = `${Math.floor(prog*100)}%`;
+      } else {
+        fill.style.width = `100%`;
       }
-      fill.style.width = `${Math.floor(prog*100)}%`;
 
       right.appendChild(unlockBar);
       right.appendChild(icons);
@@ -808,20 +905,31 @@
 
   // ---------- UPDATE ROWS ----------
   function updateDroneRows(){
+    // ensure rows exist only when unlocked
     for(const d of DRONES){
-      const row = droneRows.get(d.id);
+      if(isUnlocked(d.unlock)){
+        ensureDroneRow(d);
+      }
+    }
+
+    // update existing rows
+    for(const [id, row] of droneRows.entries()){
+      const d = DRONES.find(x => x.id === id);
+      if(!d) continue;
+
       const owned = state.owned[d.id] || 0;
-      const unlocked = isUnlocked(d.unlock);
       const price = dronePrice(d);
 
       const upLvl = state.dUp[d.id] || 0;
       const upCost = droneUpgradeCost(d.basePrice, upLvl);
 
       const per = d.baseCps * droneMultiplier(d.id) * droneCpsMultiplier() * globalCpsMultiplier();
-      row.meta.textContent = unlocked ? "unlocked" : `locked · need ${d.unlock.n} ${d.unlock.id} owned`;
-      row.stats.textContent = `owned: x${owned} · next: ${fmt(price)} CP · output(each): ${per.toFixed(per<10?2:1)} CP/s · upgrade lvl: ${upLvl} (cost ${fmt(upCost)} CP)`;
 
-      row.buy.disabled = !unlocked || state.coins < price;
+      row.meta.textContent = "unlocked";
+      row.stats.textContent =
+        `owned: x${owned} · next: ${fmt(price)} CP · output(each): ${per.toFixed(per<10?2:1)} CP/s · upgrade lvl: ${upLvl} (cost ${fmt(upCost)} CP)`;
+
+      row.buy.disabled = state.coins < price;
       row.up.disabled = (owned<=0) || state.coins < upCost;
     }
   }
@@ -852,18 +960,39 @@
   }
 
   function updateCosRows(){
-    for(const c of COSMETICS){
-      const row = cosRows.get(c.id);
-      const owned = !!state.cosmetics[c.id];
-      row.meta.textContent = owned ? "owned" : "locked";
-      row.buy.disabled = owned || state.coins < c.cost;
+    // Themes
+    for(const th of THEMES){
+      const row = cosRows.get(`theme_${th.id}`);
+      const owned = !!state.cosmetics.themesOwned[th.id];
+      const active = state.cosmetics.activeThemeId === th.id;
+
+      row.meta.textContent = active ? "active" : (owned ? "owned" : "locked");
+
+      row.buy.disabled = owned || state.coins < th.cost;
       row.buy.textContent = owned ? "OWNED" : "BUY";
+
+      row.act.disabled = !owned || active;
+      row.act.textContent = active ? "ACTIVE" : "ACTIVATE";
+    }
+
+    // Effects
+    for(const ef of EFFECTS){
+      const row = cosRows.get(`effect_${ef.id}`);
+      const owned = !!state.cosmetics.effectsOwned[ef.id];
+      const on = !!state.cosmetics.effectsActive[ef.id];
+
+      row.meta.textContent = on ? "on" : (owned ? "owned" : "locked");
+
+      row.buy.disabled = owned || state.coins < ef.cost;
+      row.buy.textContent = owned ? "OWNED" : "BUY";
+
+      row.tog.disabled = !owned;
+      row.tog.textContent = on ? "TURN OFF" : "TURN ON";
     }
   }
 
   // ---------- RENDER ----------
   function render(){
-    // top stats
     const cps = coinsPerSecond();
     const rps = rpPerSecond();
     const cp = clickPower();
@@ -875,10 +1004,8 @@
     el.rps.textContent = rps.toFixed(3);
     el.life.textContent = fmt(state.lifetimeCoins);
 
-    // click button label
     el.clickBtn.textContent = `CLICK ( +${cp.toFixed(cp<10?2:1)} )`;
 
-    // experiment button label
     const t = now();
     const left = Math.max(0, state.nextExperimentAt - t);
     if(left > 0){
@@ -889,14 +1016,14 @@
       el.experimentBtn.disabled = false;
     }
 
-    // hint: show next unlock
+    // hint: show only the NEXT unlock (keeps mystery)
     const next = DRONES.find(d => !isUnlocked(d.unlock));
     if(next && next.unlock.type === "owned"){
       const have = state.owned[next.unlock.id] || 0;
       el.hintLine.innerHTML =
-        `Next unlock: <span class="tag">${next.name}</span> → need <span class="tag">${next.unlock.n}</span> of <span class="tag">${next.unlock.id}</span> (you have ${have}).`;
+        `Next unlock progress: <span class="tag">${have}/${next.unlock.n}</span> of <span class="tag">${next.unlock.id}</span>.`;
     } else {
-      el.hintLine.textContent = "You’re in the drone economy. Scale producers + upgrades + RP tech + cosmetics.";
+      el.hintLine.textContent = "All drones unlocked. Now scale upgrades + RP tech + cosmetics.";
     }
 
     updateDroneRows();
@@ -913,11 +1040,9 @@
     const dt = (t - state.lastTick) / 1000;
     state.lastTick = t;
 
-    // passive income
     const cps = coinsPerSecond();
     if(cps > 0) addCoins(cps * dt);
 
-    // rp passive
     const rps = rpPerSecond();
     if(rps > 0) state.rp += rps * dt;
 
@@ -928,7 +1053,7 @@
   function resetAll(){
     localStorage.removeItem(SAVE_KEY);
     state = defaultState();
-    applyTheme(state);
+    applyCosmetics();
     boot();
     render();
     save();
@@ -937,23 +1062,24 @@
   function boot(){
     el.log.innerHTML = "";
     log("boot: AI DRONE CLICKER v1.21", "ok");
-    log("start slow: click for CP, buy Temu Drone (0.1 CP/s), then scale.", "ok");
-    log("RP: run experiments (cooldown) + unlock RP-Lab via tech.", "ok");
+    log("cosmetics: themes switchable + effects togglable", "ok");
+    log("click tech now doubles per level", "ok");
+    log("locked drones are hidden until unlocked", "ok");
   }
 
   // ---------- INIT ----------
   let state = load();
-  applyTheme(state);
+  applyCosmetics();
 
-  buildDroneList();
+  // build panels that are always present
   buildTechList();
   buildCosmetics();
 
-  // Input
+  // Inputs
   el.clickBtn.addEventListener("click", ()=>{ doClick(); render(); });
   el.experimentBtn.addEventListener("click", ()=>{ runExperiment(); render(); });
   el.resetBtn.addEventListener("click", ()=>{
-    const ok = confirm("Reset? (löscht nur deinen lokalen Savegame)");
+    const ok = confirm("Reset? (löscht nur dein lokales Savegame)");
     if(ok) resetAll();
   });
 
