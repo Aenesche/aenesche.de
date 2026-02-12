@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI DRONE LAB</title>
+  <title>AI DRONE LAB · v1.21</title>
   <style>
     :root{
       --bg:#0a0a0a;
@@ -13,180 +13,128 @@
       --line:#1f1f1f;
       --accent:#00ff88;
       --warn:#ff4444;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
     }
     *{ box-sizing:border-box; }
     body{
       margin:0;
       background:var(--bg);
       color:var(--text);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      letter-spacing: .2px;
+      font-family:var(--mono);
+      letter-spacing:.2px;
     }
     a{ color:var(--accent); text-decoration:none; }
     a:hover{ text-decoration:underline; }
-    .wrap{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 24px 16px 64px;
-    }
+
+    .wrap{ max-width: 1100px; margin:0 auto; padding: 22px 14px 70px; }
     .topbar{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:12px;
-      border-bottom:1px solid var(--line);
-      padding-bottom:12px;
-      margin-bottom:16px;
+      display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;
+      border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:14px;
     }
-    .title{
-      font-size: 16px;
-      line-height: 1.2;
-    }
-    .sub{
-      color:var(--muted);
-      font-size:12px;
-      margin-top:6px;
-    }
-    .row{
+    .title{ font-size:16px; }
+    .sub{ color:var(--muted); font-size:12px; margin-top:6px; }
+    .tag{ display:inline-block; border:1px solid var(--line); padding:3px 6px; font-size:11px; color:var(--muted); }
+
+    .grid{
       display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:16px;
-      margin-top:16px;
+      grid-template-columns: 1.15fr .85fr;
+      gap:14px;
+      margin-top:14px;
     }
-    @media (max-width: 860px){
-      .row{ grid-template-columns: 1fr; }
-    }
-    .panel{
-      background:var(--panel);
-      border:1px solid var(--line);
-      padding:14px;
-    }
+    @media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
+
+    .panel{ background:var(--panel); border:1px solid var(--line); padding:13px; }
     .panel h2{
-      margin:0 0 10px;
-      font-size:13px;
-      color:var(--accent);
-      font-weight:600;
-      letter-spacing:.6px;
+      margin:0 0 10px; font-size:13px; color:var(--accent); font-weight:600; letter-spacing:.6px;
     }
+
     .stats{
       display:grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap:10px;
       margin-top:8px;
     }
-    .stat{
-      border:1px solid var(--line);
-      padding:10px;
-      background:#0b0b0b;
-    }
+    @media (max-width: 720px){ .stats{ grid-template-columns: 1fr 1fr; } }
+    .stat{ border:1px solid var(--line); padding:10px; background:#0b0b0b; }
     .k{ color:var(--muted); font-size:11px; margin-bottom:6px; }
     .v{ font-size:16px; }
     .v small{ color:var(--muted); font-size:12px; }
 
-    .buttons{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:12px;
-    }
+    .buttons{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
     button{
-      appearance:none;
-      background:transparent;
-      color:var(--text);
+      appearance:none; background:transparent; color:var(--text);
       border:1px solid var(--line);
-      padding:10px 12px;
-      cursor:pointer;
-      font-family:inherit;
-      font-size:12px;
-      letter-spacing:.3px;
+      padding:10px 12px; cursor:pointer; font-family:var(--mono);
+      font-size:12px; letter-spacing:.3px;
+      user-select:none;
     }
     button:hover{ border-color:var(--accent); color:var(--accent); }
-    button:disabled{
-      opacity:.45;
-      cursor:not-allowed;
-      border-color:var(--line);
-      color:var(--muted);
-    }
+    button:disabled{ opacity:.45; cursor:not-allowed; color:var(--muted); border-color:var(--line); }
 
-    .hint{
-      color:var(--muted);
-      font-size:12px;
-      margin-top:10px;
-      line-height:1.35;
-    }
-    .mono{
+    .hint{ color:var(--muted); font-size:12px; margin-top:10px; line-height:1.35; }
+
+    .list{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+    .item{ border:1px solid var(--line); background:#0b0b0b; padding:10px; }
+    .itemTop{ display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
+    .itemName{ font-size:12px; }
+    .itemMeta{ font-size:11px; color:var(--muted); }
+    .itemBtns{ margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+    .mini{ padding:7px 10px; font-size:11px; }
+
+    .monoBox{
       border:1px solid var(--line);
       background:#050505;
       padding:10px;
       font-size:12px;
       white-space:pre-wrap;
-      min-height:180px;
-      max-height:260px;
+      max-height:220px;
       overflow:auto;
     }
     .ok{ color:var(--accent); }
     .bad{ color:var(--warn); }
-    .grid2{
+
+    .twoCols{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap:10px;
-      margin-top:10px;
     }
-    .tag{
-      display:inline-block;
-      border:1px solid var(--line);
-      padding:3px 6px;
-      font-size:11px;
-      color:var(--muted);
-      margin-right:6px;
-    }
-    .footer{
-      margin-top:18px;
-      color:var(--muted);
-      font-size:12px;
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-    }
+    @media (max-width: 720px){ .twoCols{ grid-template-columns:1fr; } }
 
-    .list{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      margin-top:10px;
-    }
-    .item{
+    /* Hangar visuals */
+    .hangar{
       border:1px solid var(--line);
-      background:#0b0b0b;
+      background:#050505;
       padding:10px;
+      min-height:120px;
     }
-    .itemTop{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:baseline;
+    .hangarRow{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      border-bottom:1px dashed #141414; padding:7px 0;
     }
-    .itemName{ font-size:12px; color:var(--text); }
-    .itemMeta{ font-size:11px; color:var(--muted); }
-    .itemBtns{
-      margin-top:8px;
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
+    .hangarRow:last-child{ border-bottom:none; }
+    .hangarLeft{ display:flex; gap:10px; align-items:center; }
+    .icon{
+      width:22px; height:22px;
+      display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid var(--line);
+      color:var(--accent);
+      font-size:12px;
     }
-    .mini{
-      padding:7px 10px;
-      font-size:11px;
+    .count{ color:var(--muted); font-size:12px; }
+    .bar{
+      height:6px; border:1px solid var(--line); background:#060606;
+      overflow:hidden; width:160px;
     }
+    .bar > div{ height:100%; background:var(--accent); width:0%; }
+    @media (max-width: 420px){ .bar{ width:120px; } }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="topbar">
       <div>
-        <div class="title">AI DRONE LAB</div>
-        <div class="sub">Compute → GPU → Train Model → Deploy Drone → Research</div>
+        <div class="title">AI DRONE LAB <span class="tag">v1.21</span></div>
+        <div class="sub">Cookie-Clicker style · Coins + Drohnen-Producer · RP-Tech · Cosmetics</div>
       </div>
       <div class="sub">
         <span class="tag" id="statusTag">autosave: ON</span>
@@ -194,93 +142,61 @@
       </div>
     </div>
 
-    <div class="row">
-      <!-- LEFT -->
+    <div class="grid">
+      <!-- LEFT: Core -->
       <div class="panel">
         <h2>STATUS</h2>
         <div class="stats">
-          <div class="stat">
-            <div class="k">Compute</div>
-            <div class="v"><span id="compute">0</span> <small>CU</small></div>
-          </div>
-          <div class="stat">
-            <div class="k">Research</div>
-            <div class="v"><span id="research">0</span> <small>RP</small></div>
-          </div>
-          <div class="stat">
-            <div class="k">AI Level</div>
-            <div class="v"><span id="aiLevel">1</span></div>
-          </div>
-          <div class="stat">
-            <div class="k">Loss</div>
-            <div class="v"><span id="loss">1.000</span></div>
-          </div>
-          <div class="stat">
-            <div class="k">Compute / sec</div>
-            <div class="v"><span id="cps">0</span> <small>CU/s</small></div>
-          </div>
-          <div class="stat">
-            <div class="k">Drone Success</div>
-            <div class="v"><span id="success">0</span><small>%</small></div>
-          </div>
+          <div class="stat"><div class="k">Coins</div><div class="v"><span id="coins">0</span> <small>CP</small></div></div>
+          <div class="stat"><div class="k">Coins / sec</div><div class="v"><span id="cps">0</span> <small>CP/s</small></div></div>
+          <div class="stat"><div class="k">Click Power</div><div class="v"><span id="clickPow">1</span> <small>CP</small></div></div>
+          <div class="stat"><div class="k">Research</div><div class="v"><span id="rp">0</span> <small>RP</small></div></div>
+          <div class="stat"><div class="k">RP / sec</div><div class="v"><span id="rps">0</span> <small>RP/s</small></div></div>
+          <div class="stat"><div class="k">Lifetime Coins</div><div class="v"><span id="life">0</span></div></div>
         </div>
 
         <div class="buttons">
-          <button id="trainBtn">TRAIN STEP</button>
-          <button id="deployBtn">DEPLOY DRONE</button>
-          <button id="resetBtn" title="löscht nur deinen lokalen Save">RESET ALL</button>
+          <button id="clickBtn">CLICK ( +1 )</button>
+          <button id="experimentBtn">RUN EXPERIMENT</button>
+          <button id="resetBtn" title="löscht nur deinen lokalen Save">RESET</button>
         </div>
 
-        <div class="hint" id="hintLine"></div>
+        <div class="hint" id="hintLine">
+          Start ist langsam: erst Drohnen kaufen, dann Upgrades. RP kommt über Experimente + später RP-Lab.
+        </div>
 
-        <h2 style="margin-top:16px;">CONSOLE</h2>
-        <div class="mono" id="log"></div>
-
-        <div class="footer">
-          <div>Save: <span id="saveInfo">—</span></div>
-          <div>Build v0.2 · drones + RP</div>
+        <div class="twoCols" style="margin-top:12px;">
+          <div>
+            <h2>HANGAR</h2>
+            <div class="hangar" id="hangar"></div>
+            <div class="hint">Mehr Drohnen → mehr Symbole. Ab großen Zahlen wird es zu “xN”.</div>
+          </div>
+          <div>
+            <h2>CONSOLE</h2>
+            <div class="monoBox" id="log"></div>
+            <div class="hint">Die Konsole wird automatisch gekürzt/geleert, damit es nicht spammt.</div>
+          </div>
         </div>
       </div>
 
-      <!-- RIGHT -->
+      <!-- RIGHT: Shop -->
       <div>
         <div class="panel">
-          <h2>GPU SYSTEM</h2>
-          <div class="grid2">
-            <div class="stat">
-              <div class="k">Tier</div>
-              <div class="v"><span id="gpuTierName">CPU</span></div>
-            </div>
-            <div class="stat">
-              <div class="k">GPU Level</div>
-              <div class="v"><span id="gpuLevel">0</span></div>
-            </div>
-          </div>
-          <div class="hint" id="gpuDesc"></div>
-          <div class="buttons">
-            <button id="gpuUpBtn">UPGRADE GPU</button>
-          </div>
+          <h2>DRONES (PRODUCERS)</h2>
+          <div class="hint">Preise steigen pro Kauf wie bei Cookie Clicker: <span class="tag">base * 1.15^owned</span></div>
+          <div class="list" id="droneList"></div>
         </div>
 
-        <!-- DROHNE / UPGRADES PANEL (hier wolltest du es) -->
-        <div class="panel" style="margin-top:16px;">
-          <h2>DRONE HANGAR</h2>
+        <div class="panel" style="margin-top:14px;">
+          <h2>RESEARCH TECH (RP)</h2>
+          <div class="hint">RP Upgrades sind langfristig und skalieren im Preis. Fokus: Drohnen-Power & Click-Multipliers.</div>
+          <div class="list" id="techList"></div>
+        </div>
 
-          <div class="stat" style="margin-bottom:10px;">
-            <div class="k">Selected Drone</div>
-            <div class="v"><span id="droneName">—</span> <small id="droneTier">T1</small></div>
-            <div class="k" style="margin-top:8px;">Mission</div>
-            <div class="v" style="font-size:12px;color:var(--muted);line-height:1.35" id="droneInfo">—</div>
-          </div>
-
-          <div class="list" id="droneList"></div>
-
-          <h2 style="margin-top:16px;">RESEARCH UPGRADES</h2>
-          <div class="list" id="upgradeList"></div>
-
-          <div class="hint">
-            RP schaltet Drohnen + Upgrades frei. Click skaliert mit AI+GPU.
-          </div>
+        <div class="panel" style="margin-top:14px;">
+          <h2>COSMETICS (COINS)</h2>
+          <div class="hint">Teure Coin-Sinks: Themes & Effekte. (Late-Game Ziel)</div>
+          <div class="list" id="cosList"></div>
         </div>
       </div>
     </div>
@@ -288,116 +204,85 @@
 
 <script>
 (() => {
-  const KEY = "aenesche_ai_drone_lab_v021";
+  const SAVE_KEY = "aenesche_ai_drone_clicker_v121";
 
-  const GPU_TIERS = [
-    { name: "CPU",        baseCps: 0,    baseCost: 0 },
-    { name: "GTX",        baseCps: 2.5,  baseCost: 60 },
-    { name: "RTX",        baseCps: 12,   baseCost: 360 },
-    { name: "CLUSTER",    baseCps: 55,   baseCost: 2400 },
-    { name: "DATACENTER", baseCps: 260,  baseCost: 18000 },
-  ];
+  // ---------- BALANCE (slow start) ----------
+  const PRICE_GROWTH = 1.15;         // per purchase
+  const TICK_MS = 200;
 
+  // Experiment: slow RP. Cooldown + tiny scaling with lifetime coins (log).
+  const EXPERIMENT_CD_MS = 12000;
+
+  // Console
+  const MAX_LOG_LINES = 60;
+  const SOFT_CLEAR_MS = 120000;
+
+  // Drones = Cookie Clicker producers
   const DRONES = [
-    { id:"temu",    tier:1, name:"Temu Drone",       unlockRP:0,   baseSuccess:70, durationMs:6500,  costBase:18,  rewardBase:65,  rpMin:1, rpMax:2, riskLossOnFail:0.02 },
-    { id:"amazon",  tier:2, name:"Amazon Drone",     unlockRP:5,   baseSuccess:62, durationMs:7500,  costBase:40,  rewardBase:140, rpMin:1, rpMax:3, riskLossOnFail:0.03 },
-    { id:"air3s",   tier:3, name:"DJI Air 3S",       unlockRP:20,  baseSuccess:56, durationMs:8500,  costBase:90,  rewardBase:280, rpMin:2, rpMax:4, riskLossOnFail:0.04 },
-    { id:"cine",    tier:4, name:"FPV Cinelifter",   unlockRP:60,  baseSuccess:48, durationMs:9500,  costBase:170, rewardBase:520, rpMin:3, rpMax:6, riskLossOnFail:0.06 },
-    { id:"matrice", tier:5, name:"DJI Matrice",      unlockRP:150, baseSuccess:42, durationMs:11000, costBase:320, rewardBase:980, rpMin:5, rpMax:9, riskLossOnFail:0.08 },
+    { id:"temu",     name:"Temu Drone",     icon:"t", baseCps:0.10, basePrice:15,    unlock:{type:"always"} },
+    { id:"amazon",   name:"Amazon Drone",   icon:"a", baseCps:1.00, basePrice:120,   unlock:{type:"owned", id:"temu", n:10} },
+    { id:"fpv",      name:"FPV Drone",      icon:"f", baseCps:8.00, basePrice:1100,  unlock:{type:"owned", id:"amazon", n:8} },
+    { id:"air3s",    name:"DJI Air 3S",     icon:"D", baseCps:47.0, basePrice:12000, unlock:{type:"owned", id:"fpv", n:8} },
+    { id:"cine",     name:"Cinelifter",     icon:"C", baseCps:260,  basePrice:130000,unlock:{type:"owned", id:"air3s", n:6} },
+    { id:"matrice",  name:"DJI Matrice",    icon:"M", baseCps:1400, basePrice:1500000, unlock:{type:"owned", id:"cine", n:6} },
   ];
 
-  const UPGRADES = [
-    { id:"cooling",   name:"Cooling",          costRP:8,  desc:"+10% GPU compute",         apply:(s)=>s.bonusGpuMult=1.10 },
-    { id:"dataset",   name:"Dataset++",        costRP:12, desc:"+15% click power",         apply:(s)=>s.bonusClickMult=1.15 },
-    { id:"autonomy",  name:"Autonomy",         costRP:18, desc:"-15% mission time",        apply:(s)=>s.bonusMissionTimeMult=0.85 },
-    { id:"frame",     name:"Reinforced Frame", costRP:25, desc:"fail penalty reduced",     apply:(s)=>s.bonusFailLossMult=0.65 },
+  // Per-drone upgrades (Coins): each level doubles that drone's output. Costs scale hard.
+  // Cost base is tied to drone basePrice to feel Cookie-ish.
+  function droneUpgradeCost(droneBasePrice, level){
+    // level 0 -> first upgrade
+    const base = droneBasePrice * 12;
+    return Math.floor(base * Math.pow(2.6, level));
+  }
+
+  // Research tech (RP): long-term, repeatable scaling.
+  // Some are repeatable; some are one-time.
+  const TECH = [
+    { id:"globalCps", name:"Optimization Pass", desc:"+5% global CPS (repeatable)", type:"repeat", baseCost:6, growth:1.35,
+      apply:(s)=>{ /* handled in multiplier */ } },
+    { id:"droneBoost", name:"Drone Firmware", desc:"+6% drone CPS (repeatable)", type:"repeat", baseCost:10, growth:1.38,
+      apply:(s)=>{} },
+    { id:"clickBoost", name:"Quantization Trick", desc:"+10% click power (repeatable)", type:"repeat", baseCost:12, growth:1.42,
+      apply:(s)=>{} },
+    { id:"rpLab", name:"Research Lab", desc:"Unlock: buy RP-Lab producer (1-time)", type:"one", baseCost:25, growth:1.0,
+      apply:(s)=>{ s.flags.rpLabUnlocked = true; } },
+    { id:"rpLabBoost", name:"Lab Instrumentation", desc:"+25% RP-Lab output (repeatable)", type:"repeat", baseCost:18, growth:1.45,
+      apply:(s)=>{} },
   ];
 
+  // RP Lab is a separate producer (VERY slow), unlocked via tech
+  const RP_LAB = { id:"rplab", name:"RP-Lab", icon:"R", baseRps:0.02, basePrice:5000, priceGrowth:1.20 };
+
+  // Cosmetics: coin sinks (themes via CSS vars)
+  const COSMETICS = [
+    { id:"themeGreen", name:"Theme: Neon Green", cost:5_000_000, apply:(t)=>setTheme(t, {accent:"#00ff88"}) },
+    { id:"themeAmber", name:"Theme: Amber Terminal", cost:25_000_000, apply:(t)=>setTheme(t, {accent:"#ffb000"}) },
+    { id:"themeIce",   name:"Theme: Ice Blue", cost:60_000_000, apply:(t)=>setTheme(t, {accent:"#66d9ff"}) },
+    { id:"crt", name:"Effect: CRT Scanlines", cost:50_000_000, apply:(t)=>setTheme(t, {scanlines:true}) },
+  ];
+
+  // ---------- DOM ----------
   const $ = (id) => document.getElementById(id);
   const el = {
-    compute: $("compute"),
-    research: $("research"),
-    aiLevel: $("aiLevel"),
-    loss: $("loss"),
-    cps: $("cps"),
-    success: $("success"),
-    log: $("log"),
-    saveInfo: $("saveInfo"),
-    statusTag: $("statusTag"),
-
-    gpuTierName: $("gpuTierName"),
-    gpuLevel: $("gpuLevel"),
-    gpuDesc: $("gpuDesc"),
-
-    droneName: $("droneName"),
-    droneTier: $("droneTier"),
-    droneInfo: $("droneInfo"),
-    droneList: $("droneList"),
-    upgradeList: $("upgradeList"),
-
-    hintLine: $("hintLine"),
-
-    trainBtn: $("trainBtn"),
-    deployBtn: $("deployBtn"),
-    gpuUpBtn: $("gpuUpBtn"),
-    resetBtn: $("resetBtn"),
+    coins: $("coins"), cps: $("cps"), clickPow: $("clickPow"),
+    rp: $("rp"), rps: $("rps"), life: $("life"),
+    clickBtn: $("clickBtn"), experimentBtn: $("experimentBtn"), resetBtn: $("resetBtn"),
+    droneList: $("droneList"), techList: $("techList"), cosList: $("cosList"),
+    hangar: $("hangar"), log: $("log"),
+    statusTag: $("statusTag"), hintLine: $("hintLine"),
   };
 
   const now = () => Date.now();
   const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 
-  function defaultState(){
-    return {
-      compute: 0,
-      research: 0,
-      aiLevel: 1,
-      loss: 1.0,
-      gpuTier: 0,
-      gpuLevel: 0,
-
-      selectedDroneId: "temu",
-      purchasedUpgrades: {},
-
-      bonusGpuMult: 1.0,
-      bonusClickMult: 1.0,
-      bonusMissionTimeMult: 1.0,
-      bonusFailLossMult: 1.0,
-
-      mission: { active:false, endsAt:0, startedAt:0, droneId:null },
-      lastTick: now(),
-      createdAt: now(),
-      lastConsoleClear: now(),
-    };
-  }
-
-  function load(){
-    try{
-      const raw = localStorage.getItem(KEY);
-      if(!raw) return defaultState();
-      const s = JSON.parse(raw);
-      return { ...defaultState(), ...s };
-    } catch {
-      return defaultState();
-    }
-  }
-
-  function save(){
-    localStorage.setItem(KEY, JSON.stringify(state));
-    el.saveInfo.textContent = new Date().toLocaleTimeString();
-  }
-
   function fmt(n){
     n = Number(n) || 0;
     if (n < 1000) return String(Math.floor(n));
-    const units = ["k","M","B","T"];
+    const units = ["k","M","B","T","Qa","Qi"];
     let u = -1;
     while(n >= 1000 && u < units.length-1){ n/=1000; u++; }
     return (n < 10 ? n.toFixed(2) : n < 100 ? n.toFixed(1) : n.toFixed(0)) + units[u];
   }
-
-  // ---------- CONSOLE ----------
-  const MAX_LOG_LINES = 60;
-  const SOFT_CLEAR_MS = 90_000;
 
   function escapeHtml(s){
     return String(s)
@@ -425,361 +310,625 @@
     }
   }
 
-  // ---------- HELPERS ----------
-  function getDrone(id){
-    return DRONES.find(d => d.id === id) || DRONES[0];
+  // ---------- THEME ----------
+  function setTheme(themeState, patch){
+    themeState.theme = themeState.theme || { accent:"#00ff88", scanlines:false };
+    themeState.theme = { ...themeState.theme, ...patch };
+    applyTheme(themeState);
   }
-  function unlocked(drone){
-    return state.research >= drone.unlockRP;
-  }
+  function applyTheme(themeState){
+    const t = themeState.theme || { accent:"#00ff88", scanlines:false };
+    document.documentElement.style.setProperty("--accent", t.accent || "#00ff88");
 
-  // ---------- BONUSES ----------
-  function recomputeBonuses(){
-    state.bonusGpuMult = 1.0;
-    state.bonusClickMult = 1.0;
-    state.bonusMissionTimeMult = 1.0;
-    state.bonusFailLossMult = 1.0;
-
-    for(const up of UPGRADES){
-      if(state.purchasedUpgrades[up.id]){
-        up.apply(state);
+    // Scanlines effect (simple)
+    const id = "scanlines-style";
+    let tag = document.getElementById(id);
+    if(t.scanlines){
+      if(!tag){
+        tag = document.createElement("style");
+        tag.id = id;
+        tag.textContent = `
+          body:before{
+            content:"";
+            position:fixed;
+            inset:0;
+            pointer-events:none;
+            background: repeating-linear-gradient(
+              to bottom,
+              rgba(255,255,255,0.035),
+              rgba(255,255,255,0.035) 1px,
+              rgba(0,0,0,0) 3px,
+              rgba(0,0,0,0) 6px
+            );
+            mix-blend-mode: overlay;
+            opacity: .35;
+          }
+        `;
+        document.head.appendChild(tag);
       }
-    }
-  }
-
-  // ---------- GPU ----------
-  function gpuCps(){
-    const tier = GPU_TIERS[state.gpuTier];
-    const mult = Math.pow(1.15, state.gpuLevel);
-    return tier.baseCps * mult * state.bonusGpuMult;
-  }
-
-  function gpuUpgradeCost(){
-    const nextTier = (state.gpuTier === 0) ? 1 : state.gpuTier;
-    const tier = GPU_TIERS[nextTier];
-    const level = (state.gpuTier === 0) ? 0 : (state.gpuLevel + 1);
-    return tier.baseCost * Math.pow(1.18, level);
-  }
-
-  function maybeTierUp(){
-    const thresholds = [0, 0, 10, 20, 32];
-    if(state.gpuTier < GPU_TIERS.length - 1 && state.gpuLevel >= thresholds[state.gpuTier + 1]){
-      state.gpuTier += 1;
-      log(`GPU TIER UPGRADE → ${GPU_TIERS[state.gpuTier].name}`, "ok");
-    }
-  }
-
-  function upgradeGpu(){
-    const cost = gpuUpgradeCost();
-    if(state.compute < cost){
-      log(`GPU upgrade needs ${fmt(cost)} CU`, "bad");
-      return;
-    }
-    state.compute -= cost;
-
-    if(state.gpuTier === 0){
-      state.gpuTier = 1;
-      state.gpuLevel = 0;
-      log(`GPU ONLINE → ${GPU_TIERS[state.gpuTier].name}`, "ok");
     } else {
-      state.gpuLevel += 1;
-      maybeTierUp();
-      log(`GPU upgraded → level ${state.gpuLevel}`, "ok");
+      if(tag) tag.remove();
     }
   }
 
-  // ---------- CLICK / TRAIN ----------
+  // ---------- STATE ----------
+  function defaultState(){
+    return {
+      coins: 0,
+      lifetimeCoins: 0,
+      rp: 0,
+
+      // drones owned
+      owned: Object.fromEntries(DRONES.map(d => [d.id, 0])),
+
+      // per-drone upgrade levels (coin upgrades)
+      dUp: Object.fromEntries(DRONES.map(d => [d.id, 0])),
+
+      // tech levels (repeatables) + owned (one-time)
+      techLvl: Object.fromEntries(TECH.map(t => [t.id, 0])),
+      techOwned: Object.fromEntries(TECH.map(t => [t.id, false])),
+
+      // rp-lab owned
+      rpLabOwned: 0,
+
+      flags: { rpLabUnlocked:false },
+
+      // experiment cooldown
+      nextExperimentAt: 0,
+
+      // cosmetics owned
+      cosmetics: Object.fromEntries(COSMETICS.map(c => [c.id, false])),
+      theme: { accent:"#00ff88", scanlines:false },
+
+      lastTick: now(),
+      lastConsoleClear: now(),
+      createdAt: now(),
+    };
+  }
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(SAVE_KEY);
+      if(!raw) return defaultState();
+      const s = JSON.parse(raw);
+      const merged = { ...defaultState(), ...s };
+
+      // ensure keys exist
+      for(const d of DRONES){
+        if(!(d.id in merged.owned)) merged.owned[d.id] = 0;
+        if(!(d.id in merged.dUp)) merged.dUp[d.id] = 0;
+      }
+      for(const t of TECH){
+        if(!(t.id in merged.techLvl)) merged.techLvl[t.id] = 0;
+        if(!(t.id in merged.techOwned)) merged.techOwned[t.id] = false;
+      }
+      for(const c of COSMETICS){
+        if(!(c.id in merged.cosmetics)) merged.cosmetics[c.id] = false;
+      }
+      merged.flags = merged.flags || { rpLabUnlocked:false };
+      merged.theme = merged.theme || { accent:"#00ff88", scanlines:false };
+      return merged;
+    } catch {
+      return defaultState();
+    }
+  }
+
+  function save(){
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    el.statusTag.textContent = "autosave: ON";
+  }
+
+  // ---------- UNLOCKS ----------
+  function isUnlocked(u){
+    if(u.type === "always") return true;
+    if(u.type === "owned"){
+      return (state.owned[u.id] || 0) >= u.n;
+    }
+    return false;
+  }
+
+  // ---------- ECONOMY ----------
+  function dronePrice(drone){
+    const n = state.owned[drone.id] || 0;
+    return Math.floor(drone.basePrice * Math.pow(PRICE_GROWTH, n));
+  }
+
+  function rpLabPrice(){
+    const n = state.rpLabOwned || 0;
+    return Math.floor(RP_LAB.basePrice * Math.pow(RP_LAB.priceGrowth, n));
+  }
+
+  function droneMultiplier(droneId){
+    // per-drone coin upgrades: each level doubles that drone
+    const lvl = state.dUp[droneId] || 0;
+    return Math.pow(2, lvl);
+  }
+
+  function globalCpsMultiplier(){
+    // tech: globalCps repeatable: +5% each level
+    const lvl = state.techLvl.globalCps || 0;
+    return Math.pow(1.05, lvl);
+  }
+
+  function droneCpsMultiplier(){
+    // tech: droneBoost repeatable: +6% each level
+    const lvl = state.techLvl.droneBoost || 0;
+    return Math.pow(1.06, lvl);
+  }
+
+  function clickMultiplier(){
+    const lvl = state.techLvl.clickBoost || 0;
+    return Math.pow(1.10, lvl);
+  }
+
+  function rpLabMultiplier(){
+    const lvl = state.techLvl.rpLabBoost || 0;
+    return Math.pow(1.25, lvl);
+  }
+
   function clickPower(){
-    const ai = state.aiLevel;
-    const gpu = state.gpuTier;
-    const rp = state.research;
-    const base = 1 + ai * 0.55 + gpu * 2.0;
-    const rpBonus = 1 + Math.min(0.25, rp * 0.005);
-    return base * rpBonus * state.bonusClickMult;
+    // Start slow: base 1. Later boosted by tech + (tiny) milestones.
+    let base = 1;
+
+    // milestone: every 25 Temu drones => +10% click
+    const temu = state.owned.temu || 0;
+    const ms = Math.floor(temu / 25);
+    base *= Math.pow(1.10, ms);
+
+    base *= clickMultiplier();
+    return base;
   }
 
-  function trainStep(){
-    const gain = clickPower();
-    const cost = Math.max(0, (state.aiLevel - 1) * 0.20);
-    if(state.compute < cost){
-      log(`TRAIN aborted: need ${fmt(cost)} CU`, "bad");
+  function coinsPerSecond(){
+    let cps = 0;
+    for(const d of DRONES){
+      const owned = state.owned[d.id] || 0;
+      if(owned <= 0) continue;
+      cps += owned * d.baseCps * droneMultiplier(d.id);
+    }
+    cps *= droneCpsMultiplier();
+    cps *= globalCpsMultiplier();
+    return cps;
+  }
+
+  function rpPerSecond(){
+    // RP lab is a very slow producer, unlocked via tech
+    if(!state.flags.rpLabUnlocked) return 0;
+    const owned = state.rpLabOwned || 0;
+    if(owned <= 0) return 0;
+    const rps = owned * RP_LAB.baseRps * rpLabMultiplier();
+    return rps;
+  }
+
+  function addCoins(x){
+    if(x <= 0) return;
+    state.coins += x;
+    state.lifetimeCoins += x;
+  }
+
+  // ---------- ACTIONS ----------
+  function doClick(){
+    const p = clickPower();
+    addCoins(p);
+    log(`click +${fmt(p)} CP`);
+  }
+
+  function buyDrone(drone){
+    if(!isUnlocked(drone.unlock)){
+      log(`locked: ${drone.name}`, "bad");
       return;
     }
-    state.compute -= cost;
-    state.compute += gain;
+    const cost = dronePrice(drone);
+    if(state.coins < cost){
+      log(`need ${fmt(cost)} CP for ${drone.name}`, "bad");
+      return;
+    }
+    state.coins -= cost;
+    state.owned[drone.id] = (state.owned[drone.id] || 0) + 1;
+    log(`bought ${drone.name} (+${drone.baseCps} CPS base)`, "ok");
+  }
 
-    const delta = 0.018 / (1 + state.aiLevel * 0.10);
-    state.loss = clamp(state.loss - delta, 0.05, 1.0);
+  function buyDroneUpgrade(drone){
+    const lvl = state.dUp[drone.id] || 0;
+    const cost = droneUpgradeCost(drone.basePrice, lvl);
+    if(state.coins < cost){
+      log(`need ${fmt(cost)} CP for ${drone.name} upgrade`, "bad");
+      return;
+    }
+    if((state.owned[drone.id] || 0) <= 0){
+      log(`buy the drone first: ${drone.name}`, "bad");
+      return;
+    }
+    state.coins -= cost;
+    state.dUp[drone.id] = lvl + 1;
+    log(`${drone.name} upgrade → level ${lvl+1} (x2)`, "ok");
+  }
 
-    const target = Math.max(0.07, 0.95 / (1 + state.aiLevel * 0.30));
-    if(state.loss <= target){
-      state.aiLevel += 1;
-      state.loss = clamp(state.loss + 0.07, 0.05, 1.0);
-      log(`MODEL LEVEL UP → L${state.aiLevel}`, "ok");
+  function techCost(t){
+    if(t.type === "one"){
+      return t.baseCost;
+    }
+    const lvl = state.techLvl[t.id] || 0;
+    return Math.floor(t.baseCost * Math.pow(t.growth, lvl));
+  }
+
+  function buyTech(t){
+    if(t.type === "one" && state.techOwned[t.id]){
+      log(`already owned: ${t.name}`, "bad");
+      return;
+    }
+    const cost = techCost(t);
+    if(state.rp < cost){
+      log(`need ${cost} RP for ${t.name}`, "bad");
+      return;
+    }
+    state.rp -= cost;
+
+    if(t.type === "one"){
+      state.techOwned[t.id] = true;
+      t.apply(state);
+      log(`tech unlocked: ${t.name}`, "ok");
     } else {
-      log(`train: +${fmt(gain)} CU, loss -${delta.toFixed(4)}`);
+      state.techLvl[t.id] = (state.techLvl[t.id] || 0) + 1;
+      log(`tech upgraded: ${t.name} (lvl ${state.techLvl[t.id]})`, "ok");
     }
   }
 
-  // ---------- DRONES (FIXED COST + NO REFUND ON FAIL) ----------
-  function successChance(drone){
-    const aiBoost = state.aiLevel * 3.2;
-    const lossPenalty = state.loss * 38;
-    const gpuBonus = Math.log10(1 + gpuCps()) * 7;
-    let s = drone.baseSuccess + aiBoost - lossPenalty + gpuBonus;
-    s -= (drone.tier - 1) * 2.0;
-    return clamp(s, 25, 92);
-  }
-
-  function missionDuration(drone){
-    return Math.round(drone.durationMs * state.bonusMissionTimeMult);
-  }
-
-  // ✅ FIX: cost no longer depends on AI or “attempts”
-  function missionCost(drone){
-    // stable per drone tier (small tier factor only)
-    const tierMult = 1 + (drone.tier - 1) * 0.18;
-    return Math.round(drone.costBase * tierMult);
-  }
-
-  function missionReward(drone){
-    const ai = state.aiLevel;
-    const gpu = gpuCps();
-    const base = drone.rewardBase;
-    const aiScale = 1 + Math.sqrt(ai) * 0.35;
-    const gpuScale = 1 + Math.log10(1 + gpu) * 0.55;
-    return base * aiScale * gpuScale;
-  }
-
-  function deployDrone(){
-    if(state.mission.active){
-      log("Mission already active.", "bad");
+  function buyRpLab(){
+    if(!state.flags.rpLabUnlocked){
+      log("RP-Lab locked (buy Research Lab tech first)", "bad");
       return;
     }
-    const drone = getDrone(state.selectedDroneId);
-    if(!unlocked(drone)){
-      log(`Locked: need ${drone.unlockRP} RP for ${drone.name}`, "bad");
+    const cost = rpLabPrice();
+    if(state.coins < cost){
+      log(`need ${fmt(cost)} CP for RP-Lab`, "bad");
       return;
     }
-
-    const cost = missionCost(drone);
-    if(state.compute < cost){
-      log(`Need ${fmt(cost)} CU to deploy ${drone.name}.`, "bad");
-      return;
-    }
-
-    state.compute -= cost;
-    const dur = missionDuration(drone);
-    state.mission = { active:true, startedAt: now(), endsAt: now() + dur, droneId: drone.id };
-    log(`DEPLOY → ${drone.name} (cost ${fmt(cost)} CU). ETA ${Math.ceil(dur/1000)}s`, "ok");
+    state.coins -= cost;
+    state.rpLabOwned += 1;
+    log(`bought RP-Lab (+${RP_LAB.baseRps} RP/s base)`, "ok");
   }
 
-  function resolveMission(){
-    const drone = getDrone(state.mission.droneId || state.selectedDroneId);
-    const chance = successChance(drone);
-    const roll = Math.random() * 100;
-
-    if(roll <= chance){
-      const rewardCU = missionReward(drone);
-      const rp = Math.floor(clamp(
-        drone.rpMin + (Math.random() * (drone.rpMax - drone.rpMin + 1)) + (state.aiLevel / 18),
-        drone.rpMin, drone.rpMax + 2
-      ));
-      state.compute += rewardCU;
-      state.research += rp;
-      log(`SUCCESS → ${drone.name}: +${fmt(rewardCU)} CU, +${rp} RP`, "ok");
-    } else {
-      // ✅ FIX: no compute refund on fail
-      const lossAdd = drone.riskLossOnFail * state.bonusFailLossMult;
-      state.loss = clamp(state.loss + lossAdd, 0.05, 1.0);
-      log(`FAIL → ${drone.name}: loss +${lossAdd.toFixed(2)} (no refund)`, "bad");
-    }
-  }
-
-  // ---------- RP UPGRADES ----------
-  function buyUpgrade(up){
-    if(state.purchasedUpgrades[up.id]){
-      log(`Upgrade already active: ${up.name}`, "bad");
+  function runExperiment(){
+    const t = now();
+    if(t < state.nextExperimentAt){
+      const left = Math.ceil((state.nextExperimentAt - t)/1000);
+      log(`experiment cooling down (${left}s)`, "bad");
       return;
     }
-    if(state.research < up.costRP){
-      log(`Need ${up.costRP} RP for ${up.name}`, "bad");
-      return;
-    }
-    state.research -= up.costRP;
-    state.purchasedUpgrades[up.id] = true;
-    recomputeBonuses();
-    log(`RESEARCH COMPLETE → ${up.name}`, "ok");
+    // slow scaling: 1.. maybe 5 over long time
+    const gain = 1 + Math.floor(Math.log10(1 + state.lifetimeCoins) * 0.7);
+    state.rp += gain;
+    state.nextExperimentAt = t + EXPERIMENT_CD_MS;
+    log(`experiment complete: +${gain} RP`, "ok");
   }
 
-  // ---------- BUILD LISTS ONCE (FIX BUTTONS) ----------
-  const droneRowEls = new Map();
-  const upgradeRowEls = new Map();
+  function buyCosmetic(c){
+    if(state.cosmetics[c.id]){
+      log(`already owned: ${c.name}`, "bad");
+      return;
+    }
+    if(state.coins < c.cost){
+      log(`need ${fmt(c.cost)} CP for ${c.name}`, "bad");
+      return;
+    }
+    state.coins -= c.cost;
+    state.cosmetics[c.id] = true;
 
-  function initDroneList(){
+    // apply
+    c.apply(state);
+    applyTheme(state);
+
+    log(`cosmetic unlocked: ${c.name}`, "ok");
+  }
+
+  // ---------- UI BUILD ONCE ----------
+  const droneRows = new Map();
+  const techRows = new Map();
+  const cosRows = new Map();
+
+  function buildDroneList(){
     el.droneList.innerHTML = "";
     for(const d of DRONES){
-      const box = document.createElement("div");
-      box.className = "item";
-      box.innerHTML = `
+      const row = document.createElement("div");
+      row.className = "item";
+      row.innerHTML = `
         <div class="itemTop">
-          <div class="itemName" id="dn_${d.id}">${d.name} <span style="color:var(--muted);font-size:11px;">(T${d.tier})</span></div>
+          <div class="itemName">${d.name}</div>
           <div class="itemMeta" id="dm_${d.id}"></div>
         </div>
         <div class="itemMeta" style="margin-top:6px;" id="ds_${d.id}"></div>
         <div class="itemBtns">
-          <button class="mini" id="db_${d.id}">SELECT</button>
+          <button class="mini" id="buy_${d.id}">BUY</button>
+          <button class="mini" id="up_${d.id}">UPGRADE x2</button>
         </div>
       `;
-      el.droneList.appendChild(box);
+      el.droneList.appendChild(row);
 
-      droneRowEls.set(d.id, {
-        meta: box.querySelector(`#dm_${d.id}`),
-        stats: box.querySelector(`#ds_${d.id}`),
-        btn:  box.querySelector(`#db_${d.id}`),
+      droneRows.set(d.id, {
+        meta: row.querySelector(`#dm_${d.id}`),
+        stats: row.querySelector(`#ds_${d.id}`),
+        buy:  row.querySelector(`#buy_${d.id}`),
+        up:   row.querySelector(`#up_${d.id}`),
       });
 
-      droneRowEls.get(d.id).btn.addEventListener("click", () => {
-        state.selectedDroneId = d.id;
-        log(`Selected drone → ${getDrone(state.selectedDroneId).name}`, "ok");
-        render();
-      });
+      droneRows.get(d.id).buy.addEventListener("click", ()=>{ buyDrone(d); render(); });
+      droneRows.get(d.id).up.addEventListener("click", ()=>{ buyDroneUpgrade(d); render(); });
     }
   }
 
-  function initUpgradeList(){
-    el.upgradeList.innerHTML = "";
-    for(const up of UPGRADES){
-      const box = document.createElement("div");
-      box.className = "item";
-      box.innerHTML = `
+  function buildTechList(){
+    el.techList.innerHTML = "";
+
+    // Add RP-Lab purchase entry (coins) within tech panel
+    const rpLabRow = document.createElement("div");
+    rpLabRow.className = "item";
+    rpLabRow.innerHTML = `
+      <div class="itemTop">
+        <div class="itemName">RP-Lab (Producer)</div>
+        <div class="itemMeta" id="rpl_meta"></div>
+      </div>
+      <div class="itemMeta" style="margin-top:6px;" id="rpl_stats"></div>
+      <div class="itemBtns">
+        <button class="mini" id="rpl_buy">BUY</button>
+      </div>
+    `;
+    el.techList.appendChild(rpLabRow);
+    const rpl = {
+      meta: rpLabRow.querySelector("#rpl_meta"),
+      stats: rpLabRow.querySelector("#rpl_stats"),
+      buy: rpLabRow.querySelector("#rpl_buy")
+    };
+    rpl.buy.addEventListener("click", ()=>{ buyRpLab(); render(); });
+    techRows.set("RPLAB_PRODUCER", rpl);
+
+    // Tech items
+    for(const t of TECH){
+      const row = document.createElement("div");
+      row.className = "item";
+      row.innerHTML = `
         <div class="itemTop">
-          <div class="itemName">${up.name}</div>
-          <div class="itemMeta" id="um_${up.id}"></div>
+          <div class="itemName">${t.name}</div>
+          <div class="itemMeta" id="tm_${t.id}"></div>
         </div>
-        <div class="itemMeta" style="margin-top:6px;">${up.desc}</div>
+        <div class="itemMeta" style="margin-top:6px;">${t.desc}</div>
         <div class="itemBtns">
-          <button class="mini" id="ub_${up.id}">BUY</button>
+          <button class="mini" id="tb_${t.id}">BUY</button>
         </div>
       `;
-      el.upgradeList.appendChild(box);
-
-      upgradeRowEls.set(up.id, {
-        meta: box.querySelector(`#um_${up.id}`),
-        btn:  box.querySelector(`#ub_${up.id}`),
+      el.techList.appendChild(row);
+      techRows.set(t.id, {
+        meta: row.querySelector(`#tm_${t.id}`),
+        buy: row.querySelector(`#tb_${t.id}`)
       });
-
-      upgradeRowEls.get(up.id).btn.addEventListener("click", () => {
-        buyUpgrade(up);
-        render();
-      });
+      techRows.get(t.id).buy.addEventListener("click", ()=>{ buyTech(t); render(); });
     }
   }
 
-  function updateDroneList(){
+  function buildCosmetics(){
+    el.cosList.innerHTML = "";
+    for(const c of COSMETICS){
+      const row = document.createElement("div");
+      row.className = "item";
+      row.innerHTML = `
+        <div class="itemTop">
+          <div class="itemName">${c.name}</div>
+          <div class="itemMeta" id="cm_${c.id}"></div>
+        </div>
+        <div class="itemMeta" style="margin-top:6px;">cost: ${fmt(c.cost)} CP</div>
+        <div class="itemBtns">
+          <button class="mini" id="cb_${c.id}">BUY</button>
+        </div>
+      `;
+      el.cosList.appendChild(row);
+      cosRows.set(c.id, {
+        meta: row.querySelector(`#cm_${c.id}`),
+        buy: row.querySelector(`#cb_${c.id}`)
+      });
+      cosRows.get(c.id).buy.addEventListener("click", ()=>{ buyCosmetic(c); render(); });
+    }
+  }
+
+  // ---------- HANGAR ----------
+  function renderHangar(){
+    // show icons up to a limit; beyond that show a compact line
+    const MAX_ICONS_PER_TYPE = 18;
+
+    el.hangar.innerHTML = "";
     for(const d of DRONES){
-      const row = droneRowEls.get(d.id);
-      const isUnlocked = unlocked(d);
-      const isSelected = state.selectedDroneId === d.id;
-      const chance = Math.round(successChance(d));
-      const dur = Math.ceil(missionDuration(d)/1000);
-      const cost = missionCost(d);
+      const owned = state.owned[d.id] || 0;
+      if(!isUnlocked(d.unlock) && owned === 0) continue;
 
-      row.meta.textContent = isUnlocked ? "unlocked" : `locked · ${d.unlockRP} RP`;
-      row.stats.textContent = `success ~${chance}% · ETA ${dur}s · cost ${fmt(cost)} CU`;
-      row.btn.disabled = !isUnlocked;
-      row.btn.textContent = isSelected ? "SELECTED" : "SELECT";
+      const row = document.createElement("div");
+      row.className = "hangarRow";
+
+      const left = document.createElement("div");
+      left.className = "hangarLeft";
+      left.innerHTML = `
+        <span class="icon">${d.icon}</span>
+        <div>
+          <div style="font-size:12px;">${d.name}</div>
+          <div class="count">owned: x${owned}</div>
+        </div>
+      `;
+
+      const right = document.createElement("div");
+      right.style.display = "flex";
+      right.style.gap = "10px";
+      right.style.alignItems = "center";
+
+      const icons = document.createElement("div");
+      icons.style.display = "flex";
+      icons.style.gap = "4px";
+      icons.style.flexWrap = "wrap";
+      icons.style.justifyContent = "flex-end";
+      icons.style.maxWidth = "220px";
+
+      if(owned <= MAX_ICONS_PER_TYPE){
+        for(let i=0;i<owned;i++){
+          const ic = document.createElement("span");
+          ic.className = "icon";
+          ic.textContent = d.icon;
+          icons.appendChild(ic);
+        }
+      } else {
+        // compact
+        const ic = document.createElement("span");
+        ic.className = "icon";
+        ic.textContent = d.icon;
+        icons.appendChild(ic);
+        const cnt = document.createElement("span");
+        cnt.className = "count";
+        cnt.textContent = `x${owned}`;
+        icons.appendChild(cnt);
+      }
+
+      // small progress bar to next unlock for locked drones
+      const unlockBar = document.createElement("div");
+      unlockBar.className = "bar";
+      const fill = document.createElement("div");
+      unlockBar.appendChild(fill);
+
+      // determine progress if this drone is locked by "owned"
+      let prog = 1;
+      if(!isUnlocked(d.unlock) && d.unlock.type === "owned"){
+        const have = state.owned[d.unlock.id] || 0;
+        prog = clamp(have / d.unlock.n, 0, 1);
+      }
+      fill.style.width = `${Math.floor(prog*100)}%`;
+
+      right.appendChild(unlockBar);
+      right.appendChild(icons);
+
+      row.appendChild(left);
+      row.appendChild(right);
+      el.hangar.appendChild(row);
     }
   }
 
-  function updateUpgradeList(){
-    for(const up of UPGRADES){
-      const row = upgradeRowEls.get(up.id);
-      const active = !!state.purchasedUpgrades[up.id];
-      row.meta.textContent = active ? "active" : `${up.costRP} RP`;
-      row.btn.disabled = active;
-      row.btn.textContent = active ? "ACTIVE" : "BUY";
+  // ---------- UPDATE ROWS ----------
+  function updateDroneRows(){
+    for(const d of DRONES){
+      const row = droneRows.get(d.id);
+      const owned = state.owned[d.id] || 0;
+      const unlocked = isUnlocked(d.unlock);
+      const price = dronePrice(d);
+
+      const upLvl = state.dUp[d.id] || 0;
+      const upCost = droneUpgradeCost(d.basePrice, upLvl);
+
+      const per = d.baseCps * droneMultiplier(d.id) * droneCpsMultiplier() * globalCpsMultiplier();
+      row.meta.textContent = unlocked ? "unlocked" : `locked · need ${d.unlock.n} ${d.unlock.id} owned`;
+      row.stats.textContent = `owned: x${owned} · next: ${fmt(price)} CP · output(each): ${per.toFixed(per<10?2:1)} CP/s · upgrade lvl: ${upLvl} (cost ${fmt(upCost)} CP)`;
+
+      row.buy.disabled = !unlocked || state.coins < price;
+      row.up.disabled = (owned<=0) || state.coins < upCost;
+    }
+  }
+
+  function updateTechRows(){
+    // RP-lab producer entry
+    const rpl = techRows.get("RPLAB_PRODUCER");
+    const price = rpLabPrice();
+    const unlocked = state.flags.rpLabUnlocked;
+    rpl.meta.textContent = unlocked ? "unlocked" : "locked (buy Research Lab tech)";
+    rpl.stats.textContent = `owned: x${state.rpLabOwned} · next: ${fmt(price)} CP · output(each): ${(RP_LAB.baseRps*rpLabMultiplier()).toFixed(3)} RP/s`;
+    rpl.buy.disabled = !unlocked || state.coins < price;
+
+    for(const t of TECH){
+      const row = techRows.get(t.id);
+      if(t.type === "one"){
+        row.meta.textContent = state.techOwned[t.id] ? "owned" : `${t.baseCost} RP`;
+        row.buy.disabled = state.techOwned[t.id] || state.rp < t.baseCost;
+        row.buy.textContent = state.techOwned[t.id] ? "OWNED" : "BUY";
+      } else {
+        const lvl = state.techLvl[t.id] || 0;
+        const cost = techCost(t);
+        row.meta.textContent = `lvl ${lvl} · cost ${cost} RP`;
+        row.buy.disabled = state.rp < cost;
+        row.buy.textContent = "BUY";
+      }
+    }
+  }
+
+  function updateCosRows(){
+    for(const c of COSMETICS){
+      const row = cosRows.get(c.id);
+      const owned = !!state.cosmetics[c.id];
+      row.meta.textContent = owned ? "owned" : "locked";
+      row.buy.disabled = owned || state.coins < c.cost;
+      row.buy.textContent = owned ? "OWNED" : "BUY";
     }
   }
 
   // ---------- RENDER ----------
   function render(){
-    recomputeBonuses();
+    // top stats
+    const cps = coinsPerSecond();
+    const rps = rpPerSecond();
+    const cp = clickPower();
 
-    el.compute.textContent = fmt(state.compute);
-    el.research.textContent = fmt(state.research);
-    el.aiLevel.textContent = state.aiLevel;
-    el.loss.textContent = state.loss.toFixed(3);
+    el.coins.textContent = fmt(state.coins);
+    el.cps.textContent = cps.toFixed(cps<10?2:1);
+    el.clickPow.textContent = cp.toFixed(cp<10?2:1);
+    el.rp.textContent = fmt(state.rp);
+    el.rps.textContent = rps.toFixed(3);
+    el.life.textContent = fmt(state.lifetimeCoins);
 
-    const cps = gpuCps();
-    el.cps.textContent = cps.toFixed(cps < 10 ? 2 : 1);
+    // click button label
+    el.clickBtn.textContent = `CLICK ( +${cp.toFixed(cp<10?2:1)} )`;
 
-    const d = getDrone(state.selectedDroneId);
-    el.droneName.textContent = d.name;
-    el.droneTier.textContent = `T${d.tier}`;
-
-    const chance = Math.round(successChance(d));
-    el.success.textContent = chance;
-
-    const dur = Math.ceil(missionDuration(d)/1000);
-    const cost = missionCost(d);
-    const reward = missionReward(d);
-
-    el.droneInfo.textContent =
-      `${unlocked(d) ? "unlocked" : `locked (${d.unlockRP} RP)`} · success ~${chance}% · ETA ${dur}s · cost ${fmt(cost)} CU · reward ~${fmt(reward)} CU`;
-
-    el.gpuTierName.textContent = GPU_TIERS[state.gpuTier].name;
-    el.gpuLevel.textContent = state.gpuLevel;
-
-    const gpuCost = gpuUpgradeCost();
-    const tierPreview = (state.gpuTier === 0) ? GPU_TIERS[1].name : GPU_TIERS[state.gpuTier].name;
-    el.gpuDesc.textContent =
-      `Next upgrade cost: ${fmt(gpuCost)} CU · Tier: ${tierPreview} · Passive: ${cps.toFixed(cps < 10 ? 2 : 1)} CU/s`;
-
-    el.hintLine.innerHTML =
-      `<span class="ok">TRAIN STEP</span> +${fmt(clickPower())} CU · ` +
-      `<span class="ok">DEPLOY</span> nutzt die ausgewählte Drohne.`;
-
-    // buttons + status tag
-    if(state.mission.active){
-      const left = Math.max(0, state.mission.endsAt - now());
-      el.statusTag.textContent = `mission: ${Math.ceil(left/1000)}s`;
-      el.statusTag.style.borderColor = "var(--accent)";
-      el.statusTag.style.color = "var(--accent)";
-      el.deployBtn.disabled = true;
-      el.deployBtn.textContent = "MISSION IN PROGRESS…";
+    // experiment button label
+    const t = now();
+    const left = Math.max(0, state.nextExperimentAt - t);
+    if(left > 0){
+      el.experimentBtn.textContent = `RUN EXPERIMENT (${Math.ceil(left/1000)}s)`;
+      el.experimentBtn.disabled = true;
     } else {
-      el.statusTag.textContent = "autosave: ON";
-      el.statusTag.style.borderColor = "var(--line)";
-      el.statusTag.style.color = "var(--muted)";
-      el.deployBtn.disabled = false;
-      el.deployBtn.textContent = "DEPLOY DRONE";
+      el.experimentBtn.textContent = `RUN EXPERIMENT`;
+      el.experimentBtn.disabled = false;
     }
 
-    updateDroneList();
-    updateUpgradeList();
+    // hint: show next unlock
+    const next = DRONES.find(d => !isUnlocked(d.unlock));
+    if(next && next.unlock.type === "owned"){
+      const have = state.owned[next.unlock.id] || 0;
+      el.hintLine.innerHTML =
+        `Next unlock: <span class="tag">${next.name}</span> → need <span class="tag">${next.unlock.n}</span> of <span class="tag">${next.unlock.id}</span> (you have ${have}).`;
+    } else {
+      el.hintLine.textContent = "You’re in the drone economy. Scale producers + upgrades + RP tech + cosmetics.";
+    }
+
+    updateDroneRows();
+    updateTechRows();
+    updateCosRows();
+    renderHangar();
   }
 
-  // ---------- LOOP ----------
+  // ---------- TICK ----------
   function tick(){
     maybeSoftClear();
+
     const t = now();
     const dt = (t - state.lastTick) / 1000;
     state.lastTick = t;
 
-    state.compute += gpuCps() * dt;
+    // passive income
+    const cps = coinsPerSecond();
+    if(cps > 0) addCoins(cps * dt);
 
-    if(state.mission.active && t >= state.mission.endsAt){
-      state.mission.active = false;
-      resolveMission();
-    }
+    // rp passive
+    const rps = rpPerSecond();
+    if(rps > 0) state.rp += rps * dt;
 
     render();
   }
 
-  function resetSave(){
-    localStorage.removeItem(KEY);
+  // ---------- RESET ----------
+  function resetAll(){
+    localStorage.removeItem(SAVE_KEY);
     state = defaultState();
+    applyTheme(state);
     boot();
     render();
     save();
@@ -787,34 +936,35 @@
 
   function boot(){
     el.log.innerHTML = "";
-    log("boot: ai_drone_lab v0.21", "ok");
-    log("fix: reliable buttons (no rerender spam)", "ok");
-    log("fix: stable drone costs + no fail refunds", "ok");
-    log("tip: Temu → farm RP → unlock Amazon/Air 3S", "ok");
+    log("boot: AI DRONE CLICKER v1.21", "ok");
+    log("start slow: click for CP, buy Temu Drone (0.1 CP/s), then scale.", "ok");
+    log("RP: run experiments (cooldown) + unlock RP-Lab via tech.", "ok");
   }
 
-  // ---------- START ----------
+  // ---------- INIT ----------
   let state = load();
-  recomputeBonuses();
+  applyTheme(state);
 
-  initDroneList();
-  initUpgradeList();
+  buildDroneList();
+  buildTechList();
+  buildCosmetics();
 
-  el.trainBtn.addEventListener("click", () => { trainStep(); render(); });
-  el.deployBtn.addEventListener("click", () => { deployDrone(); render(); });
-  el.gpuUpBtn.addEventListener("click", () => { upgradeGpu(); render(); });
-  el.resetBtn.addEventListener("click", () => {
-    const ok = confirm("Reset save? (löscht nur dein lokales Savegame)");
-    if(ok) resetSave();
+  // Input
+  el.clickBtn.addEventListener("click", ()=>{ doClick(); render(); });
+  el.experimentBtn.addEventListener("click", ()=>{ runExperiment(); render(); });
+  el.resetBtn.addEventListener("click", ()=>{
+    const ok = confirm("Reset? (löscht nur deinen lokalen Savegame)");
+    if(ok) resetAll();
   });
 
+  // Autosave
   setInterval(save, 5000);
   window.addEventListener("beforeunload", save);
 
   boot();
   render();
   save();
-  setInterval(tick, 200);
+  setInterval(tick, TICK_MS);
 })();
 </script>
 </body>
