@@ -136,7 +136,10 @@
   <div class="wrap">
     <div class="topbar">
       <div>
-        <div class="title">AI DRONE LAB <span class="tag">v1.21</span></div>
+        <div class="title">
+            AI DRONE LAB <span class="tag">v1.22</span>
+            <span id="vipBadge" style="margin-left:8px;color:gold;display:none;">★ VIP</span>
+          </div>
         <div class="sub">Cookie-Clicker style · Coins + Drohnen-Producer · RP-Tech · Cosmetics</div>
       </div>
       <div class="sub">
@@ -221,13 +224,26 @@
 
   // Drones
   const DRONES = [
-    { id:"temu",     name:"Temu Drone",     icon:"t", baseCps:0.10, basePrice:15,    unlock:{type:"always"} },
-    { id:"amazon",   name:"Amazon Drone",   icon:"a", baseCps:1.00, basePrice:120,   unlock:{type:"owned", id:"temu", n:10} },
-    { id:"fpv",      name:"FPV Drone",      icon:"f", baseCps:8.00, basePrice:1100,  unlock:{type:"owned", id:"amazon", n:8} },
-    { id:"air3s",    name:"DJI Air 3S",     icon:"D", baseCps:47.0, basePrice:12000, unlock:{type:"owned", id:"fpv", n:8} },
-    { id:"cine",     name:"Cinelifter",     icon:"C", baseCps:260,  basePrice:130000,unlock:{type:"owned", id:"air3s", n:6} },
-    { id:"matrice",  name:"DJI Matrice",    icon:"M", baseCps:1400, basePrice:1500000, unlock:{type:"owned", id:"cine", n:10} },
-  ];
+  { id:"temu",     name:"Temu Drone",     icon:"t", baseCps:0.10, basePrice:15,    unlock:{type:"always"} },
+  { id:"amazon",   name:"Amazon Drone",   icon:"a", baseCps:1.00, basePrice:120,   unlock:{type:"owned", id:"temu", n:10} },
+  { id:"fpv",      name:"FPV Drone",      icon:"f", baseCps:8.00, basePrice:1100,  unlock:{type:"owned", id:"amazon", n:8} },
+  { id:"air3s",    name:"DJI Air 3S",     icon:"D", baseCps:47.0, basePrice:12000, unlock:{type:"owned", id:"fpv", n:8} },
+  { id:"cine",     name:"Cinelifter",     icon:"C", baseCps:260,  basePrice:130000,unlock:{type:"owned", id:"air3s", n:6} },
+  { id:"matrice",  name:"DJI Matrice",    icon:"M", baseCps:1400, basePrice:1500000, unlock:{type:"owned", id:"cine", n:10} },
+
+  // 🔥 NEW — Slightly steeper scaling via higher base
+  { id:"titan", name:"Titan Strike Drone", icon:"T",
+    baseCps:11000,
+    basePrice:1_000_000_000,
+    unlock:{type:"owned", id:"matrice", n:20}
+  },
+
+  { id:"leviathan", name:"Leviathan War Drone", icon:"L",
+    baseCps:180000,
+    basePrice:200_000_000_000,
+    unlock:{type:"owned", id:"titan", n:15}
+  }
+];
 
   function droneUpgradeCost(droneBasePrice, level){
     const base = droneBasePrice * 12;
@@ -254,15 +270,19 @@
   // - Themes can be activated/switch anytime once owned.
   // - Scanlines is a toggle effect.
   const THEMES = [
-    { id:"default",  name:"Theme: Default",   cost:0, unlockByDefault:true, accent:"#bdbdbd" },
-    { id:"green",    name:"Theme: Neon Green",cost:1000, unlockByDefault:false, accent:"#00ff88" },
-    { id:"amber",    name:"Theme: Amber Terminal",cost:25_000_000, unlockByDefault:false, accent:"#ffb000" },
-    { id:"ice",      name:"Theme: Ice Blue",  cost:60_000_000, unlockByDefault:false, accent:"#66d9ff" },
-  ];
+  { id:"default",  name:"Theme: Default",   cost:0, unlockByDefault:true, accent:"#bdbdbd" },
+  { id:"green",    name:"Theme: Neon Green",cost:1000, unlockByDefault:false, accent:"#00ff88" },
+  { id:"amber",    name:"Theme: Amber Terminal",cost:25_000_000, unlockByDefault:false, accent:"#ffb000" },
+  { id:"ice",      name:"Theme: Ice Blue",  cost:60_000_000, unlockByDefault:false, accent:"#66d9ff" },
+
+  { id:"violet",   name:"Theme: Neon Violet", cost:8_000_000_000, unlockByDefault:false, accent:"#b300ff" },
+  { id:"pink",     name:"Theme: Cyber Pink", cost:25_000_000_000, unlockByDefault:false, accent:"#ff2da6" },
+  { id:"gold",     name:"Theme: Gold Terminal", cost:150_000_000_000, unlockByDefault:false, accent:"#ffd700" },
+];
   const EFFECTS = [
-    // ✅ Fix: scanlines implemented in a way that should show on iOS Safari
-    { id:"scanlines", name:"Effect: CRT Scanlines", cost:120_000_000, unlockByDefault:false }
-  ];
+  { id:"scanlines", name:"Effect: CRT Scanlines", cost:120_000_000, unlockByDefault:false },
+  { id:"cheeta", name:"Effect: C.H.E.E.T.A.", cost:5_000_000_000_000, unlockByDefault:false }
+];
 
   // ---------- DOM ----------
   const $ = (id) => document.getElementById(id);
@@ -327,7 +347,7 @@
       techOwned: Object.fromEntries(TECH.map(t => [t.id, false])),
 
       rpLabOwned: 0,
-      flags: { rpLabUnlocked:false },
+      flags: { rpLabUnlocked:false, vipOwned:false },
 
       nextExperimentAt: 0,
 
@@ -485,16 +505,23 @@ body:after{
   }
 
   function clickPower(){
-    let base = 1;
+  let base = 1;
 
-    // milestone: every 25 Temu drones => +10% click
-    const temu = state.owned.temu || 0;
-    const ms = Math.floor(temu / 25);
-    base *= Math.pow(1.10, ms);
+  // Temu milestone
+  const temu = state.owned.temu || 0;
+  const ms = Math.floor(temu / 25);
+  base *= Math.pow(1.10, ms);
 
-    base *= clickMultiplier();
-    return base;
-  }
+  // 🔥 MATRIX MILESTONES (Click only)
+  const m = state.owned.matrice || 0;
+
+  if(m >= 10) base *= 2;
+  if(m >= 20) base *= 2;
+  if(m >= 35) base *= 4;
+
+  base *= clickMultiplier();
+  return base;
+}
 
   function coinsPerSecond(){
     let cps = 0;
@@ -658,14 +685,22 @@ body:after{
   }
 
   function toggleEffect(effectId){
-    if(!state.cosmetics.effectsOwned[effectId]){
-      log("effect not owned", "bad");
-      return;
-    }
-    state.cosmetics.effectsActive[effectId] = !state.cosmetics.effectsActive[effectId];
-    applyCosmetics();
-    log(`effect ${effectId}: ${state.cosmetics.effectsActive[effectId] ? "ON" : "OFF"}`, "ok");
+
+  if(!state.cosmetics.effectsOwned[effectId]){
+    log("effect not owned", "bad");
+    return;
   }
+
+  if(effectId === "cheeta"){
+    log("C.H.E.E.T.A. protocol engaged.", "bad");
+    resetAll();
+    return;
+  }
+
+  state.cosmetics.effectsActive[effectId] = !state.cosmetics.effectsActive[effectId];
+  applyCosmetics();
+  log(`effect ${effectId}: ${state.cosmetics.effectsActive[effectId] ? "ON" : "OFF"}`, "ok");
+}
 
   // ---------- UI BUILD (drones hidden until unlocked) ----------
   const droneRows = new Map();
@@ -791,7 +826,33 @@ body:after{
 
       cosRows.set(`theme_${th.id}`, { meta, buy, act });
     }
+    const VIP_COST = 75_000_000_000;
 
+const vipRow = document.createElement("div");
+vipRow.className = "item";
+vipRow.innerHTML = `
+  <div class="itemTop">
+    <div class="itemName">VIP Badge</div>
+    <div class="itemMeta">Cosmetic</div>
+  </div>
+  <div class="itemMeta" style="margin-top:6px;">Pure flex.</div>
+  <div class="itemBtns">
+    <button class="mini" id="vip_buy">BUY (${fmt(VIP_COST)} CP)</button>
+  </div>
+`;
+el.cosList.appendChild(vipRow);
+
+vipRow.querySelector("#vip_buy").addEventListener("click", ()=>{
+  if(state.flags.vipOwned) return;
+  if(state.coins < VIP_COST){
+    log("Not enough CP for VIP", "bad");
+    return;
+  }
+  state.coins -= VIP_COST;
+  state.flags.vipOwned = true;
+  log("VIP badge acquired.", "ok");
+  render();
+});
     // Effects block
     const effHeader = document.createElement("div");
     effHeader.className = "item";
@@ -1032,7 +1093,11 @@ body:after{
     } else {
       el.hintLine.textContent = "All drones unlocked. Now scale upgrades + RP tech + cosmetics.";
     }
-
+        const vipBadge = document.getElementById("vipBadge");
+    if(vipBadge){
+      vipBadge.style.display = state.flags.vipOwned ? "inline" : "none";
+    }
+    
     updateDroneRows();
     updateTechRows();
     updateCosRows();
