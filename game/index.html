@@ -216,7 +216,7 @@
   const EXPERIMENT_CD_MS = 12000;
 
   // Console
-  const MAX_LOG_LINES = 60;
+  const MAX_LOG_LINES = 100;
   const SOFT_CLEAR_MS = 120000;
 
   // Drones
@@ -226,7 +226,7 @@
     { id:"fpv",      name:"FPV Drone",      icon:"f", baseCps:8.00, basePrice:1100,  unlock:{type:"owned", id:"amazon", n:8} },
     { id:"air3s",    name:"DJI Air 3S",     icon:"D", baseCps:47.0, basePrice:12000, unlock:{type:"owned", id:"fpv", n:8} },
     { id:"cine",     name:"Cinelifter",     icon:"C", baseCps:260,  basePrice:130000,unlock:{type:"owned", id:"air3s", n:6} },
-    { id:"matrice",  name:"DJI Matrice",    icon:"M", baseCps:1400, basePrice:1500000, unlock:{type:"owned", id:"cine", n:6} },
+    { id:"matrice",  name:"DJI Matrice",    icon:"M", baseCps:1400, basePrice:1500000, unlock:{type:"owned", id:"cine", n:10} },
   ];
 
   function droneUpgradeCost(droneBasePrice, level){
@@ -834,7 +834,7 @@ body:after{
 
   // ---------- HANGAR ----------
   function renderHangar(){
-    const MAX_ICONS_PER_TYPE = 18;
+    const MAX_ICONS_PER_TYPE = 30;
     el.hangar.innerHTML = "";
 
     // Show only unlocked or owned types
