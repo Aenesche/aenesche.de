@@ -12,8 +12,11 @@
       --border:#1f2a44;
       --text:#eaf0ff;
       --muted:#9fb0d0;
+
+      /* default accent (changes by cosmetics) */
       --accent:#7c5cff;
       --accent2:#2ee9a6;
+
       --shadow: 0 18px 60px rgba(0,0,0,.55);
       --radius:18px;
       --blur: 14px;
@@ -158,7 +161,10 @@
       transition: transform .06s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
     }
     .segbtn:hover{transform: translateY(-1px)}
-    .segbtn.active{border-color: rgba(124,92,255,.6); background: rgba(124,92,255,.14)}
+    .segbtn.active{
+      border-color: var(--accent);
+      background: rgba(124,92,255,.14);
+    }
     .segbtn:disabled{opacity:.55; cursor:not-allowed; transform:none}
 
     .btn{
@@ -173,7 +179,7 @@
       font-weight:700;
       transition: transform .06s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
     }
-    .btn:hover{transform: translateY(-1px); border-color: rgba(124,92,255,.45)}
+    .btn:hover{transform: translateY(-1px); border-color: var(--accent)}
     .btn:active{transform: translateY(0px)}
     .btn.primary{
       background: linear-gradient(135deg, rgba(124,92,255,.85), rgba(46,233,166,.55));
@@ -184,6 +190,10 @@
       padding:10px 12px;
       margin-top:0;
       background: rgba(10,14,24,.22);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
     }
     .btn:disabled{opacity:.55; cursor:not-allowed; transform:none}
 
@@ -228,32 +238,6 @@
 
     .footer{max-width:1150px; margin:12px auto 30px; padding:0 20px; opacity:.9}
 
-    /* Cosmetics hooks */
-    body.theme-gold{ --accent:#ffcc66; --accent2:#ffdca6; }
-    body.theme-neon{ --accent:#00e5ff; --accent2:#b100ff; }
-    body.card-glass .card{
-      background: linear-gradient(180deg, rgba(16,22,36,.60), rgba(10,12,20,.50));
-      border-color: rgba(159,176,208,.22);
-    }
-    body.coin-glow .pill{
-  box-shadow:
-    0 0 0 1px rgba(124,92,255,.35),
-    0 0 12px rgba(124,92,255,.6),
-    0 0 32px rgba(46,233,166,.45);
-  border-color: rgba(124,92,255,.7);
-  transition: box-shadow .2s ease, border-color .2s ease;
-}
-    body.coin-glow #balance{
-  text-shadow:
-    0 0 6px rgba(124,92,255,.9),
-    0 0 14px rgba(46,233,166,.7);
-}
-    body.vip .brand-sub::after{
-      content:" • VIP";
-      color: rgba(255,220,166,.95);
-      font-weight:800;
-    }
-
     /* DogeCoin mini chart */
     .chart{
       margin-top:12px;
@@ -273,6 +257,88 @@
       background: rgba(124,92,255,.35);
     }
     .split{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+
+    /* ===== Cosmetics hooks (UPGRADED, noticeable) ===== */
+
+    /* Accent palettes */
+    body.accent-default{ --accent:#7c5cff; --accent2:#2ee9a6; }
+    body.accent-gold{    --accent:#ffcc66; --accent2:#ffdca6; }
+    body.accent-neon{    --accent:#00e5ff; --accent2:#b100ff; }
+    body.accent-emerald{ --accent:#00ff88; --accent2:#00c2ff; }
+    body.accent-sunset{  --accent:#ff4d6d; --accent2:#ffcc66; }
+    body.accent-ice{     --accent:#8ab4ff; --accent2:#2ee9a6; }
+
+    /* Accent affects key UI */
+    .logo-dot{ background: linear-gradient(135deg, var(--accent), var(--accent2)) !important; }
+
+    .btn.primary{
+      background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent2) 70%, rgba(0,0,0,0))) !important;
+    }
+
+    .segbtn.active{
+      border-color: var(--accent) !important;
+      background: rgba(124,92,255,.12) !important;
+    }
+
+    .btn:hover{ border-color: var(--accent) !important; }
+
+    .bar{ background: var(--accent) !important; opacity: .28; }
+
+    /* Card styles */
+    body.card-glass .card{
+      background: linear-gradient(180deg, rgba(16,22,36,.60), rgba(10,12,20,.50));
+      border-color: rgba(159,176,208,.22);
+    }
+    body.card-chrome .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(16,22,36,.70));
+      border-color: rgba(159,176,208,.22);
+    }
+
+    /* Coin glow (visible) */
+    body.coin-glow .pill{
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.08),
+        0 0 18px var(--accent),
+        0 0 36px var(--accent2);
+      border-color: var(--accent);
+    }
+    body.coin-glow #balance{
+      text-shadow: 0 0 10px var(--accent2), 0 0 18px var(--accent);
+    }
+
+    /* Ultra glow */
+    body.ultra-glow .card{
+      box-shadow:
+        0 18px 60px rgba(0,0,0,.55),
+        0 0 40px rgba(124,92,255,.10);
+    }
+    body.ultra-glow .btn.primary{
+      box-shadow: 0 0 22px rgba(124,92,255,.25);
+    }
+
+    /* Background variants */
+    body.bg-aurora{
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(124,92,255,.22), transparent 60%),
+                  radial-gradient(900px 600px at 80% 25%, rgba(46,233,166,.14), transparent 55%),
+                  linear-gradient(180deg, #060810, #0b0e14 40%, #05070d);
+    }
+    body.bg-noir{
+      background: linear-gradient(180deg, #03040a, #070a12 45%, #02030a);
+    }
+
+    /* VIP tiers */
+    body.vip .brand-sub::after{
+      content:" • VIP";
+      color: rgba(255,220,166,.95);
+      font-weight:800;
+    }
+    body.ultra-vip .brand-sub::after{
+      content:" • ULTRA VIP";
+      color: rgba(234,240,255,.95);
+      font-weight:900;
+      letter-spacing:.6px;
+    }
+
     @media (max-width: 900px){
       .hero{grid-template-columns: 1fr}
       .grid{grid-template-columns: 1fr}
@@ -281,7 +347,7 @@
     }
   </style>
 </head>
-<body>
+<body class="accent-default">
   <div class="bg-glow"></div>
 
   <header class="topbar">
@@ -298,6 +364,10 @@
         <span class="muted">Aenesche Coin</span>
         <span id="balance" class="balance">0</span>
       </div>
+
+      <!-- Home Button (top right) -->
+      <a class="btn ghost" href="/" title="Home">Home</a>
+
       <button id="resetBtn" class="btn ghost" title="Local Save zurücksetzen">Reset</button>
     </div>
   </header>
@@ -307,8 +377,8 @@
       <div class="hero-left">
         <h1>Work. Bet. Flex.</h1>
         <p class="muted">
-          Work gibt dir kleine, zufällige Coins.
-          Dann setzt du sie in Games oder tradest DogeCoin. Für viel Geld gibt’s Cosmetics.
+          Work gibt dir kleine, zufällige Coins. Dann setzt du sie in Games oder tradest DogeCoin.
+          Für viel Geld gibt’s Cosmetics.
         </p>
 
         <div class="work-row">
@@ -324,7 +394,7 @@
         </div>
 
         <div class="tiny muted">
-          Hinweis: Gambling kann süchtig machen. So wie drogen. Also weiter so!
+          Hinweis: Fun-Game (kein Echtgeld). Alles lokal im Browser gespeichert.
         </div>
       </div>
 
@@ -425,7 +495,7 @@
         <div class="chart" id="coinChart" aria-label="price chart"></div>
         <div id="coinOut" class="out mono">—</div>
         <div class="tiny muted">
-          Auto-Tick bewegt den Kurs automatisch. Pump hat Cooldown und kann auch backfiren.
+          Auto-Tick bewegt den Kurs automatisch. Next Tick & Slots haben mini Cooldown (Anti-Autoclicker).
         </div>
       </div>
 
@@ -494,7 +564,7 @@
   </footer>
 
   <script>
-    const LS_KEY = "aenesche_gambling_singlefile_v2_autotick";
+    const LS_KEY = "aenesche_gambling_singlefile_v3_cosmetics_cooldowns";
 
     const CONFIG = {
       workMin: 7,
@@ -504,6 +574,9 @@
       roulette: { redBlackMult: 2, greenMult: 14, numberMult: 36 },
       coinflipMult: 2,
       slots: { twoKindMult: 2, threeKindMult: 8, symbols: ["🍒","🍋","🔔","⭐","💎","7️⃣"] },
+
+      // anti-autoclicker
+      clickCooldownMs: 200,
 
       // DogeCoin model + Auto tick
       doge: {
@@ -520,7 +593,6 @@
         spikeVol: 0.30,
 
         pumpCooldownMs: 6500,
-
         autoTickMs: 2500
       }
     };
@@ -533,7 +605,15 @@
       lastWorkAt: 0,
 
       cosmeticsOwned: {},
-      cosmeticsEquipped: { theme:"default", cardStyle:"default", coinGlow:false, vip:false },
+      cosmeticsEquipped: {
+        accent: "default",
+        cardStyle: "default",
+        background: "default",
+        coinGlow: false,
+        ultraGlow: false,
+        vip: false,
+        ultraVip: false,
+      },
 
       coin: {
         price: CONFIG.doge.startPrice,
@@ -545,24 +625,49 @@
     };
 
     const COSMETICS = [
-      { id:"theme_gold", name:"Theme: Gold", desc:"Warm, premium look.", price:25000,
-        onEquip:(s)=>s.cosmeticsEquipped.theme="gold" },
-      { id:"theme_neon", name:"Theme: Neon", desc:"Cyber-clean, high contrast.", price:25000,
-        onEquip:(s)=>s.cosmeticsEquipped.theme="neon" },
-      { id:"card_glass", name:"Cards: Glass", desc:"Mehr Glass-Vibe.", price:18000,
+      { id:"accent_gold",    name:"Accent: Gold",      desc:"Buttons/Active/Chart ändern sich sichtbar.", price:4000,
+        onEquip:(s)=>s.cosmeticsEquipped.accent="gold" },
+      { id:"accent_neon",    name:"Accent: Neon",      desc:"Cyber neon. Sehr auffällig.", price:6000,
+        onEquip:(s)=>s.cosmeticsEquipped.accent="neon" },
+      { id:"accent_emerald", name:"Accent: Emerald",   desc:"Clean grün/blau. Premium.", price:8500,
+        onEquip:(s)=>s.cosmeticsEquipped.accent="emerald" },
+      { id:"accent_sunset",  name:"Accent: Sunset",    desc:"Rot/Gold. Sieht teuer aus.", price:12000,
+        onEquip:(s)=>s.cosmeticsEquipped.accent="sunset" },
+      { id:"accent_ice",     name:"Accent: Ice",       desc:"Eisig, ruhig, premium.", price:18000,
+        onEquip:(s)=>s.cosmeticsEquipped.accent="ice" },
+
+      { id:"card_glass",     name:"Cards: Glass",      desc:"Mehr Glass-Vibe. Clean.", price:5000,
         onEquip:(s)=>s.cosmeticsEquipped.cardStyle="glass" },
-      { id:"coin_glow", name:"Coin Glow", desc:"Wallet glüht dezent.", price:1200,
+      { id:"card_chrome",    name:"Cards: Chrome",     desc:"Chrome look. Sehr sichtbar.", price:25000,
+        onEquip:(s)=>s.cosmeticsEquipped.cardStyle="chrome" },
+
+      { id:"bg_aurora",      name:"Background: Aurora", desc:"Mehr Aurora vibes.", price:15000,
+        onEquip:(s)=>s.cosmeticsEquipped.background="aurora" },
+      { id:"bg_noir",        name:"Background: Noir",   desc:"Ultra dark, sehr clean.", price:22000,
+        onEquip:(s)=>s.cosmeticsEquipped.background="noir" },
+
+      { id:"coin_glow",      name:"Coin Glow",         desc:"Wallet + Zahl glowen deutlich.", price:9000,
         onEquip:(s)=>s.cosmeticsEquipped.coinGlow=true },
-      { id:"vip_badge", name:"VIP Badge", desc:"Brand zeigt VIP.", price:69000,
+      { id:"ultra_glow",     name:"Ultra Glow",        desc:"Premium Glow auf Cards/Buttons.", price:45000,
+        onEquip:(s)=>s.cosmeticsEquipped.ultraGlow=true },
+
+      { id:"vip_badge",      name:"VIP Badge",         desc:"VIP neben dem Titel.", price:20000,
         onEquip:(s)=>s.cosmeticsEquipped.vip=true },
-      { id:"style_reset", name:"Style Reset", desc:"Setzt Cosmetics zurück (Coins bleiben).", price:600,
-        onEquip:(s)=>s.cosmeticsEquipped={theme:"default", cardStyle:"default", coinGlow:false, vip:false} },
+      { id:"ultra_vip",      name:"ULTRA VIP",         desc:"ULTRA VIP (Flex-Level).", price:100000,
+        onEquip:(s)=>{ s.cosmeticsEquipped.vip=true; s.cosmeticsEquipped.ultraVip=true; } },
+
+      { id:"style_reset",    name:"Style Reset",       desc:"Setzt Cosmetics zurück (Coins bleiben).", price:8000,
+        onEquip:(s)=>s.cosmeticsEquipped={accent:"default", cardStyle:"default", background:"default", coinGlow:false, ultraGlow:false, vip:false, ultraVip:false} },
     ];
 
     let state = loadState();
     let selectedRoulette = "red";
     let selectedFlip = "heads";
     let autoTimer = null;
+
+    // anti-autoclicker
+    let lastSlotsClick = 0;
+    let lastTickClick = 0;
 
     const $ = (id)=>document.getElementById(id);
     const clampInt = (n)=> (Number.isFinite(+n) ? Math.max(0, Math.floor(+n)) : 0);
@@ -614,19 +719,40 @@
       $("losses").textContent = state.losses.toLocaleString("de-DE");
       $("streak").textContent = state.streak.toLocaleString("de-DE");
     }
-    function applyCosmetics(){
-      document.body.classList.remove("theme-gold","theme-neon","card-glass","coin-glow","vip");
-      if(state.cosmeticsEquipped.theme==="gold") document.body.classList.add("theme-gold");
-      if(state.cosmeticsEquipped.theme==="neon") document.body.classList.add("theme-neon");
-      if(state.cosmeticsEquipped.cardStyle==="glass") document.body.classList.add("card-glass");
-      if(state.cosmeticsEquipped.coinGlow) document.body.classList.add("coin-glow");
-      if(state.cosmeticsEquipped.vip) document.body.classList.add("vip");
 
-      const eq=[];
-      if(state.cosmeticsEquipped.theme!=="default") eq.push("Theme:"+state.cosmeticsEquipped.theme);
-      if(state.cosmeticsEquipped.cardStyle!=="default") eq.push("Cards:"+state.cosmeticsEquipped.cardStyle);
-      if(state.cosmeticsEquipped.coinGlow) eq.push("CoinGlow");
-      if(state.cosmeticsEquipped.vip) eq.push("VIP");
+    function applyCosmetics(){
+      const remove = [
+        "accent-default","accent-gold","accent-neon","accent-emerald","accent-sunset","accent-ice",
+        "card-glass","card-chrome",
+        "bg-aurora","bg-noir",
+        "coin-glow","ultra-glow",
+        "vip","ultra-vip"
+      ];
+      remove.forEach(c => document.body.classList.remove(c));
+
+      const acc = state.cosmeticsEquipped.accent || "default";
+      document.body.classList.add(`accent-${acc}`);
+
+      if (state.cosmeticsEquipped.cardStyle === "glass") document.body.classList.add("card-glass");
+      if (state.cosmeticsEquipped.cardStyle === "chrome") document.body.classList.add("card-chrome");
+
+      if (state.cosmeticsEquipped.background === "aurora") document.body.classList.add("bg-aurora");
+      if (state.cosmeticsEquipped.background === "noir") document.body.classList.add("bg-noir");
+
+      if (state.cosmeticsEquipped.coinGlow) document.body.classList.add("coin-glow");
+      if (state.cosmeticsEquipped.ultraGlow) document.body.classList.add("ultra-glow");
+      if (state.cosmeticsEquipped.vip) document.body.classList.add("vip");
+      if (state.cosmeticsEquipped.ultraVip) document.body.classList.add("ultra-vip");
+
+      const eq = [];
+      if (acc !== "default") eq.push(`Accent:${acc}`);
+      if (state.cosmeticsEquipped.cardStyle !== "default") eq.push(`Cards:${state.cosmeticsEquipped.cardStyle}`);
+      if (state.cosmeticsEquipped.background !== "default") eq.push(`BG:${state.cosmeticsEquipped.background}`);
+      if (state.cosmeticsEquipped.coinGlow) eq.push("CoinGlow");
+      if (state.cosmeticsEquipped.ultraGlow) eq.push("UltraGlow");
+      if (state.cosmeticsEquipped.ultraVip) eq.push("UltraVIP");
+      else if (state.cosmeticsEquipped.vip) eq.push("VIP");
+
       $("equippedCosmetics").textContent = eq.length ? "Equipped: " + eq.join(" • ") : "Equipped: —";
     }
 
@@ -821,7 +947,7 @@
       if(isPump){
         drift += 0.06;
         vol += 0.10;
-        if(Math.random() < 0.25) drift -= 0.12; // backfire
+        if(Math.random() < 0.25) drift -= 0.12;
       }
 
       const noise = (Math.random()*2 - 1) * vol;
@@ -944,9 +1070,27 @@
           saveState();
           applyCosmetics();
           renderStore();
+          renderCoinChart();
         });
         grid.appendChild(div);
       }
+    }
+
+    // ===== Anti-autoclick gate =====
+    function gate(kind){
+      const now = Date.now();
+      const ms = CONFIG.clickCooldownMs || 200;
+      if(kind === "slots"){
+        if(now - lastSlotsClick < ms) return false;
+        lastSlotsClick = now;
+        return true;
+      }
+      if(kind === "tick"){
+        if(now - lastTickClick < ms) return false;
+        lastTickClick = now;
+        return true;
+      }
+      return true;
     }
 
     function resetAll(){
@@ -973,11 +1117,26 @@
       $("workBtn").addEventListener("click", doWork);
       $("rouletteSpin").addEventListener("click", rouletteSpin);
       $("flipGo").addEventListener("click", coinflip);
-      $("slotsGo").addEventListener("click", slots);
+
+      $("slotsGo").addEventListener("click", () => {
+        if(!gate("slots")) return;
+        const btn = $("slotsGo");
+        btn.disabled = true;
+        setTimeout(()=> btn.disabled = false, CONFIG.clickCooldownMs || 200);
+        slots();
+      });
 
       $("coinBuy").addEventListener("click", coinBuy);
       $("coinSell").addEventListener("click", coinSell);
-      $("coinTick").addEventListener("click", ()=>coinTick(false));
+
+      $("coinTick").addEventListener("click", () => {
+        if(!gate("tick")) return;
+        const btn = $("coinTick");
+        btn.disabled = true;
+        setTimeout(()=> btn.disabled = false, CONFIG.clickCooldownMs || 200);
+        coinTick(false);
+      });
+
       $("coinPump").addEventListener("click", coinPump);
       $("coinToggleAuto").addEventListener("click", toggleAuto);
 
@@ -986,7 +1145,6 @@
       renderAll();
       tickCooldown();
 
-      // keep pump label fresh + start auto tick
       (function tickPump(){
         renderPumpButton();
         requestAnimationFrame(tickPump);
