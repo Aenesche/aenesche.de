@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Aenesche · Datenschutz</title>
+  <meta name="theme-color" content="#0b0e14" />
+  <style>
+    :root{
+      --bg:#0b0e14; --card:#101624cc; --border:#1f2a44;
+      --text:#eaf0ff; --muted:#9fb0d0; --accent:#7c5cff; --accent2:#2ee9a6;
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius:18px; --blur: 14px;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--sans); color:var(--text);
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(124,92,255,.18), transparent 60%),
+                  radial-gradient(900px 600px at 80% 25%, rgba(46,233,166,.10), transparent 55%),
+                  linear-gradient(180deg, #060810, #0b0e14 40%, #05070d);
+    }
+    .wrap{max-width:900px; margin:0 auto; padding:22px 18px 40px}
+    .card{
+      background: linear-gradient(180deg, rgba(16,22,36,.85), rgba(12,16,28,.78));
+      border:1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); backdrop-filter: blur(var(--blur));
+      padding:18px;
+    }
+    .top{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px}
+    a.btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 12px; border-radius:14px;
+      border:1px solid rgba(159,176,208,.22);
+      background: rgba(10,14,24,.22);
+      color:var(--text); text-decoration:none; font-weight:700;
+    }
+    .muted{color:var(--muted)}
+    h1{margin:0 0 6px; letter-spacing:-.2px}
+    h2{margin:18px 0 8px}
+    p,li{line-height:1.45}
+    code{background:rgba(0,0,0,.25); padding:2px 6px; border-radius:8px}
+    footer.footer{margin-top:14px; opacity:.9}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <div>
+        <h1>Datenschutzerklärung</h1>
+        <div class="muted">Kurz, klar, passend zu deinem Setup (ohne Tracking)</div>
+      </div>
+      <a class="btn" href="/" title="Home">Home</a>
+    </div>
+
+    <section class="card">
+      <h2>1. Verantwortlicher</h2>
+      <p>
+        Privatperson: <strong>[DEIN NAME]</strong><br>
+        Kontakt: <strong>[DEINE EMAIL]</strong>
+      </p>
+
+      <h2>2. Hosting</h2>
+      <p>
+        Die Website wird statisch ausgeliefert. Server-Logs können beim Hosting/Provider anfallen
+        (z. B. IP-Adresse, Zeitpunkt, aufgerufene Seite), um den Betrieb und die Sicherheit zu gewährleisten.
+      </p>
+
+      <h2>3. Lokale Speicherung (LocalStorage)</h2>
+      <p>
+        Das Spiel unter <code>/gambling</code> speichert Spielstände (Coins, Stats, Cosmetics, Einstellungen)
+        lokal in deinem Browser per <code>localStorage</code>. Diese Daten werden nicht an mich gesendet.
+      </p>
+
+      <h2>4. Cookies / Tracking</h2>
+      <p>
+        Aktuell verwende ich kein zusätzliches Tracking (z. B. Google Analytics) und setze keine eigenen Tracking-Cookies.
+      </p>
+
+      <h2>5. Werbung (falls aktiviert)</h2>
+      <p>
+        Wenn Werbung eingebunden wird (z. B. über ein Werbenetzwerk), können dabei Cookies/IDs und
+        ähnliche Technologien genutzt werden, um Werbung auszuliefern und zu messen.
+        In diesem Fall wird ein Consent-Banner (Einwilligung) eingebunden, über das du deine Auswahl treffen kannst.
+      </p>
+
+      <h2>6. Deine Rechte</h2>
+      <ul>
+        <li>Auskunft, Berichtigung, Löschung, Einschränkung</li>
+        <li>Widerspruch gegen Verarbeitung</li>
+        <li>Datenübertragbarkeit</li>
+        <li>Beschwerde bei einer Aufsichtsbehörde</li>
+      </ul>
+
+      <h2>7. Kontakt</h2>
+      <p class="muted">
+        Für Fragen zum Datenschutz: <strong>[DEINE EMAIL]</strong>
+      </p>
+
+      <footer id="siteFooter"></footer>
+    </section>
+  </main>
+
+  <script src="/assets/site.js"></script>
+</body>
+</html>
