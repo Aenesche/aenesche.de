@@ -3,38 +3,557 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Aenesche · About</title>
+  <title>Aenesche · Devlog</title>
   <meta name="theme-color" content="#0b0e14" />
+
   <style>
     :root{
-      --bg:#0b0e14;
-      --card:#101624cc;
+      --bg:#070a12;
+      --panel:#0b1020cc;
+      --panel2:#0a0f1dcc;
       --border:#1f2a44;
       --text:#eaf0ff;
       --muted:#9fb0d0;
+      --soft:#b7c3df;
+
       --accent:#7c5cff;
-      --shadow:0 18px 60px rgba(0,0,0,.55);
+      --accent2:#2ee9a6;
+
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
       --radius:18px;
-      --blur:14px;
+      --blur: 14px;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
+
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
-      font-family:var(--sans);
-      background:linear-gradient(180deg,#060810,#0b0e14 40%,#05070d);
       color:var(--text);
+      font-family:var(--sans);
+      background:
+        radial-gradient(1000px 600px at 15% 10%, rgba(124,92,255,.20), transparent 60%),
+        radial-gradient(900px 700px at 80% 25%, rgba(46,233,166,.12), transparent 55%),
+        radial-gradient(800px 600px at 55% 95%, rgba(255,77,109,.10), transparent 55%),
+        linear-gradient(180deg, #04060d, var(--bg) 45%, #03040a);
+      overflow-x:hidden;
     }
-    .wrap{max-width:900px;margin:0 auto;padding:30px 18px 60px}
+
+    a{ color:inherit; text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+
+    .wrap{ max-width:1100px; margin:0 auto; padding:20px 16px 56px; }
+
+    /* Topbar */
+    .topbar{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 14px;
+      border:1px solid rgba(159,176,208,.16);
+      border-radius:20px;
+      background: rgba(10,14,24,.45);
+      backdrop-filter: blur(var(--blur));
+      box-shadow: 0 10px 40px rgba(0,0,0,.25);
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+      min-width:0;
+    }
+    .dot{
+      width:12px; height:12px; border-radius:999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 0 0 6px rgba(124,92,255,.10);
+      flex:0 0 auto;
+    }
+    .title{
+      font-weight:900; letter-spacing:.2px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .sub{
+      font-size:.92rem; color:var(--muted);
+      margin-top:2px;
+    }
+    .right{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:9px 12px;
+      border-radius:14px;
+      border:1px solid rgba(159,176,208,.20);
+      background: rgba(10,14,24,.25);
+      color:var(--text);
+      cursor:pointer;
+      font-weight:800;
+      transition: transform .06s ease, border-color .2s ease, background .2s ease;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(124,92,255,.65); }
+    .btn:active{ transform: translateY(0px); }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(124,92,255,.85), rgba(46,233,166,.55));
+      border-color: rgba(255,255,255,.10);
+    }
+    .seg{
+      display:flex; gap:8px;
+      border:1px solid rgba(159,176,208,.18);
+      background: rgba(7,10,18,.35);
+      border-radius:14px;
+      padding:4px;
+    }
+    .seg button{
+      font-family:var(--mono);
+      letter-spacing:.2px;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background: transparent;
+      color: rgba(234,240,255,.90);
+      cursor:pointer;
+      font-weight:800;
+    }
+    .seg button.active{
+      border-color: rgba(124,92,255,.55);
+      background: rgba(124,92,255,.14);
+    }
+
+    /* Layout */
+    .layout{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .layout{ grid-template-columns: 1fr; }
+    }
+
     .card{
-      background:linear-gradient(180deg, rgba(16,22,36,.85), rgba(12,16,28,.78));
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      padding:22px;
-      box-shadow:var(--shadow);
-      backdrop-filter:blur(var(--blur));
+      border:1px solid rgba(159,176,208,.16);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(11,16,32,.80), rgba(8,12,22,.68));
+      backdrop-filter: blur(var(--blur));
+      box-shadow: var(--shadow);
     }
-    h1{margin-top:0}
+    .card > *{ padding:16px; }
+    .head{
+      display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+      padding-bottom:0;
+    }
+    .head h2{ margin:0; font-size:1.1rem; letter-spacing:-.2px; }
+    .tag{
+      font-family:var(--mono);
+      font-size:.78rem;
+      padding:5px 9px;
+      border-radius:999px;
+      border:1px solid rgba(159,176,208,.18);
+      background: rgba(7,10,18,.25);
+      color: rgba(234,240,255,.85);
+      white-space:nowrap;
+    }
+
+    .mono{ font-family:var(--mono); }
+    .muted{ color:var(--muted); }
+    .soft{ color:var(--soft); }
+
+    .toc a{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(159,176,208,.12);
+      background: rgba(7,10,18,.18);
+      margin-top:10px;
+    }
+    .toc a:hover{
+      border-color: rgba(124,92,255,.45);
+      background: rgba(124,92,255,.10);
+      text-decoration:none;
+    }
+    .toc small{ color:var(--muted); }
+
+    .kpi{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:10px;
+      margin-top:10px;
+    }
+    .kpi .box{
+      border:1px solid rgba(159,176,208,.14);
+      background: rgba(7,10,18,.20);
+      border-radius:16px;
+      padding:12px;
+    }
+    .k{ font-size:.82rem; color:var(--muted); }
+    .v{ font-weight:900; font-size:1.05rem; margin-top:6px; }
+
+    .note{
+      margin-top:10px;
+      border-left: 3px solid rgba(124,92,255,.70);
+      background: rgba(124,92,255,.10);
+      border-radius:14px;
+      padding:10px 12px;
+      color: rgba(234,240,255,.92);
+    }
+
+    .section p{ margin:10px 0; line-height:1.55; }
+    .list{
+      margin:10px 0 0;
+      padding-left: 18px;
+      color: var(--soft);
+      line-height:1.55;
+    }
+    .list li{ margin:6px 0; }
+
+    .log{
+      margin-top:10px;
+      border:1px solid rgba(159,176,208,.14);
+      background: rgba(0,0,0,.22);
+      border-radius:16px;
+      overflow:hidden;
+      font-family:var(--mono);
+    }
+    .log .row{
+      display:grid;
+      grid-template-columns: 110px 1fr;
+      gap:12px;
+      padding:12px 12px;
+      border-bottom:1px solid rgba(159,176,208,.10);
+    }
+    .log .row:last-child{ border-bottom:none; }
+    .date{ color:rgba(234,240,255,.70); }
+    .msg{ color:rgba(234,240,255,.92); }
+    .pill{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(159,176,208,.16);
+      background: rgba(7,10,18,.20);
+      font-family:var(--mono);
+      font-size:.78rem;
+      color: rgba(234,240,255,.88);
+      margin-right:8px;
+    }
+
+    footer{
+      margin-top:14px;
+      opacity:.9;
+      color:var(--muted);
+      font-size:.92rem;
+      text-align:center;
+    }
+    footer a{
+      color:inherit;
+      border-bottom:1px dashed rgba(159,176,208,.35);
+      text-decoration:none;
+    }
+    footer a:hover{ border-bottom-color: var(--accent); color:var(--text); }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="dot"></div>
+        <div style="min-width:0">
+          <div class="title">Aenesche · Devlog</div>
+          <div class="sub">personal web experiments · browser games · notes & updates</div>
+        </div>
+      </div>
+
+      <div class="right">
+        <a class="btn" href="/">Home</a>
+        <a class="btn" href="/game">Game</a>
+        <a class="btn" href="/gambling/">Gambling</a>
+
+        <div class="seg" title="Language">
+          <button id="btnDe" class="active">DE</button>
+          <button id="btnEn">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- Sidebar -->
+      <aside class="card toc">
+        <div class="head">
+          <h2 class="mono">Index</h2>
+          <span class="tag">v0.1</span>
+        </div>
+
+        <a href="#what"><span>What is this?</span><small class="mono">overview</small></a>
+        <a href="#games"><span>Games</span><small class="mono">/game & /gambling</small></a>
+        <a href="#tech"><span>Tech notes</span><small class="mono">client-side</small></a>
+        <a href="#devlog"><span>Devlog</span><small class="mono">updates</small></a>
+        <a href="#roadmap"><span>Roadmap</span><small class="mono">next</small></a>
+        <a href="#faq"><span>FAQ</span><small class="mono">quick answers</small></a>
+
+        <div class="kpi">
+          <div class="box">
+            <div class="k mono">Money</div>
+            <div class="v">No real money</div>
+          </div>
+          <div class="box">
+            <div class="k mono">Accounts</div>
+            <div class="v">No logins</div>
+          </div>
+          <div class="box">
+            <div class="k mono">Storage</div>
+            <div class="v">Local only</div>
+          </div>
+          <div class="box">
+            <div class="k mono">Tracking</div>
+            <div class="v">None (now)</div>
+          </div>
+        </div>
+
+        <div class="note" id="noteBox">
+          <div class="mono" style="font-weight:900;margin-bottom:6px;">Note</div>
+          <div class="soft" id="noteText">
+            This page is basically my “README”, just nicer.
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <main>
+        <!-- DE content -->
+        <div id="contentDe" class="section">
+          <section class="card" id="what">
+            <div class="head">
+              <h2>Was ist Aenesche.de?</h2>
+              <span class="tag mono">about</span>
+            </div>
+            <div>
+              <p>
+                Aenesche.de ist mein kleines Webprojekt, auf dem ich rumprobiere:
+                UI-Design, Game-Mechaniken, Balancing, kleine Simulationen – alles in einem einzigen
+                Browser-Tab, ohne Account und ohne Backend.
+              </p>
+              <p>
+                Der Hauptgrund ist ehrlich: Ich wollte ein paar Games bauen, die sich “snappy” anfühlen
+                und trotzdem ein bisschen Tiefe haben. Und nebenbei ist es eine gute Ausrede,
+                um JavaScript sauberer zu lernen und Design-Entscheidungen bewusster zu treffen.
+              </p>
+              <div class="note">
+                <span class="pill">Wichtig</span>
+                <span class="soft">
+                  Alles ist <b>nur Simulation</b>. Kein Echtgeld, keine Auszahlungen, keine Einzahlungen.
+                  Fortschritt wird lokal im Browser gespeichert.
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" id="games" style="margin-top:14px;">
+            <div class="head">
+              <h2>Die Games</h2>
+              <span class="tag mono">content</span>
+            </div>
+            <div>
+              <p>
+                Aktuell gibt es zwei Hauptseiten mit spielbarem Inhalt:
+              </p>
+              <ul class="list">
+                <li>
+                  <b>/game</b> – <span class="soft">AI DRONE LAB</span> (Incremental/Cookie-Clicker):
+                  Du baust eine Drohnen-Produktion auf, investierst in Research (RP) und optimierst Skalierung.
+                  Mir ging’s hier vor allem um “Economy feels good” – also Zahlen, die wachsen, aber nicht sofort komplett explodieren.
+                </li>
+                <li>
+                  <b>/gambling</b> – <span class="soft">Gambling Simulation</span>:
+                  kleine Minigames (Roulette, Coinflip, Slots) plus ein MemeCoin-Markt als reine Simulation.
+                  Das ist eher “probability playground” als echtes Gambling.
+                </li>
+              </ul>
+
+              <p class="muted">
+                Beide Games speichern den Spielstand lokal im Browser (LocalStorage). Wenn du Reset drückst,
+                ist nur dein lokaler Save weg – nicht “bei mir” auf einem Server.
+              </p>
+            </div>
+          </section>
+
+          <section class="card" id="tech" style="margin-top:14px;">
+            <div class="head">
+              <h2>Tech Notes</h2>
+              <span class="tag mono">how it works</span>
+            </div>
+            <div>
+              <p>
+                Ich halte die Seite absichtlich simpel: statisches Hosting, keine Accounts, kein Server-Login-Kram.
+                Dadurch ist es schneller, günstiger und ich kann easy alles in GitHub pushen.
+              </p>
+              <ul class="list">
+                <li><b>Client-side only</b>: Logik läuft im Browser, keine Datenbank.</li>
+                <li><b>LocalStorage</b>: Saves sind Keys wie <span class="mono">aenesche_ai_drone_clicker_…</span> und <span class="mono">aenesche_gambling_…</span>.</li>
+                <li><b>Keine Tracker</b> aktuell: ich sammle keine Analytics, keine IP-Listen, keine Userprofile.</li>
+              </ul>
+              <p>
+                Falls ich irgendwann Werbung einbaue, passiert das sauber mit Consent (EU) und transparenter Info
+                in der Datenschutzerklärung. Grundsätzlich soll das hier aber ein Projekt bleiben – keine “Ad-Farm”.
+              </p>
+            </div>
+          </section>
+
+          <section class="card" id="devlog" style="margin-top:14px;">
+            <div class="head">
+              <h2>Devlog</h2>
+              <span class="tag mono">changes</span>
+            </div>
+            <div>
+              <p class="muted">
+                Kurz-Log von Sachen, die ich added / gefixt habe. Nicht super offiziell – eher “Notizen”.
+              </p>
+
+              <div class="log" aria-label="Devlog">
+                <div class="row">
+                  <div class="date">2026-02</div>
+                  <div class="msg">Impressum/Datenschutz ergänzt, Footer global gemacht, About/Devlog Seite gebaut.</div>
+                </div>
+                <div class="row">
+                  <div class="date">2026-02</div>
+                  <div class="msg">Gambling: Cosmetics sichtbarer gemacht, Anti-Autoclicker Cooldowns, Home Button.</div>
+                </div>
+                <div class="row">
+                  <div class="date">2026-01</div>
+                  <div class="msg">AI DRONE LAB: neue Drones + bessere Scaling-Mechaniken + Cosmetics/Themes rework.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" id="roadmap" style="margin-top:14px;">
+            <div class="head">
+              <h2>Roadmap</h2>
+              <span class="tag mono">next</span>
+            </div>
+            <div>
+              <p>
+                Ideen für die nächsten Updates (nicht alles davon kommt safe, aber das ist der Plan):
+              </p>
+              <ul class="list">
+                <li><b>AI DRONE LAB</b>: kleine “Missions” / Achievements + ein besseres “Prestige” System.</li>
+                <li><b>Gambling</b>: mehr Minigames + “daily challenge” (rein virtuell) + nicer UI für Stats.</li>
+                <li><b>Site</b>: ein kleines Changelog-Widget auf der Startseite + bessere Navigation.</li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="card" id="faq" style="margin-top:14px;">
+            <div class="head">
+              <h2>FAQ</h2>
+              <span class="tag mono">quick</span>
+            </div>
+            <div>
+              <p><b>Ist das echtes Gambling?</b><br>
+                <span class="muted">Nein. Es gibt keine Einzahlungen, kein Echtgeld, keine Auszahlung. Alles ist nur eine Simulation mit virtuellen Coins.</span>
+              </p>
+              <p><b>Speicherst du irgendwas über mich?</b><br>
+                <span class="muted">Ich nutze aktuell kein Tracking. Spielstände liegen nur lokal in deinem Browser (LocalStorage).</span>
+              </p>
+              <p><b>Warum machst du das?</b><br>
+                <span class="muted">Weil’s Spaß macht. Und weil ich Technik + Design besser lernen will, ohne dass es gleich ein riesiges Projekt sein muss.</span>
+              </p>
+            </div>
+          </section>
+        </div>
+
+        <!-- EN content -->
+        <div id="contentEn" class="section" style="display:none;">
+          <section class="card" id="what-en">
+            <div class="head">
+              <h2>What is Aenesche.de?</h2>
+              <span class="tag mono">about</span>
+            </div>
+            <div>
+              <p>
+                Aenesche.de is my personal playground for browser experiments:
+                UI design, game mechanics, balancing, small simulations — all running in one tab,
+                with no accounts and no backend.
+              </p>
+              <p>
+                The honest reason: I wanted to build games that feel snappy, look clean,
+                and still have a bit of depth. It’s also a nice excuse to get better at JavaScript
+                and to make more deliberate design decisions.
+              </p>
+              <div class="note">
+                <span class="pill">Important</span>
+                <span class="soft">
+                  Everything is <b>simulation only</b>. No real money, no deposits, no payouts.
+                  Progress is stored locally in your browser.
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" id="games-en" style="margin-top:14px;">
+            <div class="head">
+              <h2>The games</h2>
+              <span class="tag mono">content</span>
+            </div>
+            <div>
+              <p>Right now there are two main playable pages:</p>
+              <ul class="list">
+                <li>
+                  <b>/game</b> – <span class="soft">AI DRONE LAB</span> (incremental/cookie-clicker):
+                  build production, invest in research (RP), and explore scaling mechanics.
+                  The main goal here is making the economy feel good without instantly blowing up.
+                </li>
+                <li>
+                  <b>/gambling</b> – <span class="soft">Gambling simulation</span>:
+                  small minigames (roulette, coinflip, slots) plus a meme-coin market as a pure simulation.
+                  Think “probability playground”, not real gambling.
+                </li>
+              </ul>
+              <p class="muted">
+                Both games store saves locally using browser storage (LocalStorage). Hitting reset only clears your local save.
+              </p>
+            </div>
+          </section>
+
+          <section class="card" id="tech-en" style="margin-top:14px;">
+            <div class="head">
+              <h2>Tech notes</h2>
+              <span class="tag mono">how it works</span>
+            </div>
+            <div>
+              <p>
+                I keep the setup intentionally simple: static hosting, no accounts, no database.
+                That makes it fast, cheap, and easy to ship.
+              </p>
+              <ul class="list">
+                <li><b>Client-side only</b>: everything runs in the browser.</li>
+                <li><b>LocalStorage</b>: saves use keys like <span class="mono">aenesche_ai_drone_clicker_…</span> and <span class="mono">aenesche_gambling_…</span>.</li>
+                <li><b>No analytics</b> right now: no profiles, no tracking scripts.</li>
+              </ul>
+              <p>
+                If ads are ever enabled, it will be done properly with EU consent and transparent information in the privacy policy.
+                The goal is to keep this a real project, not an ad container.
+              </p>
+            </div>
+          </section>
+
+          <section class="card" id="devlog-en" style="margin-top:14px;">
+            <div class="head">
+              <h2>Devlog</h2>
+              <span class="tag mono">changes</span>
+            </div>
+            <div>
+              h1{margin-top:0}
     h2{margin-top:28px}
     p{line-height:1.6;color:var(--muted)}
     .toggle{
