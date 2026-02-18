@@ -4,6 +4,8 @@ export async function initAuthUI() {
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
   const userTag = document.getElementById("userTag");
+  export async function initAuthUI() {
+  await supabase.auth.getSession();   // 👈 WICHTIG hinzufügen
 
   if (!loginBtn || !logoutBtn || !userTag) {
     console.warn("[auth] missing UI elements");
@@ -28,19 +30,29 @@ export async function initAuthUI() {
   }
 
   loginBtn.addEventListener("click", async () => {
-    const email = prompt("Email für Magic-Link Login:");
-    if (!email) return;
+  const { data: { session } } = await supabase.auth.getSession();
 
-    const redirectTo = window.location.origin + window.location.pathname;
+  if (session?.user) {
+    alert("Du bist schon eingeloggt ✅");
+    return;
+  }
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: redirectTo }
-    });
+  const email = prompt("Email für Login:");
+  if (!email) return;
 
-    if (error) alert("Login-Fehler: " + error.message);
-    else alert("Check deine Emails – Magic Link ist raus ✅");
+  const redirectTo = window.location.origin + window.location.pathname;
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: redirectTo }
   });
+
+  if (error) {
+    alert("Login-Fehler: " + error.message);
+  } else {
+    alert("Link an deine Email gesendet ✅");
+  }
+});
 
   logoutBtn.addEventListener("click", async () => {
     await supabase.auth.signOut();
