@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AENESCHE · Work in Progress</title>
+  <style>
+    :root{
+      --bg:#0a0a0a;
+      --panel:#0f0f0f;
+      --text:#eaeaea;
+      --muted:#7a7a7a;
+      --line:#1f1f1f;
+      --accent:#bdbdbd;
+      --warn:#ff4444;
+      --ok:#00ff88;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:radial-gradient(1200px 600px at 20% 10%, rgba(255,255,255,.04), transparent 60%),
+                 radial-gradient(900px 500px at 80% 30%, rgba(255,255,255,.03), transparent 55%),
+                 var(--bg);
+      color:var(--text);
+      font-family:var(--mono);
+      letter-spacing:.2px;
+    }
+    a{ color:var(--accent); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+
+    .wrap{ max-width: 980px; margin:0 auto; padding: 22px 14px 70px; }
+
+    .topbar{
+      display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;
+      border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:14px;
+    }
+    .title{ font-size:16px; }
+    .sub{ color:var(--muted); font-size:12px; margin-top:6px; line-height:1.35; }
+    .tag{ display:inline-block; border:1px solid var(--line); padding:3px 6px; font-size:11px; color:var(--muted); }
+    .tag.ok{ color:var(--ok); border-color: rgba(0,255,136,.35); }
+    .tag.warn{ color:var(--warn); border-color: rgba(255,68,68,.35); }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      margin-top:14px;
+    }
+    @media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
+
+    .panel{ background:var(--panel); border:1px solid var(--line); padding:13px; }
+    .panel h2{
+      margin:0 0 10px; font-size:13px; color:var(--accent); font-weight:600; letter-spacing:.6px;
+    }
+
+    .hero{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,0));
+      padding:14px;
+    }
+    .big{
+      font-size:15px;
+      line-height:1.4;
+    }
+    .monoBox{
+      border:1px solid var(--line);
+      background:#050505;
+      padding:10px;
+      font-size:12px;
+      white-space:pre-wrap;
+      max-height:260px;
+      overflow:auto;
+    }
+
+    .buttons{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    button{
+      appearance:none; background:transparent; color:var(--text);
+      border:1px solid var(--line);
+      padding:10px 12px; cursor:pointer; font-family:var(--mono);
+      font-size:12px; letter-spacing:.3px;
+      user-select:none;
+    }
+    button:hover{ border-color:var(--accent); color:var(--accent); }
+    .primary{
+      border-color: rgba(189,189,189,.55);
+      background: rgba(255,255,255,.03);
+    }
+    .primary:hover{
+      border-color: var(--ok);
+      color: var(--ok);
+    }
+
+    .list{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+    .item{ border:1px solid var(--line); background:#0b0b0b; padding:10px; }
+    .itemTop{ display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
+    .itemName{ font-size:12px; }
+    .itemMeta{ font-size:11px; color:var(--muted); }
+
+    .foot{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+      border-top:1px solid var(--line);
+      padding-top:12px;
+    }
+    .dot{ opacity:.55; padding:0 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <div class="title">AENESCHE <span class="tag">site</span> <span class="tag warn">work in progress</span></div>
+        <div class="sub">
+          Umbau läuft — aber das aktuelle Game bleibt spielbar.<br/>
+          Neue Version bekommt Login/Cloud-Save, Leaderboards und später 3D stuff.
+        </div>
+      </div>
+      <div class="sub">
+        <span class="tag ok" id="statusTag">status: online</span>
+        <span class="dot">·</span>
+        <a href="/impressum">impressum</a>
+        <span class="dot">·</span>
+        <a href="/datenschutz">datenschutz</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>WIP STARTPAGE</h2>
+
+        <div class="hero">
+          <div class="big">
+            Gerade wird alles von “single-file clicker” zu einem richtigen Projekt ausgebaut.
+            Währenddessen kannst du weiterhin die aktuelle Version spielen.
+          </div>
+
+          <div class="buttons">
+            <button class="primary" id="playBtn">PLAY CURRENT VERSION</button>
+            <button id="changelogBtn">SHOW CHANGELOG</button>
+          </div>
+
+          <div class="sub" style="margin-top:10px;">
+            Tipp: Wenn du Bookmark nutzt, nimm den Link zur aktuellen Version — die neue Version kommt später als eigenes Update.
+          </div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <h2>DEVLOG</h2>
+          <div class="monoBox" id="logBox">[boot] WIP landing page loaded.
+[info] current game stays online.
+[next] migrate saves → optional cloud save (Supabase).
+[next] add leaderboards (public).
+[next] add 3D hangar previews (WebGL).
+</div>
+        </div>
+
+        <div class="foot">
+          <span class="tag">last update</span> <span id="lastUpdate">—</span>
+          <span class="dot">·</span>
+          <span class="tag">contact</span> <a href="mailto:hello@aenesche.de">hello@aenesche.de</a>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>ROADMAP</h2>
+        <div class="list">
+          <div class="item">
+            <div class="itemTop">
+              <div class="itemName">Phase 1 · Infrastruktur</div>
+              <div class="itemMeta">now</div>
+            </div>
+            <div class="itemMeta" style="margin-top:6px;">
+              Code split, neue Seitenstruktur, stabile Saves (local + später cloud).
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="itemTop">
+              <div class="itemName">Phase 2 · Accounts</div>
+              <div class="itemMeta">soon</div>
+            </div>
+            <div class="itemMeta" style="margin-top:6px;">
+              Login (Supabase), Cloud Save, Account Tag / Profil.
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="itemTop">
+              <div class="itemName">Phase 3 · Leaderboards</div>
+              <div class="itemMeta">after</div>
+            </div>
+            <div class="itemMeta" style="margin-top:6px;">
+              Public Top-Lists + Seasons. Basic anti-spam.
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="itemTop">
+              <div class="itemName">Phase 4 · 3D Hangar / New Mechanics</div>
+              <div class="itemMeta">later</div>
+            </div>
+            <div class="itemMeta" style="margin-top:6px;">
+              3D drone previews + neue Endgame Subpage.
+            </div>
+          </div>
+        </div>
+
+        <div class="sub" style="margin-top:12px;">
+          Wenn irgendwas kaputt ist: hard refresh / cache leeren. Mobile Safari ist manchmal wild.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === CONFIG ===
+    // Set this to wherever you move the current game:
+    // Example: "/clicker/" or "/v1/" or "/ai-drone-lab/"
+    const PLAY_CURRENT_HREF = "/old/";
+
+    // optional: show a nice date
+    document.getElementById("lastUpdate").textContent =
+      new Date().toLocaleDateString("de-DE", { year:"numeric", month:"2-digit", day:"2-digit" });
+
+    // Buttons
+    document.getElementById("playBtn").addEventListener("click", () => {
+      window.location.href = PLAY_CURRENT_HREF;
+    });
+
+    document.getElementById("changelogBtn").addEventListener("click", () => {
+      const box = document.getElementById("logBox");
+      box.textContent =
+`[boot] WIP landing page loaded.
+[status] current game link: ${PLAY_CURRENT_HREF}
+[plan] add Supabase auth + cloud saves.
+[plan] add leaderboards (public).
+[plan] add 3D hangar previews + animations.
+[tip] you can still play right now via the button.`;
+      box.scrollTop = box.scrollHeight;
+    });
+  </script>
+
+  <footer id="siteFooter"></footer>
+  <script src="/assets/site.js"></script>
+</body>
+</html>
