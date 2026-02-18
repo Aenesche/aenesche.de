@@ -117,6 +117,9 @@
           Neue Version bekommt Login/Cloud-Save, Leaderboards und später 3D stuff.
         </div>
       </div>
+      <button id="loginBtn" class="mini">LOGIN</button>
+<button id="logoutBtn" class="mini" style="display:none;">LOGOUT</button>
+<span id="userTag" class="tag" style="display:none;"></span>
       <div class="sub">
         <span class="tag ok" id="statusTag">status: online</span>
         <span class="dot">·</span>
@@ -244,5 +247,9 @@
 
   <footer id="siteFooter"></footer>
   <script src="/assets/site.js"></script>
+  <script type="module">
+  import { initAuthUI } from "/js/auth-ui.js";
+  initAuthUI();
+</script>
 </body>
 </html>
