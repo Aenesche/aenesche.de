@@ -276,7 +276,7 @@
         <div class="panel" style="margin-top: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
              <h2>INVENTORY</h2>
-             <button onclick="debugGivePart()" class="mini" style="border-color: var(--warn); color: var(--warn);">+ DEBUG PART</button>
+             <button onclick="buyEmergencyKit()" class="mini" style="border-color: var(--warn); color: var(--warn);">BUY STARTER KIT (10t CP)</button>
           </div>
           
           <div style="margin-bottom: 10px;">
@@ -769,13 +769,83 @@ function exitNewWorld() {
 }
 
 // ---------- NEW WORLD INVENTORY & EQUIP ----------
+// --- RARITIES UPDATE (Gewichte & Farben) ---
 const RARITIES = {
-    "Common": { weight: 1, color: "#bdbdbd" },
-    "Rare": { weight: 2, color: "#00ff88" },
-    "Super Rare": { weight: 3, color: "#66d9ff" },
-    "Legendary": { weight: 4, color: "#ffd700" },
-    "Ultra Rare": { weight: 5, color: "#ff2da6" }
+    "Common": { weight: 1, color: "#bdbdbd", dropChance: 70 },
+    "Rare": { weight: 2, color: "#00ff88", dropChance: 20 },
+    "Super Rare": { weight: 3, color: "#66d9ff", dropChance: 8 },
+    "Legendary": { weight: 4, color: "#ffd700", dropChance: 1.9 },
+    "Ultra Rare": { weight: 5, color: "#ff2da6", dropChance: 0.1 }
 };
+
+// --- DER GROSSE BAUTEILE-KATALOG ---
+const PART_CATALOG = {
+    // ⬛ FRAMES (Bestimmen Absturz-Risiko: breakChance)
+    "fr_com_1": { type: "frame", rarity: "Common", name: "Cardboard Frame", breakChance: 0.40 },
+    "fr_com_2": { type: "frame", rarity: "Common", name: "Plastic Frame", breakChance: 0.35 },
+    "fr_rar_1": { type: "frame", rarity: "Rare", name: "Carbon Fiber Frame", breakChance: 0.25 },
+    "fr_sr_1":  { type: "frame", rarity: "Super Rare", name: "Titanium Armor Frame", breakChance: 0.15 },
+    "fr_leg_1": { type: "frame", rarity: "Legendary", name: "Graphene Aerogel Frame", breakChance: 0.05 },
+    "fr_ur_1":  { type: "frame", rarity: "Ultra Rare", name: "Quantum Locked Frame", breakChance: 0.00 }, // Unzerbrechlich
+
+    // 🚁 PROPS (Bestimmen PO-Ertrag: poMult)
+    "pr_com_1": { type: "props", rarity: "Common", name: "Plastic 2-Blade Props", poMult: 1.0 },
+    "pr_com_2": { type: "props", rarity: "Common", name: "Nylon 3-Blade Props", poMult: 1.2 },
+    "pr_rar_1": { type: "props", rarity: "Rare", name: "Carbon Bullnose Props", poMult: 1.8 },
+    "pr_sr_1":  { type: "props", rarity: "Super Rare", name: "Aero-Flow Toroidal", poMult: 3.0 },
+    "pr_leg_1": { type: "props", rarity: "Legendary", name: "Plasma Thrusters", poMult: 6.0 },
+    "pr_ur_1":  { type: "props", rarity: "Ultra Rare", name: "Anti-Gravity Repulsors", poMult: 15.0 },
+
+    // 🔋 BATTERIES (Bestimmen Flugzeit: timeMult - kleiner ist besser!)
+    "ba_com_1": { type: "battery", rarity: "Common", name: "NiMH Pack", timeMult: 1.0 },
+    "ba_com_2": { type: "battery", rarity: "Common", name: "Standard LiPo", timeMult: 0.9 },
+    "ba_rar_1": { type: "battery", rarity: "Rare", name: "High-Voltage LiHV", timeMult: 0.7 },
+    "ba_sr_1":  { type: "battery", rarity: "Super Rare", name: "Solid State Cell", timeMult: 0.4 },
+    "ba_leg_1": { type: "battery", rarity: "Legendary", name: "Micro-Fusion Reactor", timeMult: 0.15 },
+    "ba_ur_1":  { type: "battery", rarity: "Ultra Rare", name: "Zero-Point Energy Core", timeMult: 0.05 }, // Fast instant!
+
+    // 📷 CAMERAS (Bestimmen Loot-Glück: luckBonus)
+    "ca_com_1": { type: "camera", rarity: "Common", name: "VGA Analog Cam", luckBonus: 1.0 },
+    "ca_com_2": { type: "camera", rarity: "Common", name: "1080p Digital Cam", luckBonus: 1.2 },
+    "ca_rar_1": { type: "camera", rarity: "Rare", name: "4K HDR Sensor", luckBonus: 2.0 },
+    "ca_sr_1":  { type: "camera", rarity: "Super Rare", name: "Thermal / Night Vision", luckBonus: 3.5 },
+    "ca_leg_1": { type: "camera", rarity: "Legendary", name: "Quantum Sensor", luckBonus: 6.0 },
+    "ca_ur_1":  { type: "camera", rarity: "Ultra Rare", name: "All-Seeing Eye", luckBonus: 10.0 },
+
+    // 🎛️ FLIGHT CONTROLLERS (Senken Absturz-Risiko: safety)
+    "fc_com_1": { type: "fc", rarity: "Common", name: "F3 Basic Board", safety: 0.0 },
+    "fc_com_2": { type: "fc", rarity: "Common", name: "F4 Advanced Board", safety: 0.02 }, // -2% Risiko
+    "fc_rar_1": { type: "fc", rarity: "Rare", name: "F7 with GPS Rescue", safety: 0.08 },
+    "fc_sr_1":  { type: "fc", rarity: "Super Rare", name: "H7 Dual Gyro", safety: 0.15 },
+    "fc_leg_1": { type: "fc", rarity: "Legendary", name: "AI Predictive Core", safety: 0.25 },
+    "fc_ur_1":  { type: "fc", rarity: "Ultra Rare", name: "Sentient Mind", safety: 0.40 }
+};
+
+// --- HELPER FUNKTION: BAUTEIL DROP PEN & PAPER WÜRFEL ---
+function generateLootDrop(luckMultiplier) {
+    const r = Math.random() * 100; // Würfel von 0 bis 100
+    let chosenRarity = "Common";
+    
+    // Luck Multiplier verschiebt die Chancen zu unseren Gunsten
+    if (r < (RARITIES["Ultra Rare"].dropChance * luckMultiplier)) chosenRarity = "Ultra Rare";
+    else if (r < (RARITIES["Legendary"].dropChance * luckMultiplier)) chosenRarity = "Legendary";
+    else if (r < (RARITIES["Super Rare"].dropChance * luckMultiplier)) chosenRarity = "Super Rare";
+    else if (r < (RARITIES["Rare"].dropChance * luckMultiplier)) chosenRarity = "Rare";
+
+    // Finde alle Items im Katalog mit dieser Seltenheit
+    const possibleItems = Object.keys(PART_CATALOG).filter(id => PART_CATALOG[id].rarity === chosenRarity);
+    const randomItemId = possibleItems[Math.floor(Math.random() * possibleItems.length)];
+    
+    // Kopiere das Item aus dem Katalog in ein einzigartiges Inventar-Objekt
+    const baseItem = PART_CATALOG[randomItemId];
+    return {
+        id: "inst_" + Date.now() + "_" + Math.floor(Math.random()*1000), // Einzigartige ID für dein Inventar
+        catalogId: randomItemId,
+        type: baseItem.type,
+        name: baseItem.name,
+        rarity: baseItem.rarity
+    };
+}
 
 // --- DRAG & DROP LOGIK ---
 function allowDrop(ev) {
@@ -955,28 +1025,20 @@ function renderNewWorld() {
   // ---------- MISSIONS LOGIK ----------
 const BASE_MISSION_DURATION = 30000; // 30 Sekunden Basis-Dauer
 
+// ---------- MISSIONS LOGIK ----------
+const BASE_MISSION_DURATION = 30000; // 30 Sekunden Basis-Dauer
+
 function startMission() {
-    if (state.newWorld.mission) return; // Schon unterwegs
-    
-    // Check, ob alle 5 Teile da sind
+    if (state.newWorld.mission) return;
     const types = ["props", "battery", "frame", "fc", "camera"];
     for (let t of types) { if (!state.newWorld.hangar[t]) return; }
 
-    // Missionsdauer berechnen (Bessere Batterie = schnellere Mission)
-    let duration = BASE_MISSION_DURATION;
-    const batt = state.newWorld.hangar.battery;
-    if (batt) {
-        // Z.B. Common=1, Legendary=4. Jedes Rarity-Level zieht 5% ab.
-        const reduction = RARITIES[batt.rarity].weight * 0.05; 
-        duration = duration * (1 - reduction);
-    }
+    // Batterie berechnet die Dauer
+    const batt = PART_CATALOG[state.newWorld.hangar.battery.catalogId];
+    const duration = BASE_MISSION_DURATION * (batt ? batt.timeMult : 1.0);
 
-    state.newWorld.mission = {
-        endTime: now() + duration,
-        duration: duration
-    };
-
-    log("SERVER: Mission authorized. ETA: " + Math.ceil(duration/1000) + "s", "warn");
+    state.newWorld.mission = { endTime: now() + duration, duration: duration };
+    log(`SERVER: Mission started. ETA: ${Math.ceil(duration/1000)}s`, "warn");
     saveToServer();
     renderNewWorld();
 }
@@ -984,74 +1046,75 @@ function startMission() {
 function claimMissionResult() {
     if (!state.newWorld.mission || now() < state.newWorld.mission.endTime) return;
 
-    // --- 1. PLUTONIUM ORE (PO) BERECHNEN ---
-    // Basis Loot: 10 bis 50 PO
-    let poGained = Math.floor(Math.random() * 41) + 10; 
-    
-    // Props erhöhen den PO-Ertrag (z.B. Legendary Props = +80%)
-    const props = state.newWorld.hangar.props;
-    if(props) poGained = Math.floor(poGained * (1 + (RARITIES[props.rarity].weight * 0.2)));
+    // Lade die Stats der ausgerüsteten Teile aus dem Katalog
+    const frame = PART_CATALOG[state.newWorld.hangar.frame.catalogId];
+    const fc = PART_CATALOG[state.newWorld.hangar.fc.catalogId];
+    const props = PART_CATALOG[state.newWorld.hangar.props.catalogId];
+    const cam = PART_CATALOG[state.newWorld.hangar.camera.catalogId];
 
-    state.newWorld.po = (state.newWorld.po || 0) + poGained;
-    log(`MISSION SUCCESS! Extracted +${poGained} PO.`, "ok");
+    // --- 1. DER CRASH WÜRFEL (RISIKO) ---
+    // BreakChance vom Frame minus SafetyBonus vom FC (Minimum 0)
+    const risk = Math.max(0, frame.breakChance - (fc ? fc.safety : 0));
+    const crashRoll = Math.random();
 
-    // --- 2. TEILE LOOT BERECHNEN (DROPS) ---
-    // Camera erhöht die Chance auf seltenere Teile
-    const cam = state.newWorld.hangar.camera;
-    const luckBonus = cam ? RARITIES[cam.rarity].weight : 1;
-    
-    // 1 bis 2 Teile als Drop
-    const drops = Math.floor(Math.random() * 2) + 1; 
-    for(let i=0; i<drops; i++) {
-        const types = ["frame", "props", "battery", "fc", "camera"];
-        const rarityKeys = Object.keys(RARITIES);
-        const randomType = types[Math.floor(Math.random() * types.length)];
-        
-        // Luck-Berechnung: Höhere Chance auf gute Indizes
-        let rIndex = Math.floor(Math.random() * Math.random() * rarityKeys.length);
-        rIndex = Math.min(rarityKeys.length - 1, rIndex + Math.floor(luckBonus / 2));
-        
-        const randomRarity = rarityKeys[rIndex];
-        const newPart = {
-            id: "part_" + Date.now() + "_" + Math.floor(Math.random()*1000),
-            type: randomType,
-            name: randomRarity + " " + randomType.toUpperCase(),
-            rarity: randomRarity
-        };
-        
-        state.newWorld.inventory.push(newPart);
-        log(`LOOT DROP: ${newPart.name}`, "warn");
+    if (crashRoll < risk) {
+        // BOOM! DROHNE ZERSTÖRT.
+        log(`CRITICAL FAILURE! Drone crashed (Risk was ${Math.round(risk*100)}%). All equipped parts LOST.`, "bad");
+        state.newWorld.hangar = { frame: null, props: null, battery: null, fc: null, camera: null };
+        state.newWorld.mission = null;
+        saveToServer();
+        renderNewWorld();
+        return; // Mission bricht hier ab! Kein Loot.
     }
 
-    // --- 3. BREAK CHANCE (Kommen wir später zu) ---
-    // (Hier würde berechnet werden, ob ein Frame kaputt geht)
+    // --- 2. MISSION ERFOLGREICH: LOOT & PO ---
+    // PO berechnen: 5 bis 15 PO * Props Multiplikator
+    let basePo = Math.floor(Math.random() * 11) + 5;
+    let poGained = Math.floor(basePo * (props ? props.poMult : 1.0));
+    state.newWorld.po = (state.newWorld.po || 0) + poGained;
+    
+    // Loot Drops berechnen
+    const luck = cam ? cam.luckBonus : 1.0;
+    const dropsCount = Math.floor(Math.random() * 2) + 1; // 1 bis 2 Teile
+    
+    for(let i=0; i<dropsCount; i++) {
+        const droppedPart = generateLootDrop(luck);
+        state.newWorld.inventory.push(droppedPart);
+        log(`LOOT DROP: ${droppedPart.name} (${droppedPart.rarity})`, "ok");
+    }
 
-    // Mission beenden
+    log(`MISSION SUCCESS! Extracted +${poGained} PO.`, "ok");
     state.newWorld.mission = null;
     saveToServer();
     renderNewWorld();
 }
 
 // Verbesserter Debug Button mit echten Rarities!
-function debugGivePart() {
-    const types = ["frame", "props", "battery", "fc", "camera"];
-    const rarityKeys = Object.keys(RARITIES);
+// --- EMERGENCY SHOP ---
+function buyEmergencyKit() {
+    const cost = 10000000000000; // 10k CP
+    if (state.coins < cost) {
+        log(`Not enough CP! Need ${fmt(cost)} CP for an Emergency Kit.`, "bad");
+        return;
+    }
     
-    const randomType = types[Math.floor(Math.random() * types.length)];
-    // Ein bisschen Wahrscheinlichkeit: Common ist häufiger als Ultra Rare
-    const randomRarity = rarityKeys[Math.floor(Math.random() * Math.random() * rarityKeys.length)]; 
+    state.coins -= cost;
     
-    const newPart = {
-        id: "part_" + Date.now() + "_" + Math.floor(Math.random()*1000),
-        type: randomType,
-        name: randomRarity + " " + randomType.toUpperCase(),
-        rarity: randomRarity
-    };
+    // Gib dem Spieler die 5 schlechtesten "Level 1" Common Teile
+    const starterParts = ["fr_com_1", "pr_com_1", "ba_com_1", "ca_com_1", "fc_com_1"];
     
-    if(!state.newWorld.inventory) state.newWorld.inventory = [];
-    state.newWorld.inventory.push(newPart);
+    starterParts.forEach(catalogId => {
+        const baseItem = PART_CATALOG[catalogId];
+        state.newWorld.inventory.push({
+            id: "inst_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+            catalogId: catalogId,
+            type: baseItem.type,
+            name: baseItem.name,
+            rarity: baseItem.rarity
+        });
+    });
     
-    log("SERVER DROP: Acquired " + newPart.name, "warn");
+    log("EMERGENCY KIT acquired! (+5 Common Parts)", "warn");
     saveToServer();
     renderNewWorld();
 }
