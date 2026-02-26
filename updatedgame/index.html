@@ -233,6 +233,11 @@
     <div class="grid">
       <div class="panel">
         <h2>DRONE ASSEMBLY</h2>
+        <div class="panel" style="margin-top: 14px;">
+        <h2>MISSION LOG</h2>
+        <div class="monoBox" id="nw-log"></div>
+        <div class="hint">Server-Ereignisse und Loot-Drops werden hier protokolliert.</div>
+      </div>
         <div style="border: 1px solid var(--line); background: #050505; height: 120px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; text-align: center;">
             <div id="drone-render-field" style="color: var(--accent); font-size: 14px; letter-spacing: 2px;">
                 [ SYSTEM OFFLINE ]<br><small>Warte auf Assembly...</small>
@@ -383,14 +388,24 @@ function fmt(n){
 
 function log(line, cls=""){
   const t = new Date().toLocaleTimeString();
-  const div = document.createElement("div");
-  div.innerHTML = `[${t}] ${cls ? `<span class="${cls}">` : ""}${String(line).replaceAll("<","&lt;")}${cls ? `</span>` : ""}`;
-  el.log.appendChild(div);
+  const msg = `[${t}] ${cls ? `<span class="${cls}">` : ""}${String(line).replaceAll("<","&lt;")}${cls ? `</span>` : ""}`;
+  
+  // Base Game Console
+  const div1 = document.createElement("div"); div1.innerHTML = msg;
+  el.log.appendChild(div1);
   while(el.log.childNodes.length > MAX_LOG_LINES) el.log.removeChild(el.log.firstChild);
   el.log.scrollTop = el.log.scrollHeight;
+
+  // New World Console (falls sie existiert)
+  const nwLog = document.getElementById("nw-log");
+  if (nwLog) {
+      const div2 = document.createElement("div"); div2.innerHTML = msg;
+      nwLog.appendChild(div2);
+      while(nwLog.childNodes.length > MAX_LOG_LINES) nwLog.removeChild(nwLog.firstChild);
+      nwLog.scrollTop = nwLog.scrollHeight;
+  }
 }
 
-// ---------- STATE DEFINITION ----------
 // ---------- STATE DEFINITION ----------
 function defaultState(){
   return {
@@ -1014,8 +1029,21 @@ function renderNewWorld() {
         if (isMissionDone) {
             progContainer.style.display = "none";
             claimBtn.style.display = "block";
-            renderField.innerHTML = "[ MISSION COMPLETE ]<br><small>Loot abholbereit.</small>";
-            renderField.style.color = "#00ff88";
+            
+            // HIER WIRD DER CRASH VOR DEM KLICKEN ANGEZEIGT!
+            if (state.newWorld.mission.crashed) {
+                renderField.innerHTML = "!!! CRITICAL CRASH !!!<br><small>Signal verloren. Drohne zerstört.</small>";
+                renderField.style.color = "var(--warn)";
+                claimBtn.textContent = "ACKNOWLEDGE CRASH";
+                claimBtn.style.borderColor = "var(--warn)";
+                claimBtn.style.color = "var(--warn)";
+            } else {
+                renderField.innerHTML = "[ MISSION COMPLETE ]<br><small>Loot abholbereit.</small>";
+                renderField.style.color = "#00ff88";
+                claimBtn.textContent = "CLAIM LOOT";
+                claimBtn.style.borderColor = "#00ff88";
+                claimBtn.style.color = "#00ff88";
+            }
         } else {
             progContainer.style.display = "block";
             claimBtn.style.display = "none";
@@ -1025,16 +1053,49 @@ function renderNewWorld() {
   // ---------- MISSIONS LOGIK ----------
 const BASE_MISSION_DURATION = 30000; // 30 Sekunden Basis-Dauer
 
+// ---------- MISSIONS LOGIK ----------
+const BASE_MISSION_DURATION = 30000;
+
 function startMission() {
     if (state.newWorld.mission) return;
     const types = ["props", "battery", "frame", "fc", "camera"];
     for (let t of types) { if (!state.newWorld.hangar[t]) return; }
 
-    // Batterie berechnet die Dauer
-    const batt = PART_CATALOG[state.newWorld.hangar.battery.catalogId];
+    const frame = PART_CATALOG[state.newWorld.hangar.frame.catalogId] || PART_CATALOG["fr_com_1"];
+    const fc = PART_CATALOG[state.newWorld.hangar.fc?.catalogId] || PART_CATALOG["fc_com_1"];
+    const props = PART_CATALOG[state.newWorld.hangar.props?.catalogId] || PART_CATALOG["pr_com_1"];
+    const cam = PART_CATALOG[state.newWorld.hangar.camera?.catalogId] || PART_CATALOG["ca_com_1"];
+    const batt = PART_CATALOG[state.newWorld.hangar.battery?.catalogId] || PART_CATALOG["ba_com_1"];
+
     const duration = BASE_MISSION_DURATION * (batt ? batt.timeMult : 1.0);
 
-    state.newWorld.mission = { endTime: now() + duration, duration: duration };
+    // --- ERGEBNIS VORAB WÜRFELN ---
+    const risk = Math.max(0, frame.breakChance - (fc ? fc.safety : 0));
+    const crashRoll = Math.random();
+    const crashed = crashRoll < risk;
+
+    let poGained = 0;
+    let drops = [];
+
+    // Nur Beute berechnen, wenn die Drohne überlebt
+    if (!crashed) {
+        let basePo = Math.floor(Math.random() * 11) + 5;
+        poGained = Math.floor(basePo * (props ? props.poMult : 1.0));
+        const luck = cam ? cam.luckBonus : 1.0;
+        const dropsCount = Math.floor(Math.random() * 2) + 1;
+        for(let i=0; i<dropsCount; i++) drops.push(generateLootDrop(luck));
+    }
+
+    // Alles im State speichern
+    state.newWorld.mission = { 
+        endTime: now() + duration, 
+        duration: duration,
+        crashed: crashed,
+        risk: risk,
+        poGained: poGained,
+        drops: drops
+    };
+
     log(`SERVER: Mission started. ETA: ${Math.ceil(duration/1000)}s`, "warn");
     saveToServer();
     renderNewWorld();
@@ -1043,63 +1104,18 @@ function startMission() {
 function claimMissionResult() {
     if (!state.newWorld.mission || now() < state.newWorld.mission.endTime) return;
 
-    // --- FALLBACK FÜR ALTE TEILE ---
-    // Wenn ein Teil keine catalogId hat (deine alten Debug-Teile), nehmen wir das Common-Teil als Fallback, damit nichts abstürzt!
-    const frame = PART_CATALOG[state.newWorld.hangar.frame?.catalogId] || PART_CATALOG["fr_com_1"];
-    const fc = PART_CATALOG[state.newWorld.hangar.fc?.catalogId] || PART_CATALOG["fc_com_1"];
-    const props = PART_CATALOG[state.newWorld.hangar.props?.catalogId] || PART_CATALOG["pr_com_1"];
-    const cam = PART_CATALOG[state.newWorld.hangar.camera?.catalogId] || PART_CATALOG["ca_com_1"];
+    const m = state.newWorld.mission;
 
-    // --- 1. DER CRASH WÜRFEL (RISIKO) ---
-    // Frame BreakChance minus FC Safety (Minimum 0)
-    const risk = Math.max(0, frame.breakChance - (fc ? fc.safety : 0));
-    const crashRoll = Math.random();
-
-    if (crashRoll < risk) {
-        // BOOM! DROHNE ZERSTÖRT.
-        log(`CRITICAL FAILURE! Drone crashed (Risk was ${Math.round(risk*100)}%). All equipped parts LOST.`, "bad");
-        
-        // Fettes visuelles Feedback im UI (Hangar leuchtet rot)
-        const renderField = document.getElementById("drone-render-field");
-        if (renderField) {
-            renderField.innerHTML = "!!! CRITICAL CRASH !!!<br><small style='color: var(--warn);'>Drohne zerstört. Alle Teile verloren.</small>";
-            renderField.style.color = "var(--warn)";
-            renderField.parentElement.style.borderColor = "var(--warn)";
-        }
-
-        // Hangar & Mission leeren
+    if (m.crashed) {
+        log(`CRITICAL FAILURE! Drone crashed (Risk was ${Math.round(m.risk*100)}%). All equipped parts LOST.`, "bad");
         state.newWorld.hangar = { frame: null, props: null, battery: null, fc: null, camera: null };
-        state.newWorld.mission = null;
-        saveToServer();
-        
-        // Button verstecken, während der Schock-Screen angezeigt wird
-        document.getElementById("claimMissionBtn").style.display = "none";
-        
-        // Nach 3 Sekunden rendern wir das UI normal neu
-        setTimeout(() => {
-            if(renderField) renderField.parentElement.style.borderColor = "var(--line)";
-            renderNewWorld();
-        }, 3000);
-        
-        return; // Mission bricht hier ab! Kein Loot.
+    } else {
+        state.newWorld.po = (state.newWorld.po || 0) + m.poGained;
+        m.drops.forEach(d => state.newWorld.inventory.push(d));
+        log(`MISSION SUCCESS! Extracted +${m.poGained} PO.`, "ok");
+        m.drops.forEach(d => log(`LOOT DROP: ${d.name} (${d.rarity})`, "ok"));
     }
 
-    // --- 2. MISSION ERFOLGREICH: LOOT & PO ---
-    let basePo = Math.floor(Math.random() * 11) + 5;
-    let poGained = Math.floor(basePo * (props ? props.poMult : 1.0));
-    state.newWorld.po = (state.newWorld.po || 0) + poGained;
-    
-    // Loot Drops berechnen
-    const luck = cam ? cam.luckBonus : 1.0;
-    const dropsCount = Math.floor(Math.random() * 2) + 1; // 1 bis 2 Teile droppen
-    
-    for(let i=0; i<dropsCount; i++) {
-        const droppedPart = generateLootDrop(luck);
-        state.newWorld.inventory.push(droppedPart);
-        log(`LOOT DROP: ${droppedPart.name} (${droppedPart.rarity})`, "ok");
-    }
-
-    log(`MISSION SUCCESS! Extracted +${poGained} PO.`, "ok");
     state.newWorld.mission = null;
     saveToServer();
     renderNewWorld();
