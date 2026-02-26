@@ -123,10 +123,13 @@
           </div>
         <div class="sub">Cookie-Clicker style · Coins + Drohnen-Producer · RP-Tech · Cosmetics</div>
       </div>
-      <div class="sub">
+      <div class="sub" style="display: flex; gap: 10px; align-items: center;">
+        <button id="btnNewWorld" style="display: none; border-color: var(--warn); color: var(--warn); font-weight: bold; cursor: pointer; animation: pulse 2s infinite;">ENTER NEW WORLD</button>
         <span class="tag" id="statusTag">autosave: ON</span>
         <a href="#" onclick="logOut()">logout</a>
       </div>
+      
+      <style>@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }</style>
     </div>
 
     <div class="grid">
@@ -273,6 +276,7 @@ function log(line, cls=""){
 }
 
 // ---------- STATE DEFINITION ----------
+// ---------- STATE DEFINITION ----------
 function defaultState(){
   return {
     coins: 0, lifetimeCoins: 0, rp: 0,
@@ -280,11 +284,19 @@ function defaultState(){
     dUp: Object.fromEntries(DRONES.map(d => [d.id, 0])),
     techLvl: Object.fromEntries(TECH.map(t => [t.id, 0])),
     techOwned: Object.fromEntries(TECH.map(t => [t.id, false])),
-    rpLabOwned: 0, flags: { rpLabUnlocked:false, vipOwned:false }, nextExperimentAt: 0,
+    // NEU: newWorldUnlocked Flag hinzugefügt
+    rpLabOwned: 0, flags: { rpLabUnlocked:false, vipOwned:false, newWorldUnlocked: false }, nextExperimentAt: 0,
     cosmetics: {
       themesOwned: Object.fromEntries(THEMES.map(t => [t.id, !!t.unlockByDefault])),
       effectsOwned: Object.fromEntries(EFFECTS.map(e => [e.id, false])),
       activeThemeId: "default", effectsActive: { scanlines:false },
+    },
+    // NEU: Die Basis für das New World Update
+    newWorld: {
+      po: 0, // Plutonium Ore
+      inventory: [], // Deine gefundenen Drohnen-Teile
+      hangar: { frame: null, props: null, battery: null, fc: null, camera: null }, // Ausgerüstete Teile
+      mission: null // Läuft gerade eine Mission?
     },
     lastTick: now(), createdAt: now(),
   };
@@ -318,8 +330,10 @@ async function loadGameFromServer() {
     const { data, error } = await supabaseClient.from('game_state').select('state_json').eq('user_id', user.id).single();
 
     if (data && data.state_json) {
-        // Merge saved data with default to prevent errors if we added new drones
+        // Merge saved data with default
         state = { ...defaultState(), ...data.state_json };
+        if(!state.flags.newWorldUnlocked) state.flags.newWorldUnlocked = false;
+        if(!state.newWorld) state.newWorld = defaultState().newWorld;
         
         // OFFLINE PROGRESS CALCULATION
         const nowMs = now();
@@ -512,6 +526,22 @@ function buyEffect(effect){
 
 function toggleEffect(effectId){
   if(!state.cosmetics.effectsOwned[effectId]) return;
+
+  // DIE NEUE CHEETA LOGIK
+  if(effectId === "cheeta"){
+    if(!state.flags.newWorldUnlocked) {
+       state.flags.newWorldUnlocked = true;
+       log("C.H.E.E.T.A. protocol overrides safety limits.", "warn");
+       log("ACCESS GRANTED: NEW WORLD UNLOCKED.", "warn");
+       render(); // Aktualisiert das UI, damit der Button erscheint
+       saveToServer(); // Speichert sofort, damit es nicht verloren geht
+    } else {
+       log("You are already connected to the New World.", "muted");
+    }
+    return;
+  }
+
+  // Normale Effekte (Scanlines)
   state.cosmetics.effectsActive[effectId] = !state.cosmetics.effectsActive[effectId];
   applyCosmetics();
   log(`effect toggled`, "ok");
@@ -674,6 +704,9 @@ function render(){
   }
   
   renderHangar();
+  
+  const btnNewWorld = document.getElementById("btnNewWorld");
+  if(btnNewWorld) btnNewWorld.style.display = state.flags.newWorldUnlocked ? "inline-block" : "none";
 }
 
 function tick(){
