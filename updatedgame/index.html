@@ -250,8 +250,17 @@
         <div class="mission-panel">
           <h3 style="margin: 0 0 10px; color: var(--warn);">MISSION CONTROL</h3>
           <p style="font-size: 12px; margin-bottom: 15px;">Target: Sector 7 (Plutonium Rich)</p>
-          <button id="startMissionBtn" disabled style="border-color: var(--warn); color: var(--warn); width: 100%;">START MISSION (REQ. 5 PARTS)</button>
-          <div id="missionStatus" style="margin-top: 10px; font-size: 11px; color: var(--muted);">Status: Idle</div>
+          
+          <button id="startMissionBtn" onclick="startMission()" disabled style="border-color: var(--warn); color: var(--warn); width: 100%;">START MISSION (REQ. 5 PARTS)</button>
+          
+          <div id="mission-progress-container" style="display: none; margin-top: 15px;">
+              <div style="font-size: 11px; margin-bottom: 5px; color: var(--warn);" id="mission-timer-text">MISSION IN PROGRESS...</div>
+              <div class="bar" style="width: 100%; border-color: var(--warn);">
+                  <div id="mission-progress-fill" style="background: var(--warn); width: 0%;"></div>
+              </div>
+          </div>
+          
+          <button id="claimMissionBtn" onclick="claimMissionResult()" style="display: none; border-color: #00ff88; color: #00ff88; width: 100%; animation: popIn 0.5s forwards;">CLAIM LOOT</button>
         </div>
       </div>
 
@@ -891,22 +900,135 @@ function renderNewWorld() {
 
     const renderField = document.getElementById("drone-render-field");
     const startBtn = document.getElementById("startMissionBtn");
+    const progContainer = document.getElementById("mission-progress-container");
+    const claimBtn = document.getElementById("claimMissionBtn");
 
-    if(partsEquipped === 5) {
-        renderField.innerHTML = "▀▄▀▄▀ [ DROHNE BEREIT ] ▀▄▀▄▀<br><small style='color: var(--text);'>Alle Systeme online.</small>";
-        renderField.style.color = "#00ff88"; 
-        startBtn.disabled = false;
-        startBtn.textContent = "START MISSION";
-        startBtn.style.background = "rgba(255, 68, 68, 0.15)";
-        startBtn.style.cursor = "pointer";
-    } else {
-        renderField.innerHTML = "[ SYSTEM OFFLINE ]<br><small>Es fehlen Teile (" + partsEquipped + "/5).</small>";
-        renderField.style.color = "var(--warn)"; 
-        startBtn.disabled = true;
-        startBtn.textContent = "START MISSION (REQ. 5 PARTS)";
-        startBtn.style.background = "transparent";
-        startBtn.style.cursor = "not-allowed";
+    const isMissionActive = !!state.newWorld.mission;
+    const isMissionDone = isMissionActive && now() >= state.newWorld.mission.endTime;
+
+    // Wenn Mission aktiv ist, Inventar-Drag & Klicks blockieren
+    if(isMissionActive) {
+        document.querySelectorAll('.inv-item, .part-slot').forEach(el => {
+            el.style.pointerEvents = 'none'; // Verhindert Klicks und Drag
+            if(el.classList.contains('inv-item')) el.style.opacity = '0.4';
+        });
     }
+
+    // --- STATUS ANZEIGEN ---
+    if (!isMissionActive) {
+        progContainer.style.display = "none";
+        claimBtn.style.display = "none";
+        startBtn.style.display = "block";
+
+        if(partsEquipped === 5) {
+            renderField.innerHTML = "▀▄▀▄▀ [ DROHNE BEREIT ] ▀▄▀▄▀<br><small style='color: var(--text);'>Wartet auf Freigabe.</small>";
+            renderField.style.color = "#00ff88"; 
+            startBtn.disabled = false;
+            startBtn.textContent = "START MISSION (Dauer: ~30s)";
+            startBtn.style.background = "rgba(255, 68, 68, 0.15)";
+            startBtn.style.cursor = "pointer";
+        } else {
+            renderField.innerHTML = "[ SYSTEM OFFLINE ]<br><small>Es fehlen Teile (" + partsEquipped + "/5).</small>";
+            renderField.style.color = "var(--warn)"; 
+            startBtn.disabled = true;
+            startBtn.textContent = "START MISSION (REQ. 5 PARTS)";
+            startBtn.style.background = "transparent";
+            startBtn.style.cursor = "not-allowed";
+        }
+    } else {
+        // MISSION IST AKTIV
+        startBtn.style.display = "none";
+        renderField.innerHTML = ">>> MISSION IN PROGRESS <<< <br><small>Drohne in Sektor 7...</small>";
+        renderField.style.color = "var(--warn)";
+        
+        if (isMissionDone) {
+            progContainer.style.display = "none";
+            claimBtn.style.display = "block";
+            renderField.innerHTML = "[ MISSION COMPLETE ]<br><small>Loot abholbereit.</small>";
+            renderField.style.color = "#00ff88";
+        } else {
+            progContainer.style.display = "block";
+            claimBtn.style.display = "none";
+        }
+    }
+  // ---------- MISSIONS LOGIK ----------
+const BASE_MISSION_DURATION = 30000; // 30 Sekunden Basis-Dauer
+
+function startMission() {
+    if (state.newWorld.mission) return; // Schon unterwegs
+    
+    // Check, ob alle 5 Teile da sind
+    const types = ["props", "battery", "frame", "fc", "camera"];
+    for (let t of types) { if (!state.newWorld.hangar[t]) return; }
+
+    // Missionsdauer berechnen (Bessere Batterie = schnellere Mission)
+    let duration = BASE_MISSION_DURATION;
+    const batt = state.newWorld.hangar.battery;
+    if (batt) {
+        // Z.B. Common=1, Legendary=4. Jedes Rarity-Level zieht 5% ab.
+        const reduction = RARITIES[batt.rarity].weight * 0.05; 
+        duration = duration * (1 - reduction);
+    }
+
+    state.newWorld.mission = {
+        endTime: now() + duration,
+        duration: duration
+    };
+
+    log("SERVER: Mission authorized. ETA: " + Math.ceil(duration/1000) + "s", "warn");
+    saveToServer();
+    renderNewWorld();
+}
+
+function claimMissionResult() {
+    if (!state.newWorld.mission || now() < state.newWorld.mission.endTime) return;
+
+    // --- 1. PLUTONIUM ORE (PO) BERECHNEN ---
+    // Basis Loot: 10 bis 50 PO
+    let poGained = Math.floor(Math.random() * 41) + 10; 
+    
+    // Props erhöhen den PO-Ertrag (z.B. Legendary Props = +80%)
+    const props = state.newWorld.hangar.props;
+    if(props) poGained = Math.floor(poGained * (1 + (RARITIES[props.rarity].weight * 0.2)));
+
+    state.newWorld.po = (state.newWorld.po || 0) + poGained;
+    log(`MISSION SUCCESS! Extracted +${poGained} PO.`, "ok");
+
+    // --- 2. TEILE LOOT BERECHNEN (DROPS) ---
+    // Camera erhöht die Chance auf seltenere Teile
+    const cam = state.newWorld.hangar.camera;
+    const luckBonus = cam ? RARITIES[cam.rarity].weight : 1;
+    
+    // 1 bis 2 Teile als Drop
+    const drops = Math.floor(Math.random() * 2) + 1; 
+    for(let i=0; i<drops; i++) {
+        const types = ["frame", "props", "battery", "fc", "camera"];
+        const rarityKeys = Object.keys(RARITIES);
+        const randomType = types[Math.floor(Math.random() * types.length)];
+        
+        // Luck-Berechnung: Höhere Chance auf gute Indizes
+        let rIndex = Math.floor(Math.random() * Math.random() * rarityKeys.length);
+        rIndex = Math.min(rarityKeys.length - 1, rIndex + Math.floor(luckBonus / 2));
+        
+        const randomRarity = rarityKeys[rIndex];
+        const newPart = {
+            id: "part_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+            type: randomType,
+            name: randomRarity + " " + randomType.toUpperCase(),
+            rarity: randomRarity
+        };
+        
+        state.newWorld.inventory.push(newPart);
+        log(`LOOT DROP: ${newPart.name}`, "warn");
+    }
+
+    // --- 3. BREAK CHANCE (Kommen wir später zu) ---
+    // (Hier würde berechnet werden, ob ein Frame kaputt geht)
+
+    // Mission beenden
+    state.newWorld.mission = null;
+    saveToServer();
+    renderNewWorld();
 }
 
 // Verbesserter Debug Button mit echten Rarities!
@@ -1006,6 +1128,23 @@ function tick(){
   const t = now();
   const dt = (t - state.lastTick) / 1000;
   state.lastTick = t;
+
+  // Mission UI Live-Update
+  if (state.newWorld && state.newWorld.mission && document.getElementById("nw-wrap").style.display === "block") {
+      const m = state.newWorld.mission;
+      const leftMs = m.endTime - t;
+      
+      if (leftMs <= 0) {
+          // Mission ist fertig, zeige den Claim Button an
+          if (document.getElementById("claimMissionBtn").style.display === "none") renderNewWorld();
+      } else {
+          // Fortschrittsbalken updaten
+          const passed = m.duration - leftMs;
+          const percent = Math.min(100, (passed / m.duration) * 100);
+          document.getElementById("mission-progress-fill").style.width = percent + "%";
+          document.getElementById("mission-timer-text").textContent = "FLIGHT TIME REMAINING: " + Math.ceil(leftMs/1000) + "s";
+      }
+  }
 
   const cps = coinsPerSecond();
   if(cps > 0) addCoins(cps * dt);
