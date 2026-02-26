@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Drone Lab - Prototype</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: #00ffcc; text-align: center; padding: 50px; }
+        .hidden { display: none; }
+        input, button { margin: 5px; padding: 10px; font-size: 16px; }
+        button { cursor: pointer; background: #00ffcc; border: none; color: #121212; font-weight: bold; }
+        .box { border: 1px solid #333; padding: 20px; max-width: 400px; margin: 0 auto; background: #1e1e1e; }
+    </style>
+</head>
+<body>
+
+    <h1>AI Drone Lab</h1>
+
+    <div id="auth-section" class="box">
+        <h3>Login / Registrierung</h3>
+        <input type="email" id="email" placeholder="E-Mail" autocomplete="off"><br>
+        <input type="password" id="password" placeholder="Passwort"><br>
+        <button onclick="signUp()">Registrieren</button>
+        <button onclick="signIn()">Login</button>
+        <p id="auth-msg" style="color: yellow;"></p>
+    </div>
+
+    <div id="game-section" class="box hidden">
+        <h3>Hangar</h3>
+        <p>Coins (CP): <strong id="cp-display" style="font-size: 24px;">0</strong></p>
+        <button onclick="clickDrone()">Drohne Klicken (+1 CP)</button>
+        <hr style="border-color: #333; margin: 20px 0;">
+        <button onclick="saveGame()">💾 Spielstand speichern</button>
+        <button onclick="logOut()" style="background: #ff4444; color: white;">Logout</button>
+        <p id="game-msg" style="color: yellow;"></p>
+    </div>
+
+    <script>
+        // --- 1. SUPABASE VERBINDUNG HERSTELLEN ---
+        // TRAGE HIER DEINE BEIDEN SCHLÜSSEL AUS DEM SUPABASE DASHBOARD EIN:
+        const supabaseUrl = 'DEINE_PROJECT_URL_HIER';
+        const supabaseKey = 'DEIN_ANON_KEY_HIER';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // --- 2. SPIEL VARIABLEN ---
+        let user = null;
+        let gameState = { cp: 0 }; // Unser JSON Game State
+
+        // --- 3. AUTHENTIFIZIERUNG ---
+        async function signUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            document.getElementById('auth-msg').innerText = "Lädt...";
+            
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            
+            if (error) {
+                document.getElementById('auth-msg').innerText = "Fehler: " + error.message;
+            } else {
+                document.getElementById('auth-msg').innerText = "Erfolgreich! Du kannst dich jetzt einloggen.";
+            }
+        }
+
+        async function signIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            document.getElementById('auth-msg').innerText = "Lädt...";
+            
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            
+            if (error) {
+                document.getElementById('auth-msg').innerText = "Fehler: " + error.message;
+            } else {
+                user = data.user;
+                startGame();
+            }
+        }
+
+        async function logOut() {
+            await supabase.auth.signOut();
+            location.reload(); // Seite neu laden
+        }
+
+        // --- 4. SPIEL LOGIK ---
+        async function startGame() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('game-section').classList.remove('hidden');
+            document.getElementById('game-msg').innerText = "Lade Spielstand...";
+
+            // Versuche Spielstand zu laden
+            const { data, error } = await supabase
+                .from('game_state')
+                .select('state_json')
+                .eq('user_id', user.id)
+                .single();
+
+            if (data && data.state_json) {
+                gameState = data.state_json;
+                document.getElementById('game-msg').innerText = "Spielstand geladen!";
+            } else {
+                // Wenn kein Spielstand existiert, legen wir einen an
+                await supabase.from('game_state').insert([{ user_id: user.id, state_json: gameState }]);
+                document.getElementById('game-msg').innerText = "Neuer Spielstand erstellt!";
+            }
+            updateUI();
+        }
+
+        function clickDrone() {
+            gameState.cp += 1;
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('cp-display').innerText = gameState.cp;
+        }
+
+        async function saveGame() {
+            document.getElementById('game-msg').innerText = "Speichere...";
+            
+            const { error } = await supabase
+                .from('game_state')
+                .update({ state_json: gameState, updated_at: new Date() })
+                .eq('user_id', user.id);
+
+            if (error) {
+                document.getElementById('game-msg').innerText = "Fehler beim Speichern!";
+                console.error(error);
+            } else {
+                document.getElementById('game-msg').innerText = "Erfolgreich gespeichert!";
+            }
+        }
+    </script>
+</body>
+</html>
