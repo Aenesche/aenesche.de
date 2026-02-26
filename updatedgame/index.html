@@ -38,14 +38,15 @@
 
     <script>
         // --- 1. SUPABASE VERBINDUNG HERSTELLEN ---
-        // TRAGE HIER DEINE BEIDEN SCHLÜSSEL AUS DEM SUPABASE DASHBOARD EIN:
         const supabaseUrl = 'https://usihbregbanpfspblrnw.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // HIER IST DIE ÄNDERUNG: Wir nennen es jetzt supabaseClient
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         // --- 2. SPIEL VARIABLEN ---
         let user = null;
-        let gameState = { cp: 0 }; // Unser JSON Game State
+        let gameState = { cp: 0 }; 
 
         // --- 3. AUTHENTIFIZIERUNG ---
         async function signUp() {
@@ -53,7 +54,8 @@
             const password = document.getElementById('password').value;
             document.getElementById('auth-msg').innerText = "Lädt...";
             
-            const { data, error } = await supabase.auth.signUp({ email, password });
+            // Überall supabase durch supabaseClient ersetzt
+            const { data, error } = await supabaseClient.auth.signUp({ email, password });
             
             if (error) {
                 document.getElementById('auth-msg').innerText = "Fehler: " + error.message;
@@ -67,7 +69,7 @@
             const password = document.getElementById('password').value;
             document.getElementById('auth-msg').innerText = "Lädt...";
             
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
             
             if (error) {
                 document.getElementById('auth-msg').innerText = "Fehler: " + error.message;
@@ -78,8 +80,8 @@
         }
 
         async function logOut() {
-            await supabase.auth.signOut();
-            location.reload(); // Seite neu laden
+            await supabaseClient.auth.signOut();
+            location.reload(); 
         }
 
         // --- 4. SPIEL LOGIK ---
@@ -88,8 +90,7 @@
             document.getElementById('game-section').classList.remove('hidden');
             document.getElementById('game-msg').innerText = "Lade Spielstand...";
 
-            // Versuche Spielstand zu laden
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('game_state')
                 .select('state_json')
                 .eq('user_id', user.id)
@@ -99,8 +100,7 @@
                 gameState = data.state_json;
                 document.getElementById('game-msg').innerText = "Spielstand geladen!";
             } else {
-                // Wenn kein Spielstand existiert, legen wir einen an
-                await supabase.from('game_state').insert([{ user_id: user.id, state_json: gameState }]);
+                await supabaseClient.from('game_state').insert([{ user_id: user.id, state_json: gameState }]);
                 document.getElementById('game-msg').innerText = "Neuer Spielstand erstellt!";
             }
             updateUI();
@@ -118,7 +118,7 @@
         async function saveGame() {
             document.getElementById('game-msg').innerText = "Speichere...";
             
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('game_state')
                 .update({ state_json: gameState, updated_at: new Date() })
                 .eq('user_id', user.id);
