@@ -1161,7 +1161,7 @@ function render(){
       row.meta.textContent = `lvl ${state.techLvl[t.id] || 0} · cost ${cost} RP`;
       row.buy.disabled = state.rp < cost;
     }
-  
+  }
 
   for(const th of THEMES){
     const row = cosRows.get(`theme_${th.id}`);
