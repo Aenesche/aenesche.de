@@ -1,135 +1,711 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Drone Lab - Prototype</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { font-family: sans-serif; background: #121212; color: #00ffcc; text-align: center; padding: 50px; }
-        .hidden { display: none; }
-        input, button { margin: 5px; padding: 10px; font-size: 16px; }
-        button { cursor: pointer; background: #00ffcc; border: none; color: #121212; font-weight: bold; }
-        .box { border: 1px solid #333; padding: 20px; max-width: 400px; margin: 0 auto; background: #1e1e1e; }
-    </style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9324741081312072" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI DRONE LAB · Server Edition</title>
+  <style>
+    :root{
+      --bg:#0a0a0a;
+      --panel:#0f0f0f;
+      --text:#eaeaea;
+      --muted:#7a7a7a;
+      --line:#1f1f1f;
+      --accent:#bdbdbd;
+      --warn:#ff4444;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:var(--mono);
+      letter-spacing:.2px;
+    }
+    a{ color:var(--accent); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+
+    .wrap{ max-width: 1100px; margin:0 auto; padding: 22px 14px 70px; }
+    
+    /* LOGIN SCREEN STYLING */
+    #auth-screen {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;
+    }
+    .auth-box { width: 100%; max-width: 400px; }
+    .auth-box input { width: 100%; background: #050505; color: var(--text); border: 1px solid var(--line); padding: 12px; margin-bottom: 10px; font-family: var(--mono); }
+    .auth-box input:focus { border-color: var(--accent); outline: none; }
+
+    .topbar{
+      display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;
+      border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:14px;
+    }
+    .title{ font-size:16px; }
+    .sub{ color:var(--muted); font-size:12px; margin-top:6px; }
+    .tag{ display:inline-block; border:1px solid var(--line); padding:3px 6px; font-size:11px; color:var(--muted); }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:14px;
+      margin-top:14px;
+    }
+    @media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
+
+    .panel{ background:var(--panel); border:1px solid var(--line); padding:13px; }
+    .panel h2{ margin:0 0 10px; font-size:13px; color:var(--accent); font-weight:600; letter-spacing:.6px; }
+
+    .stats{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-top:8px; }
+    @media (max-width: 720px){ .stats{ grid-template-columns: 1fr 1fr; } }
+    .stat{ border:1px solid var(--line); padding:10px; background:#0b0b0b; }
+    .k{ color:var(--muted); font-size:11px; margin-bottom:6px; }
+    .v{ font-size:16px; }
+    .v small{ color:var(--muted); font-size:12px; }
+
+    .buttons{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    button{
+      appearance:none; background:transparent; color:var(--text); border:1px solid var(--line);
+      padding:10px 12px; cursor:pointer; font-family:var(--mono); font-size:12px; letter-spacing:.3px; user-select:none;
+    }
+    button:hover{ border-color:var(--accent); color:var(--accent); }
+    button:disabled{ opacity:.45; cursor:not-allowed; color:var(--muted); border-color:var(--line); }
+
+    .hint{ color:var(--muted); font-size:12px; margin-top:10px; line-height:1.35; }
+    .list{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+    .item{ border:1px solid var(--line); background:#0b0b0b; padding:10px; }
+    .itemTop{ display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
+    .itemName{ font-size:12px; }
+    .itemMeta{ font-size:11px; color:var(--muted); }
+    .itemBtns{ margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+    .mini{ padding:7px 10px; font-size:11px; }
+
+    .monoBox{ border:1px solid var(--line); background:#050505; padding:10px; font-size:12px; white-space:pre-wrap; max-height:220px; overflow:auto; }
+    .ok{ color:var(--accent); }
+    .bad{ color:var(--warn); }
+    .twoCols{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width: 720px){ .twoCols{ grid-template-columns:1fr; } }
+
+    .hangar{ border:1px solid var(--line); background:#050505; padding:10px; min-height:120px; }
+    .hangarRow{ display:flex; gap:10px; align-items:center; justify-content:space-between; border-bottom:1px dashed #141414; padding:7px 0; }
+    .hangarRow:last-child{ border-bottom:none; }
+    .hangarLeft{ display:flex; gap:10px; align-items:center; }
+    .icon{ width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--line); color:var(--accent); font-size:12px; }
+    .count{ color:var(--muted); font-size:12px; }
+    .bar{ height:6px; border:1px solid var(--line); background:#060606; overflow:hidden; width:160px; }
+    .bar > div{ height:100%; background:var(--accent); width:0%; }
+    @media (max-width: 420px){ .bar{ width:120px; } }
+  </style>
 </head>
 <body>
 
-    <h1>AI Drone Lab</h1>
+  <div id="auth-screen">
+      <div class="title" style="margin-bottom: 20px; font-size: 24px;">AI DRONE LAB <span class="tag">SECURE LOGIN</span></div>
+      <div class="panel auth-box">
+          <h2>IDENTIFICATION REQUIRED</h2>
+          <input type="email" id="email" placeholder="E-Mail Address" autocomplete="off">
+          <input type="password" id="password" placeholder="Password">
+          <div class="buttons" style="justify-content: space-between;">
+              <button onclick="signUp()">REGISTER</button>
+              <button onclick="signIn()" style="border-color: var(--accent); color: var(--accent);">LOGIN</button>
+          </div>
+          <div id="auth-msg" class="hint" style="text-align: center; margin-top: 15px;">Awaiting credentials...</div>
+      </div>
+  </div>
 
-    <div id="auth-section" class="box">
-        <h3>Login / Registrierung</h3>
-        <input type="email" id="email" placeholder="E-Mail" autocomplete="off"><br>
-        <input type="password" id="password" placeholder="Passwort"><br>
-        <button onclick="signUp()">Registrieren</button>
-        <button onclick="signIn()">Login</button>
-        <p id="auth-msg" style="color: yellow;"></p>
+  <div class="wrap" id="game-wrap" style="display: none;">
+    <div class="topbar">
+      <div>
+        <div class="title">
+            AI DRONE LAB <span class="tag">v2.0 Server Edition</span>
+            <span id="vipBadge" style="margin-left:8px;color:gold;display:none;">★ VIP</span>
+          </div>
+        <div class="sub">Cookie-Clicker style · Coins + Drohnen-Producer · RP-Tech · Cosmetics</div>
+      </div>
+      <div class="sub">
+        <span class="tag" id="statusTag">autosave: ON</span>
+        <a href="#" onclick="logOut()">logout</a>
+      </div>
     </div>
 
-    <div id="game-section" class="box hidden">
-        <h3>Hangar</h3>
-        <p>Coins (CP): <strong id="cp-display" style="font-size: 24px;">0</strong></p>
-        <button onclick="clickDrone()">Drohne Klicken (+1 CP)</button>
-        <hr style="border-color: #333; margin: 20px 0;">
-        <button onclick="saveGame()">💾 Spielstand speichern</button>
-        <button onclick="logOut()" style="background: #ff4444; color: white;">Logout</button>
-        <p id="game-msg" style="color: yellow;"></p>
-    </div>
+    <div class="grid">
+      <div class="panel">
+        <h2>STATUS</h2>
+        <div class="stats">
+          <div class="stat"><div class="k">Coins</div><div class="v"><span id="coins">0</span> <small>CP</small></div></div>
+          <div class="stat"><div class="k">Coins / sec</div><div class="v"><span id="cps">0</span> <small>CP/s</small></div></div>
+          <div class="stat"><div class="k">Click Power</div><div class="v"><span id="clickPow">1</span> <small>CP</small></div></div>
+          <div class="stat"><div class="k">Research</div><div class="v"><span id="rp">0</span> <small>RP</small></div></div>
+          <div class="stat"><div class="k">RP / sec</div><div class="v"><span id="rps">0</span> <small>RP/s</small></div></div>
+          <div class="stat"><div class="k">Lifetime Coins</div><div class="v"><span id="life">0</span></div></div>
+        </div>
 
-    <script>
-        // --- 1. SUPABASE VERBINDUNG HERSTELLEN ---
-        const supabaseUrl = 'https://usihbregbanpfspblrnw.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY';
+        <div class="buttons">
+          <button id="clickBtn">CLICK ( +1 )</button>
+          <button id="experimentBtn">RUN EXPERIMENT</button>
+          <button id="saveBtn" style="border-color: #44aa44; color: #44aa44;">MANUAL SAVE</button>
+        </div>
+
+        <div class="hint" id="hintLine">Start ist langsam: erst Drohnen kaufen, dann Upgrades. RP kommt über Experimente.</div>
+
+        <div class="twoCols" style="margin-top:12px;">
+          <div>
+            <h2>HANGAR</h2>
+            <div class="hangar" id="hangar"></div>
+            <div class="hint">Mehr Drohnen → mehr Symbole. Ab großen Zahlen wird es zu “xN”.</div>
+          </div>
+          <div>
+            <h2>CONSOLE</h2>
+            <div class="monoBox" id="log"></div>
+            <div class="hint">Server synchronisiert alle 10 Sekunden.</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h2>DRONES (PRODUCERS)</h2>
+          <div class="hint">Preise steigen pro Kauf: <span class="tag">base * 1.15^owned</span></div>
+          <div class="list" id="droneList"></div>
+        </div>
+
+        <div class="panel" style="margin-top:14px;">
+          <h2>RESEARCH TECH (RP)</h2>
+          <div class="hint">RP Upgrades sind langfristig und skalieren im Preis. Fokus: Drohnen-Power.</div>
+          <div class="list" id="techList"></div>
+        </div>
+
+        <div class="panel" style="margin-top:14px;">
+          <h2>COSMETICS</h2>
+          <div class="hint">Themes sind wechselbar.</div>
+          <div class="list" id="cosList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// --- SUPABASE SETUP ---
+const supabaseUrl = 'https://usihbregbanpfspblrnw.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY';
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+let user = null;
+let state = null; // Wird nach dem Laden gefüllt
+
+// ---------- BALANCE (DEINE WERTE) ----------
+const PRICE_GROWTH = 1.15;
+const TICK_MS = 200;
+const EXPERIMENT_CD_MS = 12000;
+const MAX_LOG_LINES = 1000;
+const SOFT_CLEAR_MS = 600000;
+
+const DRONES = [
+  { id:"temu",     name:"Temu Drone",     icon:"t", baseCps:0.10, basePrice:15,    unlock:{type:"always"} },
+  { id:"amazon",   name:"Amazon Drone",   icon:"a", baseCps:1.00, basePrice:120,   unlock:{type:"owned", id:"temu", n:10} },
+  { id:"fpv",      name:"FPV Drone",      icon:"f", baseCps:8.00, basePrice:1100,  unlock:{type:"owned", id:"amazon", n:8} },
+  { id:"air3s",    name:"DJI Air 3S",     icon:"D", baseCps:47.0, basePrice:12000, unlock:{type:"owned", id:"fpv", n:8} },
+  { id:"cine",     name:"Cinelifter",     icon:"C", baseCps:260,  basePrice:130000,unlock:{type:"owned", id:"air3s", n:6} },
+  { id:"matrice",  name:"DJI Matrice",    icon:"M", baseCps:1400, basePrice:1500000, unlock:{type:"owned", id:"cine", n:10} },
+  { id:"titan", name:"Titan Strike Drone", icon:"T", baseCps:11000, basePrice:100_000_000, unlock:{type:"owned", id:"matrice", n:20} },
+  { id:"leviathan", name:"Leviathan War Drone", icon:"L", baseCps:180000, basePrice:20_000_000_000, unlock:{type:"owned", id:"titan", n:15} }
+];
+
+function droneUpgradeCost(droneBasePrice, level){
+  const base = droneBasePrice * 12;
+  return Math.floor(base * Math.pow(2.6, level));
+}
+
+const TECH = [
+  { id:"globalCps", name:"Optimization Pass", desc:"+5% global CPS (repeatable)", type:"repeat", baseCost:6, growth:1.35 },
+  { id:"droneBoost", name:"Drone Firmware", desc:"+6% drone CPS (repeatable)", type:"repeat", baseCost:10, growth:1.38 },
+  { id:"clickBoost", name:"Quantization Trick", desc:"x2 click power (repeatable)", type:"repeat", baseCost:10, growth:1.42 },
+  { id:"rpLab", name:"Research Lab", desc:"Unlock: buy RP-Lab producer (1-time)", type:"one", baseCost:25, growth:1.0, apply:(s)=>{ s.flags.rpLabUnlocked = true; } },
+  { id:"rpLabBoost", name:"Lab Instrumentation", desc:"+25% RP-Lab output (repeatable)", type:"repeat", baseCost:18, growth:1.45 },
+];
+
+const RP_LAB = { id:"rplab", name:"RP-Lab", icon:"R", baseRps:0.04, basePrice:5000, priceGrowth:1.20 };
+
+const THEMES = [
+  { id:"default",  name:"Theme: Default",  cost:0, unlockByDefault:true, accent:"#bdbdbd" },
+  { id:"green",    name:"Theme: Neon Green",cost:1000, unlockByDefault:false, accent:"#00ff88" },
+  { id:"amber",    name:"Theme: Amber Terminal",cost:25_000_000, unlockByDefault:false, accent:"#ffb000" },
+  { id:"ice",      name:"Theme: Ice Blue",  cost:60_000_000, unlockByDefault:false, accent:"#66d9ff" },
+  { id:"violet",   name:"Theme: Neon Violet", cost:8_000_000_000, unlockByDefault:false, accent:"#b300ff" },
+  { id:"pink",     name:"Theme: Cyber Pink", cost:25_000_000_000, unlockByDefault:false, accent:"#ff2da6" },
+  { id:"gold",     name:"Theme: Gold Terminal", cost:150_000_000_000, unlockByDefault:false, accent:"#ffd700" },
+];
+const EFFECTS = [
+  { id:"scanlines", name:"Effect: CRT Scanlines", cost:120_000_000, unlockByDefault:false },
+  { id:"cheeta", name:"Effect: C.H.E.E.T.A.", cost:100_000_000_000_000, unlockByDefault:false }
+];
+
+// ---------- DOM ----------
+const $ = (id) => document.getElementById(id);
+const el = {
+  coins: $("coins"), cps: $("cps"), clickPow: $("clickPow"),
+  rp: $("rp"), rps: $("rps"), life: $("life"),
+  clickBtn: $("clickBtn"), experimentBtn: $("experimentBtn"), saveBtn: $("saveBtn"),
+  droneList: $("droneList"), techList: $("techList"), cosList: $("cosList"),
+  hangar: $("hangar"), log: $("log"),
+  statusTag: $("statusTag"), hintLine: $("hintLine"),
+};
+
+const now = () => Date.now();
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+
+function fmt(n){
+  n = Number(n) || 0;
+  if (n < 1000) return String(Math.floor(n));
+  const units = ["k","M","B","T","Qa","Qi"];
+  let u = -1;
+  while(n >= 1000 && u < units.length-1){ n/=1000; u++; }
+  return (n < 10 ? n.toFixed(2) : n < 100 ? n.toFixed(1) : n.toFixed(0)) + units[u];
+}
+
+function log(line, cls=""){
+  const t = new Date().toLocaleTimeString();
+  const div = document.createElement("div");
+  div.innerHTML = `[${t}] ${cls ? `<span class="${cls}">` : ""}${String(line).replaceAll("<","&lt;")}${cls ? `</span>` : ""}`;
+  el.log.appendChild(div);
+  while(el.log.childNodes.length > MAX_LOG_LINES) el.log.removeChild(el.log.firstChild);
+  el.log.scrollTop = el.log.scrollHeight;
+}
+
+// ---------- STATE DEFINITION ----------
+function defaultState(){
+  return {
+    coins: 0, lifetimeCoins: 0, rp: 0,
+    owned: Object.fromEntries(DRONES.map(d => [d.id, 0])),
+    dUp: Object.fromEntries(DRONES.map(d => [d.id, 0])),
+    techLvl: Object.fromEntries(TECH.map(t => [t.id, 0])),
+    techOwned: Object.fromEntries(TECH.map(t => [t.id, false])),
+    rpLabOwned: 0, flags: { rpLabUnlocked:false, vipOwned:false }, nextExperimentAt: 0,
+    cosmetics: {
+      themesOwned: Object.fromEntries(THEMES.map(t => [t.id, !!t.unlockByDefault])),
+      effectsOwned: Object.fromEntries(EFFECTS.map(e => [e.id, false])),
+      activeThemeId: "default", effectsActive: { scanlines:false },
+    },
+    lastTick: now(), createdAt: now(),
+  };
+}
+
+// ---------- AUTH & SUPABASE ----------
+async function signUp() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    document.getElementById('auth-msg').innerText = "Authenticating...";
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) document.getElementById('auth-msg').innerText = "Error: " + error.message;
+    else document.getElementById('auth-msg').innerText = "Registration successful! You can log in now.";
+}
+
+async function signIn() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    document.getElementById('auth-msg').innerText = "Accessing Server...";
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) document.getElementById('auth-msg').innerText = "Error: " + error.message;
+    else { user = data.user; loadGameFromServer(); }
+}
+
+async function logOut() { await supabaseClient.auth.signOut(); location.reload(); }
+
+async function loadGameFromServer() {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('game-wrap').style.display = 'block';
+
+    const { data, error } = await supabaseClient.from('game_state').select('state_json').eq('user_id', user.id).single();
+
+    if (data && data.state_json) {
+        // Merge saved data with default to prevent errors if we added new drones
+        state = { ...defaultState(), ...data.state_json };
         
-        // HIER IST DIE ÄNDERUNG: Wir nennen es jetzt supabaseClient
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-        // --- 2. SPIEL VARIABLEN ---
-        let user = null;
-        let gameState = { cp: 0 }; 
-
-        // --- 3. AUTHENTIFIZIERUNG ---
-        async function signUp() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            document.getElementById('auth-msg').innerText = "Lädt...";
-            
-            // Überall supabase durch supabaseClient ersetzt
-            const { data, error } = await supabaseClient.auth.signUp({ email, password });
-            
-            if (error) {
-                document.getElementById('auth-msg').innerText = "Fehler: " + error.message;
-            } else {
-                document.getElementById('auth-msg').innerText = "Erfolgreich! Du kannst dich jetzt einloggen.";
+        // OFFLINE PROGRESS CALCULATION
+        const nowMs = now();
+        if(state.lastTick) {
+            const dtSeconds = (nowMs - state.lastTick) / 1000;
+            if(dtSeconds > 60) { // Only if away for more than a minute
+                const offlineCps = coinsPerSecond();
+                if(offlineCps > 0) {
+                    const earned = offlineCps * dtSeconds;
+                    state.coins += earned;
+                    state.lifetimeCoins += earned;
+                    setTimeout(() => log(`SERVER: +${fmt(earned)} CP while you were offline!`, "ok"), 500);
+                }
             }
         }
+        state.lastTick = nowMs;
+    } else {
+        state = defaultState();
+        await supabaseClient.from('game_state').insert([{ user_id: user.id, state_json: state }]);
+    }
 
-        async function signIn() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            document.getElementById('auth-msg').innerText = "Lädt...";
-            
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            
-            if (error) {
-                document.getElementById('auth-msg').innerText = "Fehler: " + error.message;
-            } else {
-                user = data.user;
-                startGame();
-            }
-        }
+    bootGame();
+}
 
-        async function logOut() {
-            await supabaseClient.auth.signOut();
-            location.reload(); 
-        }
+async function saveToServer() {
+    if(!user || !state) return;
+    el.statusTag.textContent = "saving...";
+    el.statusTag.style.color = "var(--warn)";
+    
+    const { error } = await supabaseClient.from('game_state').update({ state_json: state, updated_at: new Date() }).eq('user_id', user.id);
+    
+    if (error) {
+        log("Server Save Failed!", "bad");
+    } else {
+        el.statusTag.textContent = "autosave: OK";
+        el.statusTag.style.color = "var(--muted)";
+    }
+}
 
-        // --- 4. SPIEL LOGIK ---
-        async function startGame() {
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('game-section').classList.remove('hidden');
-            document.getElementById('game-msg').innerText = "Lade Spielstand...";
+// ---------- DEINE GAME LOGIC (100% BEIBEHALTEN) ----------
 
-            const { data, error } = await supabaseClient
-                .from('game_state')
-                .select('state_json')
-                .eq('user_id', user.id)
-                .single();
+function applyCosmetics(){
+  const activeTheme = THEMES.find(t => t.id === state.cosmetics.activeThemeId) || THEMES[0];
+  document.documentElement.style.setProperty("--accent", activeTheme.accent);
 
-            if (data && data.state_json) {
-                gameState = data.state_json;
-                document.getElementById('game-msg').innerText = "Spielstand geladen!";
-            } else {
-                await supabaseClient.from('game_state').insert([{ user_id: user.id, state_json: gameState }]);
-                document.getElementById('game-msg').innerText = "Neuer Spielstand erstellt!";
-            }
-            updateUI();
-        }
+  const id = "scanlines-style";
+  let tag = document.getElementById(id);
+  const enabled = !!state.cosmetics.effectsActive.scanlines;
+  
+  if(enabled && !tag){
+      tag = document.createElement("style");
+      tag.id = id;
+      tag.textContent = `
+        body:before{ content:""; position:fixed; inset:0; pointer-events:none; background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.08), rgba(255,255,255,0.08) 1px, rgba(0,0,0,0) 3px, rgba(0,0,0,0) 6px); opacity: .65; z-index: 999; }
+        body:after{ content:""; position:fixed; inset:0; pointer-events:none; background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.06), rgba(0,0,0,0) 60%), linear-gradient(to bottom, rgba(255,255,255,0.03), rgba(0,0,0,0.06)); opacity:.45; animation: crtFlicker 2.8s infinite steps(2,end); z-index: 999;}
+        @keyframes crtFlicker{ 0%, 100%{ opacity:.40; } 50%{ opacity:.52; } }
+      `;
+      document.head.appendChild(tag);
+  } else if(!enabled && tag) { tag.remove(); }
+}
 
-        function clickDrone() {
-            gameState.cp += 1;
-            updateUI();
-        }
+function isUnlocked(u){
+  if(u.type === "always") return true;
+  if(u.type === "owned") return (state.owned[u.id] || 0) >= u.n;
+  return false;
+}
 
-        function updateUI() {
-            document.getElementById('cp-display').innerText = gameState.cp;
-        }
+function dronePrice(drone){ return Math.floor(drone.basePrice * Math.pow(PRICE_GROWTH, state.owned[drone.id] || 0)); }
+function rpLabPrice(){ return Math.floor(RP_LAB.basePrice * Math.pow(RP_LAB.priceGrowth, state.rpLabOwned || 0)); }
+function droneMultiplier(droneId){ return Math.pow(2, state.dUp[droneId] || 0); }
+function globalCpsMultiplier(){ return Math.pow(1.05, state.techLvl.globalCps || 0); }
+function droneCpsMultiplier(){ return Math.pow(1.06, state.techLvl.droneBoost || 0); }
+function clickMultiplier(){ return Math.pow(2, state.techLvl.clickBoost || 0); }
+function rpLabMultiplier(){ return Math.pow(1.25, state.techLvl.rpLabBoost || 0); }
 
-        async function saveGame() {
-            document.getElementById('game-msg').innerText = "Speichere...";
-            
-            const { error } = await supabaseClient
-                .from('game_state')
-                .update({ state_json: gameState, updated_at: new Date() })
-                .eq('user_id', user.id);
+function clickPower(){
+  let base = 1;
+  const temu = state.owned.temu || 0;
+  base *= Math.pow(1.10, Math.floor(temu / 25));
+  const m = state.owned.matrice || 0;
+  if(m >= 10) base *= 2; if(m >= 20) base *= 2; if(m >= 35) base *= 4;
+  return base * clickMultiplier();
+}
 
-            if (error) {
-                document.getElementById('game-msg').innerText = "Fehler beim Speichern!";
-                console.error(error);
-            } else {
-                document.getElementById('game-msg').innerText = "Erfolgreich gespeichert!";
-            }
-        }
-    </script>
+function coinsPerSecond(){
+  let cps = 0;
+  for(const d of DRONES){
+    const owned = state.owned[d.id] || 0;
+    if(owned > 0) cps += owned * d.baseCps * droneMultiplier(d.id);
+  }
+  return cps * droneCpsMultiplier() * globalCpsMultiplier();
+}
+
+function rpPerSecond(){
+  if(!state.flags.rpLabUnlocked || (state.rpLabOwned || 0) <= 0) return 0;
+  return state.rpLabOwned * RP_LAB.baseRps * rpLabMultiplier();
+}
+
+function addCoins(x){
+  if(x <= 0) return;
+  state.coins += x;
+  state.lifetimeCoins += x;
+}
+
+function doClick(){
+  const p = clickPower();
+  addCoins(p);
+  log(`click +${fmt(p)} CP`);
+}
+
+function buyDrone(drone){
+  if(!isUnlocked(drone.unlock)) return log(`locked: ${drone.name}`, "bad");
+  const cost = dronePrice(drone);
+  if(state.coins < cost) return log(`need ${fmt(cost)} CP for ${drone.name}`, "bad");
+  state.coins -= cost;
+  state.owned[drone.id] = (state.owned[drone.id] || 0) + 1;
+  log(`bought ${drone.name}`, "ok");
+}
+
+function buyDroneUpgrade(drone){
+  const lvl = state.dUp[drone.id] || 0;
+  const cost = droneUpgradeCost(drone.basePrice, lvl);
+  if((state.owned[drone.id] || 0) <= 0) return log(`buy the drone first`, "bad");
+  if(state.coins < cost) return log(`need ${fmt(cost)} CP`, "bad");
+  state.coins -= cost;
+  state.dUp[drone.id] = lvl + 1;
+  log(`${drone.name} upgrade → level ${lvl+1}`, "ok");
+}
+
+function techCost(t){
+  if(t.type === "one") return t.baseCost;
+  return Math.floor(t.baseCost * Math.pow(t.growth, state.techLvl[t.id] || 0));
+}
+
+function buyTech(t){
+  if(t.type === "one" && state.techOwned[t.id]) return log(`already owned`, "bad");
+  const cost = techCost(t);
+  if(state.rp < cost) return log(`need ${cost} RP`, "bad");
+  state.rp -= cost;
+  if(t.type === "one"){
+    state.techOwned[t.id] = true;
+    if(t.apply) t.apply(state);
+    log(`tech unlocked: ${t.name}`, "ok");
+  } else {
+    state.techLvl[t.id] = (state.techLvl[t.id] || 0) + 1;
+    log(`tech upgraded: ${t.name}`, "ok");
+  }
+}
+
+function buyRpLab(){
+  if(!state.flags.rpLabUnlocked) return log("RP-Lab locked", "bad");
+  const cost = rpLabPrice();
+  if(state.coins < cost) return log(`need ${fmt(cost)} CP`, "bad");
+  state.coins -= cost;
+  state.rpLabOwned += 1;
+  log(`bought RP-Lab`, "ok");
+}
+
+function runExperiment(){
+  const t = now();
+  if(t < state.nextExperimentAt) return log(`cooling down`, "bad");
+  const gain = 1 + Math.floor(Math.log10(1 + state.lifetimeCoins) * 0.7);
+  state.rp += gain;
+  state.nextExperimentAt = t + EXPERIMENT_CD_MS;
+  log(`experiment complete: +${gain} RP`, "ok");
+}
+
+function buyTheme(theme){
+  if(state.cosmetics.themesOwned[theme.id]) return log(`already owned`, "bad");
+  if(state.coins < theme.cost) return log(`need ${fmt(theme.cost)} CP`, "bad");
+  state.coins -= theme.cost;
+  state.cosmetics.themesOwned[theme.id] = true;
+  log(`unlocked: ${theme.name}`, "ok");
+}
+
+function activateTheme(themeId){
+  if(!state.cosmetics.themesOwned[themeId]) return log("not owned", "bad");
+  state.cosmetics.activeThemeId = themeId;
+  applyCosmetics();
+  log(`theme active`, "ok");
+}
+
+function buyEffect(effect){
+  if(state.cosmetics.effectsOwned[effect.id]) return;
+  if(state.coins < effect.cost) return log(`need ${fmt(effect.cost)} CP`, "bad");
+  state.coins -= effect.cost;
+  state.cosmetics.effectsOwned[effect.id] = true;
+  log(`unlocked: ${effect.name}`, "ok");
+}
+
+function toggleEffect(effectId){
+  if(!state.cosmetics.effectsOwned[effectId]) return;
+  state.cosmetics.effectsActive[effectId] = !state.cosmetics.effectsActive[effectId];
+  applyCosmetics();
+  log(`effect toggled`, "ok");
+}
+
+// ---------- UI BUILDERS ----------
+const droneRows = new Map();
+const techRows = new Map();
+const cosRows = new Map();
+
+function ensureDroneRow(drone){
+  if(droneRows.has(drone.id)) return;
+  const row = document.createElement("div"); row.className = "item";
+  row.innerHTML = `<div class="itemTop"><div class="itemName">${drone.name}</div><div class="itemMeta" id="dm_${drone.id}"></div></div><div class="itemMeta" style="margin-top:6px;" id="ds_${drone.id}"></div><div class="itemBtns"><button class="mini" id="buy_${drone.id}">BUY</button><button class="mini" id="up_${drone.id}">UPGRADE x2</button></div>`;
+  el.droneList.appendChild(row);
+  row.querySelector(`#buy_${drone.id}`).addEventListener("click", ()=>{ buyDrone(drone); render(); });
+  row.querySelector(`#up_${drone.id}`).addEventListener("click", ()=>{ buyDroneUpgrade(drone); render(); });
+  droneRows.set(drone.id, { meta: row.querySelector(`#dm_${drone.id}`), stats: row.querySelector(`#ds_${drone.id}`), buy: row.querySelector(`#buy_${drone.id}`), up: row.querySelector(`#up_${drone.id}`) });
+}
+
+function buildTechList(){
+  el.techList.innerHTML = "";
+  // RPLAB
+  const rpLabRow = document.createElement("div"); rpLabRow.className = "item";
+  rpLabRow.innerHTML = `<div class="itemTop"><div class="itemName">RP-Lab (Producer)</div><div class="itemMeta" id="rpl_meta"></div></div><div class="itemMeta" style="margin-top:6px;" id="rpl_stats"></div><div class="itemBtns"><button class="mini" id="rpl_buy">BUY</button></div>`;
+  el.techList.appendChild(rpLabRow);
+  rpLabRow.querySelector("#rpl_buy").addEventListener("click", ()=>{ buyRpLab(); render(); });
+  techRows.set("RPLAB_PRODUCER", { meta: rpLabRow.querySelector("#rpl_meta"), stats: rpLabRow.querySelector("#rpl_stats"), buy: rpLabRow.querySelector("#rpl_buy") });
+
+  for(const t of TECH){
+    const row = document.createElement("div"); row.className = "item";
+    row.innerHTML = `<div class="itemTop"><div class="itemName">${t.name}</div><div class="itemMeta" id="tm_${t.id}"></div></div><div class="itemMeta" style="margin-top:6px;">${t.desc}</div><div class="itemBtns"><button class="mini" id="tb_${t.id}">BUY</button></div>`;
+    el.techList.appendChild(row);
+    row.querySelector(`#tb_${t.id}`).addEventListener("click", ()=>{ buyTech(t); render(); });
+    techRows.set(t.id, { meta: row.querySelector(`#tm_${t.id}`), buy: row.querySelector(`#tb_${t.id}`) });
+  }
+}
+
+function buildCosmetics(){
+  el.cosList.innerHTML = "";
+  for(const th of THEMES){
+    const row = document.createElement("div"); row.className = "item";
+    row.innerHTML = `<div class="itemTop"><div class="itemName">${th.name}</div><div class="itemMeta" id="thm_${th.id}"></div></div><div class="itemMeta" style="margin-top:6px;">cost: ${fmt(th.cost)} CP</div><div class="itemBtns"><button class="mini" id="thb_buy_${th.id}">BUY</button><button class="mini" id="thb_act_${th.id}">ACTIVATE</button></div>`;
+    el.cosList.appendChild(row);
+    row.querySelector(`#thb_buy_${th.id}`).addEventListener("click", ()=>{ buyTheme(th); render(); });
+    row.querySelector(`#thb_act_${th.id}`).addEventListener("click", ()=>{ activateTheme(th.id); render(); });
+    cosRows.set(`theme_${th.id}`, { meta: row.querySelector(`#thm_${th.id}`), buy: row.querySelector(`#thb_buy_${th.id}`), act: row.querySelector(`#thb_act_${th.id}`) });
+  }
+  
+  const VIP_COST = 75_000_000_000;
+  const vipRow = document.createElement("div"); vipRow.className = "item";
+  vipRow.innerHTML = `<div class="itemTop"><div class="itemName">VIP Badge</div><div class="itemMeta">Cosmetic</div></div><div class="itemMeta" style="margin-top:6px;">Pure flex.</div><div class="itemBtns"><button class="mini" id="vip_buy">BUY (${fmt(VIP_COST)} CP)</button></div>`;
+  el.cosList.appendChild(vipRow);
+  vipRow.querySelector("#vip_buy").addEventListener("click", ()=>{
+    if(state.flags.vipOwned || state.coins < VIP_COST) return;
+    state.coins -= VIP_COST; state.flags.vipOwned = true; log("VIP badge acquired.", "ok"); render();
+  });
+
+  for(const ef of EFFECTS){
+    const row = document.createElement("div"); row.className = "item";
+    row.innerHTML = `<div class="itemTop"><div class="itemName">${ef.name}</div><div class="itemMeta" id="efm_${ef.id}"></div></div><div class="itemMeta" style="margin-top:6px;">cost: ${fmt(ef.cost)} CP</div><div class="itemBtns"><button class="mini" id="efb_buy_${ef.id}">BUY</button><button class="mini" id="efb_tog_${ef.id}">TOGGLE</button></div>`;
+    el.cosList.appendChild(row);
+    row.querySelector(`#efb_buy_${ef.id}`).addEventListener("click", ()=>{ buyEffect(ef); render(); });
+    row.querySelector(`#efb_tog_${ef.id}`).addEventListener("click", ()=>{ toggleEffect(ef.id); render(); });
+    cosRows.set(`effect_${ef.id}`, { meta: row.querySelector(`#efm_${ef.id}`), buy: row.querySelector(`#efb_buy_${ef.id}`), tog: row.querySelector(`#efb_tog_${ef.id}`) });
+  }
+}
+
+function renderHangar(){
+  el.hangar.innerHTML = "";
+  const visible = DRONES.filter(d => isUnlocked(d.unlock) || (state.owned[d.id] || 0) > 0);
+  for(const d of visible){
+    const owned = state.owned[d.id] || 0;
+    const row = document.createElement("div"); row.className = "hangarRow";
+    row.innerHTML = `<div class="hangarLeft"><span class="icon">${d.icon}</span><div><div style="font-size:12px;">${d.name}</div><div class="count">owned: x${owned}</div></div></div>`;
+    
+    const right = document.createElement("div"); right.style = "display:flex;gap:10px;align-items:center;";
+    const icons = document.createElement("div"); icons.style = "display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;max-width:220px;";
+    
+    if(owned <= 30){
+      for(let i=0;i<owned;i++){ const ic = document.createElement("span"); ic.className = "icon"; ic.textContent = d.icon; icons.appendChild(ic); }
+    } else {
+      const ic = document.createElement("span"); ic.className = "icon"; ic.textContent = d.icon; icons.appendChild(ic);
+      const cnt = document.createElement("span"); cnt.className = "count"; cnt.textContent = `x${owned}`; icons.appendChild(cnt);
+    }
+
+    const nextLocked = DRONES.find(x => !isUnlocked(x.unlock));
+    const unlockBar = document.createElement("div"); unlockBar.className = "bar";
+    const fill = document.createElement("div"); unlockBar.appendChild(fill);
+    if(nextLocked && nextLocked.unlock.type === "owned"){
+      const prog = clamp((state.owned[nextLocked.unlock.id] || 0) / nextLocked.unlock.n, 0, 1);
+      fill.style.width = `${Math.floor(prog*100)}%`;
+    } else { fill.style.width = `100%`; }
+
+    right.appendChild(unlockBar); right.appendChild(icons); row.appendChild(right); el.hangar.appendChild(row);
+  }
+}
+
+function render(){
+  const cps = coinsPerSecond(); const rps = rpPerSecond(); const cp = clickPower();
+  el.coins.textContent = fmt(state.coins); el.cps.textContent = cps.toFixed(cps<10?2:1);
+  el.clickPow.textContent = cp.toFixed(cp<10?2:1); el.rp.textContent = fmt(state.rp);
+  el.rps.textContent = rps.toFixed(3); el.life.textContent = fmt(state.lifetimeCoins);
+  el.clickBtn.textContent = `CLICK ( +${cp.toFixed(cp<10?2:1)} )`;
+
+  const left = Math.max(0, state.nextExperimentAt - now());
+  el.experimentBtn.textContent = left > 0 ? `RUN EXPERIMENT (${Math.ceil(left/1000)}s)` : `RUN EXPERIMENT`;
+  el.experimentBtn.disabled = left > 0;
+
+  const next = DRONES.find(d => !isUnlocked(d.unlock));
+  el.hintLine.innerHTML = next && next.unlock.type === "owned" ? `Next unlock progress: <span class="tag">${state.owned[next.unlock.id] || 0}/${next.unlock.n}</span> of <span class="tag">${next.unlock.id}</span>.` : "All drones unlocked.";
+  
+  const vipBadge = document.getElementById("vipBadge");
+  if(vipBadge) vipBadge.style.display = state.flags.vipOwned ? "inline" : "none";
+
+  for(const d of DRONES) {
+      if(isUnlocked(d.unlock)) ensureDroneRow(d);
+      if(!droneRows.has(d.id)) continue;
+      const row = droneRows.get(d.id);
+      const owned = state.owned[d.id] || 0; const price = dronePrice(d);
+      const upLvl = state.dUp[d.id] || 0; const upCost = droneUpgradeCost(d.basePrice, upLvl);
+      const per = d.baseCps * droneMultiplier(d.id) * droneCpsMultiplier() * globalCpsMultiplier();
+      row.meta.textContent = "unlocked";
+      row.stats.textContent = `owned: x${owned} · next: ${fmt(price)} CP · output: ${per.toFixed(per<10?2:1)}/s · upgrade lvl: ${upLvl} (${fmt(upCost)} CP)`;
+      row.buy.disabled = state.coins < price; row.up.disabled = (owned<=0) || state.coins < upCost;
+  }
+
+  const rpl = techRows.get("RPLAB_PRODUCER");
+  rpl.meta.textContent = state.flags.rpLabUnlocked ? "unlocked" : "locked (buy Research Lab tech)";
+  rpl.stats.textContent = `owned: x${state.rpLabOwned} · next: ${fmt(rpLabPrice())} CP · output: ${(RP_LAB.baseRps*rpLabMultiplier()).toFixed(3)} RP/s`;
+  rpl.buy.disabled = !state.flags.rpLabUnlocked || state.coins < rpLabPrice();
+
+  for(const t of TECH){
+    const row = techRows.get(t.id);
+    if(t.type === "one"){
+      row.meta.textContent = state.techOwned[t.id] ? "owned" : `${t.baseCost} RP`;
+      row.buy.disabled = state.techOwned[t.id] || state.rp < t.baseCost;
+      row.buy.textContent = state.techOwned[t.id] ? "OWNED" : "BUY";
+    } else {
+      const cost = techCost(t);
+      row.meta.textContent = `lvl ${state.techLvl[t.id] || 0} · cost ${cost} RP`;
+      row.buy.disabled = state.rp < cost;
+    }
+  }
+
+  for(const th of THEMES){
+    const row = cosRows.get(`theme_${th.id}`);
+    const owned = !!state.cosmetics.themesOwned[th.id]; const active = state.cosmetics.activeThemeId === th.id;
+    row.meta.textContent = active ? "active" : (owned ? "owned" : "locked");
+    row.buy.disabled = owned || state.coins < th.cost; row.buy.textContent = owned ? "OWNED" : "BUY";
+    row.act.disabled = !owned || active; row.act.textContent = active ? "ACTIVE" : "ACTIVATE";
+  }
+
+  for(const ef of EFFECTS){
+    const row = cosRows.get(`effect_${ef.id}`);
+    const owned = !!state.cosmetics.effectsOwned[ef.id]; const on = !!state.cosmetics.effectsActive[ef.id];
+    row.meta.textContent = on ? "on" : (owned ? "owned" : "locked");
+    row.buy.disabled = owned || state.coins < ef.cost; row.buy.textContent = owned ? "OWNED" : "BUY";
+    row.tog.disabled = !owned; row.tog.textContent = on ? "TURN OFF" : "TURN ON";
+  }
+  
+  renderHangar();
+}
+
+function tick(){
+  const t = now();
+  const dt = (t - state.lastTick) / 1000;
+  state.lastTick = t;
+
+  const cps = coinsPerSecond();
+  if(cps > 0) addCoins(cps * dt);
+  const rps = rpPerSecond();
+  if(rps > 0) state.rp += rps * dt;
+
+  render();
+}
+
+function bootGame(){
+  applyCosmetics();
+  buildTechList();
+  buildCosmetics();
+
+  el.clickBtn.addEventListener("click", ()=>{ doClick(); render(); });
+  el.experimentBtn.addEventListener("click", ()=>{ runExperiment(); render(); });
+  el.saveBtn.addEventListener("click", ()=>{ saveToServer(); render(); });
+
+  log("Server connection established.", "ok");
+  log("Idle mechanics calculating offline time...", "ok");
+
+  setInterval(tick, TICK_MS);
+  setInterval(saveToServer, 10000); // Auto-Save alle 10 Sekunden
+}
+</script>
 </body>
-</html>
+</html>CI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY';
+
+        
