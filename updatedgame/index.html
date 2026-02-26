@@ -1025,9 +1025,6 @@ function renderNewWorld() {
   // ---------- MISSIONS LOGIK ----------
 const BASE_MISSION_DURATION = 30000; // 30 Sekunden Basis-Dauer
 
-// ---------- MISSIONS LOGIK ----------
-const BASE_MISSION_DURATION = 30000; // 30 Sekunden Basis-Dauer
-
 function startMission() {
     if (state.newWorld.mission) return;
     const types = ["props", "battery", "frame", "fc", "camera"];
@@ -1164,7 +1161,7 @@ function render(){
       row.meta.textContent = `lvl ${state.techLvl[t.id] || 0} · cost ${cost} RP`;
       row.buy.disabled = state.rp < cost;
     }
-  }
+  
 
   for(const th of THEMES){
     const row = cosRows.get(`theme_${th.id}`);
