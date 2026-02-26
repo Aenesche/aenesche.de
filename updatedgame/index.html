@@ -96,6 +96,23 @@
     .bar{ height:6px; border:1px solid var(--line); background:#060606; overflow:hidden; width:160px; }
     .bar > div{ height:100%; background:var(--accent); width:0%; }
     @media (max-width: 420px){ .bar{ width:120px; } }
+
+    /* NEW WORLD STYLES */
+    .nw-header { color: var(--warn); border-bottom: 1px solid var(--warn); padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;}
+    .drone-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 400px; margin: 0 auto 20px; }
+    .part-slot { border: 1px dashed var(--muted); background: #080808; padding: 20px 5px; text-align: center; font-size: 11px; color: var(--muted); display: flex; flex-direction: column; gap: 5px; }
+    .part-slot.filled { border: 1px solid var(--accent); color: var(--text); background: #111; }
+    .slot-frame { grid-column: 2; grid-row: 2; border-color: var(--text); }
+    .slot-props { grid-column: 2; grid-row: 1; }
+    .slot-cam   { grid-column: 2; grid-row: 3; }
+    .slot-batt  { grid-column: 1; grid-row: 2; }
+    .slot-fc    { grid-column: 3; grid-row: 2; }
+    
+    .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px; }
+    .inv-item { border: 1px solid var(--line); background: #0b0b0b; padding: 10px 5px; text-align: center; font-size: 10px; cursor: pointer; }
+    .inv-item:hover { border-color: var(--accent); }
+    
+    .mission-panel { border: 1px solid var(--warn); background: rgba(255,68,68,0.05); padding: 15px; margin-top: 20px; text-align: center;}
   </style>
 </head>
 <body>
@@ -188,6 +205,59 @@
     </div>
   </div>
 
+<div class="wrap" id="nw-wrap" style="display: none;">
+    <div class="nw-header">
+      <div>
+        <div class="title" style="color: var(--warn);">NEW WORLD OVERRIDE</div>
+        <div class="sub">Server-Authoritative Mission Control</div>
+      </div>
+        <div class="sub">
+          <a href="#" onclick="exitNewWorld()" style="color: var(--accent);">< BACK TO BASE GAME</a>
+        </div>
+      </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>DRONE ASSEMBLY</h2>
+        <div class="drone-grid">
+          <div class="part-slot slot-props" id="slot-props">PROPS<br><small>empty</small></div>
+          <div class="part-slot slot-batt" id="slot-battery">BATTERY<br><small>empty</small></div>
+          <div class="part-slot slot-frame" id="slot-frame">FRAME<br><small>empty</small></div>
+          <div class="part-slot slot-fc" id="slot-fc">FC<br><small>empty</small></div>
+          <div class="part-slot slot-cam" id="slot-camera">CAMERA<br><small>empty</small></div>
+        </div>
+        <div class="hint" style="text-align: center;">Baue 5 Teile zusammen, um eine Mission zu starten.</div>
+        
+        <div class="mission-panel">
+          <h3 style="margin: 0 0 10px; color: var(--warn);">MISSION CONTROL</h3>
+          <p style="font-size: 12px; margin-bottom: 15px;">Target: Sector 7 (Plutonium Rich)</p>
+          <button id="startMissionBtn" disabled style="border-color: var(--warn); color: var(--warn); width: 100%;">START MISSION (REQ. 5 PARTS)</button>
+          <div id="missionStatus" style="margin-top: 10px; font-size: 11px; color: var(--muted);">Status: Idle</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h2>RESOURCES</h2>
+          <div class="stats" style="grid-template-columns: 1fr 1fr;">
+            <div class="stat"><div class="k">Plutonium Ore</div><div class="v"><span id="po-display" style="color: var(--warn);">0</span> <small>PO</small></div></div>
+            <div class="stat"><div class="k">Legacy Coins</div><div class="v"><span id="legacy-cp">0</span> <small>CP</small></div></div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+             <h2>INVENTORY</h2>
+             <button onclick="debugGivePart()" class="mini" style="border-color: var(--warn); color: var(--warn);">+ DEBUG PART</button>
+          </div>
+          <div class="hint">Klicke auf ein Teil, um es auszurüsten.</div>
+          <div class="inventory-grid" id="inventory-list">
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+          
 <script>
 // --- SUPABASE SETUP ---
 const supabaseUrl = 'https://usihbregbanpfspblrnw.supabase.co';
@@ -640,6 +710,48 @@ function renderHangar(){
   }
 }
 
+// ---------- NEW WORLD LOGIC ----------
+function enterNewWorld() {
+  document.getElementById("game-wrap").style.display = "none";
+  document.getElementById("nw-wrap").style.display = "block";
+  renderNewWorld();
+}
+
+function exitNewWorld() {
+  document.getElementById("nw-wrap").style.display = "none";
+  document.getElementById("game-wrap").style.display = "block";
+  render();
+}
+
+function renderNewWorld() {
+  // Ressourcen updaten
+  document.getElementById("po-display").textContent = state.newWorld.po || 0;
+  document.getElementById("legacy-cp").textContent = fmt(state.coins);
+
+  // Inventar und Slots kommen im nächsten Schritt!
+}
+
+// Eine kleine Hilfsfunktion für uns zum Testen!
+function debugGivePart() {
+    const types = ["frame", "props", "battery", "fc", "camera"];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    
+    // Ein neues Teil generieren
+    const newPart = {
+        id: "part_" + Date.now(),
+        type: randomType,
+        name: "Basic " + randomType.toUpperCase(),
+        rarity: "Common"
+    };
+    
+    if(!state.newWorld.inventory) state.newWorld.inventory = [];
+    state.newWorld.inventory.push(newPart);
+    
+    log("DEBUG: Gained " + newPart.name, "warn");
+    saveToServer();
+    renderNewWorld();
+}
+  
 function render(){
   const cps = coinsPerSecond(); const rps = rpPerSecond(); const cp = clickPower();
   el.coins.textContent = fmt(state.coins); el.cps.textContent = cps.toFixed(cps<10?2:1);
@@ -736,6 +848,8 @@ function bootGame(){
 
   setInterval(tick, TICK_MS);
   setInterval(saveToServer, 10000); // Auto-Save alle 10 Sekunden
+
+  document.getElementById("btnNewWorld").addEventListener("click", enterNewWorld);
 }
 </script>
 </body>
