@@ -1043,36 +1043,55 @@ function startMission() {
 function claimMissionResult() {
     if (!state.newWorld.mission || now() < state.newWorld.mission.endTime) return;
 
-    // Lade die Stats der ausgerüsteten Teile aus dem Katalog
-    const frame = PART_CATALOG[state.newWorld.hangar.frame.catalogId];
-    const fc = PART_CATALOG[state.newWorld.hangar.fc.catalogId];
-    const props = PART_CATALOG[state.newWorld.hangar.props.catalogId];
-    const cam = PART_CATALOG[state.newWorld.hangar.camera.catalogId];
+    // --- FALLBACK FÜR ALTE TEILE ---
+    // Wenn ein Teil keine catalogId hat (deine alten Debug-Teile), nehmen wir das Common-Teil als Fallback, damit nichts abstürzt!
+    const frame = PART_CATALOG[state.newWorld.hangar.frame?.catalogId] || PART_CATALOG["fr_com_1"];
+    const fc = PART_CATALOG[state.newWorld.hangar.fc?.catalogId] || PART_CATALOG["fc_com_1"];
+    const props = PART_CATALOG[state.newWorld.hangar.props?.catalogId] || PART_CATALOG["pr_com_1"];
+    const cam = PART_CATALOG[state.newWorld.hangar.camera?.catalogId] || PART_CATALOG["ca_com_1"];
 
     // --- 1. DER CRASH WÜRFEL (RISIKO) ---
-    // BreakChance vom Frame minus SafetyBonus vom FC (Minimum 0)
+    // Frame BreakChance minus FC Safety (Minimum 0)
     const risk = Math.max(0, frame.breakChance - (fc ? fc.safety : 0));
     const crashRoll = Math.random();
 
     if (crashRoll < risk) {
         // BOOM! DROHNE ZERSTÖRT.
         log(`CRITICAL FAILURE! Drone crashed (Risk was ${Math.round(risk*100)}%). All equipped parts LOST.`, "bad");
+        
+        // Fettes visuelles Feedback im UI (Hangar leuchtet rot)
+        const renderField = document.getElementById("drone-render-field");
+        if (renderField) {
+            renderField.innerHTML = "!!! CRITICAL CRASH !!!<br><small style='color: var(--warn);'>Drohne zerstört. Alle Teile verloren.</small>";
+            renderField.style.color = "var(--warn)";
+            renderField.parentElement.style.borderColor = "var(--warn)";
+        }
+
+        // Hangar & Mission leeren
         state.newWorld.hangar = { frame: null, props: null, battery: null, fc: null, camera: null };
         state.newWorld.mission = null;
         saveToServer();
-        renderNewWorld();
+        
+        // Button verstecken, während der Schock-Screen angezeigt wird
+        document.getElementById("claimMissionBtn").style.display = "none";
+        
+        // Nach 3 Sekunden rendern wir das UI normal neu
+        setTimeout(() => {
+            if(renderField) renderField.parentElement.style.borderColor = "var(--line)";
+            renderNewWorld();
+        }, 3000);
+        
         return; // Mission bricht hier ab! Kein Loot.
     }
 
     // --- 2. MISSION ERFOLGREICH: LOOT & PO ---
-    // PO berechnen: 5 bis 15 PO * Props Multiplikator
     let basePo = Math.floor(Math.random() * 11) + 5;
     let poGained = Math.floor(basePo * (props ? props.poMult : 1.0));
     state.newWorld.po = (state.newWorld.po || 0) + poGained;
     
     // Loot Drops berechnen
     const luck = cam ? cam.luckBonus : 1.0;
-    const dropsCount = Math.floor(Math.random() * 2) + 1; // 1 bis 2 Teile
+    const dropsCount = Math.floor(Math.random() * 2) + 1; // 1 bis 2 Teile droppen
     
     for(let i=0; i<dropsCount; i++) {
         const droppedPart = generateLootDrop(luck);
