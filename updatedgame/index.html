@@ -957,6 +957,7 @@ function renderNewWorld() {
     let partsEquipped = 0;
 
     types.forEach(type => {
+      slot.style.pointerEvents = 'auto'; // FIX: Entsperrt den Slot nach der Mission wieder!
         const slot = document.getElementById("slot-" + type);
         const equipped = state.newWorld.hangar[type];
         
