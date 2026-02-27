@@ -807,68 +807,75 @@ const RARITIES = {
 // --- DER GROSSE BAUTEILE-KATALOG ---
 // --- BAUTEILE KATALOG (Werte) ---
 const PART_CATALOG = {
-    // ⬛ FRAMES
+    // --- TECH TREE BAUTEILE (Werden nie gedroppt) ---
     "fr_com_1": { type: "frame", rarity: "Common", name: "Cardboard Frame", breakChance: 0.40 },
     "fr_com_2": { type: "frame", rarity: "Common", name: "Plastic Frame", breakChance: 0.35 },
-    "fr_rar_1": { type: "frame", rarity: "Rare", name: "Carbon Fiber Frame", breakChance: 0.25 },
-    // (Weitere Teile fügen wir später hinzu)
+    "fc_com_1": { type: "fc", rarity: "Common", name: "Basic Gyro", safety: 0.05 },
     "pr_com_1": { type: "props", rarity: "Common", name: "Plastic Props", poMult: 1.0 },
     "ba_com_1": { type: "battery", rarity: "Common", name: "NiMH Pack", timeMult: 1.0 },
     "ca_com_1": { type: "camera", rarity: "Common", name: "VGA Cam", luckBonus: 1.0 },
-    "fc_com_1": { type: "fc", rarity: "Common", name: "F3 Board", safety: 0.0 }
+
+    "fr_rar_1": { type: "frame", rarity: "Rare", name: "Carbon Fiber Frame", breakChance: 0.25 },
+    "fc_rar_safe": { type: "fc", rarity: "Rare", name: "Guardian FC", safety: 0.15 },
+    "ba_rar_fast": { type: "battery", rarity: "Rare", name: "LiPo 3S", timeMult: 0.70 },
+
+    // --- MISSION EXKLUSIVER LOOT (Nicht im Tech-Tree) ---
+    "fr_drop_rar_1": { type: "frame", rarity: "Rare", name: "Scavenged Titanium", breakChance: 0.15 },
+    "pr_drop_leg_1": { type: "props", rarity: "Legendary", name: "Aero-Magnetic Blades", poMult: 4.5 },
+    "ca_drop_ult_1": { type: "camera", rarity: "Ultra Rare", name: "Void-Eye Lens", luckBonus: 10.0 }
 };
 
-// --- TECH TREE (Wirtschaft & Progression) ---
 const TECH_TREE = {
-    // NODE 1: Der absolute Basis-Frame
-    "node_fr_1": {
-        partId: "fr_com_1",
-        req: null, // Start-Node (braucht keinen Vorgänger)
-        unlockCost: { rp: 10000, nrp: 0 },
-        buyCost: { cp: 50000000000000, po: 0 } // 50T CP
-    },
-    // NODE 2: Etwas besserer Frame (teurer, braucht ersten Frame)
-    "node_fr_2": {
-        partId: "fr_com_2",
-        req: "node_fr_1", // Man muss node_fr_1 haben!
-        unlockCost: { rp: 50000, nrp: 5 }, // Kostet jetzt auch N-RP
-        buyCost: { cp: 100000000000000, po: 10 } // Kostet CP und PO
-    },
-    // NODE 3: Rare Frame
-    "node_fr_3": {
-        partId: "fr_rar_1",
-        req: "node_fr_2",
-        unlockCost: { rp: 0, nrp: 25 }, // Kostet nur noch neue Währung
-        buyCost: { cp: 0, po: 50 }
-    }
+    "node_fr_1": { partId: "fr_com_1", req: null, unlockCost: { rp: 10000, nrp: 0 }, buyCost: { cp: 50e12, po: 0 } },
+    "node_fr_2": { partId: "fr_com_2", req: "node_fr_1", unlockCost: { rp: 50000, nrp: 5 }, buyCost: { cp: 100e12, po: 10 } },
+    
+    // Horizontale Aufspaltung nach fr_com_2:
+    "node_fc_safe": { partId: "fc_rar_safe", req: "node_fr_2", unlockCost: { rp: 100000, nrp: 20 }, buyCost: { cp: 250e12, po: 50 } },
+    "node_ba_fast": { partId: "ba_rar_fast", req: "node_fr_2", unlockCost: { rp: 100000, nrp: 20 }, buyCost: { cp: 250e12, po: 50 } }
+};
+// --- HELPER FUNKTION: BAUTEIL DROP PEN & PAPER WÜRFEL ---
+// --- RARITIES UPDATE (Hardcore Drop Rates) ---
+const RARITIES = {
+    "Common": { weight: 1, color: "#bdbdbd", dropChance: 70 },
+    "Rare": { weight: 2, color: "#00ff88", dropChance: 20 },
+    "Super Rare": { weight: 3, color: "#66d9ff", dropChance: 8 },
+    "Legendary": { weight: 4, color: "#ffd700", dropChance: 1.99 },
+    "Ultra Rare": { weight: 5, color: "#ff2da6", dropChance: 0.01 } // 1 zu 10.000!
 };
 
-// --- HELPER FUNKTION: BAUTEIL DROP PEN & PAPER WÜRFEL ---
+// --- HELPER FUNKTION: BAUTEIL DROP ---
 function generateLootDrop(luckMultiplier) {
-    const r = Math.random() * 100; // Würfel von 0 bis 100
+    const r = Math.random() * 100; 
     let chosenRarity = "Common";
     
-    // Luck Multiplier verschiebt die Chancen zu unseren Gunsten
     if (r < (RARITIES["Ultra Rare"].dropChance * luckMultiplier)) chosenRarity = "Ultra Rare";
     else if (r < (RARITIES["Legendary"].dropChance * luckMultiplier)) chosenRarity = "Legendary";
     else if (r < (RARITIES["Super Rare"].dropChance * luckMultiplier)) chosenRarity = "Super Rare";
     else if (r < (RARITIES["Rare"].dropChance * luckMultiplier)) chosenRarity = "Rare";
 
-    // Finde alle Items im Katalog mit dieser Seltenheit
-    const possibleItems = Object.keys(PART_CATALOG).filter(id => PART_CATALOG[id].rarity === chosenRarity);
-    const randomItemId = possibleItems[Math.floor(Math.random() * possibleItems.length)];
+    // LOOT-POOL TRENNUNG: Sammle alle IDs, die man im Tech-Tree kaufen kann
+    const craftableIds = Object.values(TECH_TREE).map(node => node.partId);
+
+    // Finde Items dieser Seltenheit, die NICHT im Tech-Tree sind
+    const possibleItems = Object.keys(PART_CATALOG).filter(id => 
+        PART_CATALOG[id].rarity === chosenRarity && 
+        !craftableIds.includes(id) 
+    );
+
+    // Fallback auf Common, falls es (noch) keine exklusiven Items für diese Seltenheit gibt
+    const randomItemId = possibleItems.length > 0 
+        ? possibleItems[Math.floor(Math.random() * possibleItems.length)]
+        : "fr_com_1"; 
     
-    // Kopiere das Item aus dem Katalog in ein einzigartiges Inventar-Objekt
     const baseItem = PART_CATALOG[randomItemId];
     return {
-        id: "inst_" + Date.now() + "_" + Math.floor(Math.random()*1000), // Einzigartige ID für dein Inventar
+        id: "drop_" + Date.now() + "_" + Math.floor(Math.random()*10000), 
         catalogId: randomItemId,
         type: baseItem.type,
         name: baseItem.name,
         rarity: baseItem.rarity
     };
 }
-
 // --- DRAG & DROP LOGIK ---
 function allowDrop(ev) {
     ev.preventDefault();
@@ -1008,11 +1015,15 @@ function renderNewWorld() {
     // Hangar Slots updaten
     const types = ["props", "battery", "frame", "fc", "camera"];
     let partsEquipped = 0;
+    const isMissionActive = !!state.newWorld.mission;
 
     types.forEach(type => {
-      slot.style.pointerEvents = 'auto'; // FIX: Entsperrt den Slot nach der Mission wieder!
         const slot = document.getElementById("slot-" + type);
         const equipped = state.newWorld.hangar[type];
+        
+        // FIX: Entsperrt / Sperrt den Slot korrekt basierend auf Mission-Status
+        slot.style.pointerEvents = isMissionActive ? 'none' : 'auto';
+        slot.style.opacity = isMissionActive ? '0.5' : '1';
         
         // Drag Events für die Slots registrieren
         slot.ondragover = (ev) => allowDrop(ev);
@@ -1023,10 +1034,10 @@ function renderNewWorld() {
         if(equipped) {
             const color = RARITIES[equipped.rarity].color;
             slot.classList.add("filled", "anim-pop");
-            slot.draggable = true;
+            slot.draggable = !isMissionActive; // Dragging deaktivieren wenn Mission läuft
             slot.ondragstart = (ev) => dragStartEquipped(ev, type);
             slot.innerHTML = `<b style="color: var(--muted);">${type.toUpperCase()}</b><br><span style="color: ${color}">${equipped.name}</span>`;
-            slot.onclick = () => unequipPart(type);
+            slot.onclick = isMissionActive ? null : () => unequipPart(type);
             partsEquipped++;
         } else {
             slot.classList.remove("filled", "anim-pop");
@@ -1331,29 +1342,40 @@ function tick(){
   const dt = (t - state.lastTick) / 1000;
   state.lastTick = t;
 
-  // Mission UI Live-Update
-  if (state.newWorld && state.newWorld.mission && document.getElementById("nw-wrap").style.display === "block") {
-      const m = state.newWorld.mission;
-      const leftMs = m.endTime - t;
-      
-      if (leftMs <= 0) {
-          // Mission ist fertig, zeige den Claim Button an
-          if (document.getElementById("claimMissionBtn").style.display === "none") renderNewWorld();
-      } else {
-          // Fortschrittsbalken updaten
-          const passed = m.duration - leftMs;
-          const percent = Math.min(100, (passed / m.duration) * 100);
-          document.getElementById("mission-progress-fill").style.width = percent + "%";
-          document.getElementById("mission-timer-text").textContent = "FLIGHT TIME REMAINING: " + Math.ceil(leftMs/1000) + "s";
-      }
-  }
-
+  // Ressourcen updaten
   const cps = coinsPerSecond();
   if(cps > 0) addCoins(cps * dt);
   const rps = rpPerSecond();
   if(rps > 0) state.rp += rps * dt;
 
-  render();
+  // Basis UI - Nur Textinhalte aktualisieren!
+  el.coins.textContent = fmt(state.coins);
+  el.cps.textContent = cps.toFixed(cps<10?2:1);
+  el.rp.textContent = fmt(state.rp);
+
+  // New World UI Live-Update (ohne Rerender)
+  if (state.newWorld && document.getElementById("nw-wrap").style.display === "block") {
+      document.getElementById("po-display").textContent = Math.floor(state.newWorld.po || 0);
+      document.getElementById("nrp-display").textContent = Math.floor(state.newWorld.nrp || 0);
+      document.getElementById("legacy-cp").textContent = fmt(state.coins);
+
+      const m = state.newWorld.mission;
+      if (m) {
+          const leftMs = m.endTime - t;
+          if (leftMs <= 0) {
+              // Mission ist fertig -> Nur EINMAL neu rendern, um Buttons zu tauschen
+              if (document.getElementById("claimMissionBtn").style.display === "none") {
+                  renderNewWorld(); 
+              }
+          } else {
+              // Fortschrittsbalken smooth updaten
+              const passed = m.duration - leftMs;
+              const percent = Math.min(100, (passed / m.duration) * 100);
+              document.getElementById("mission-progress-fill").style.width = percent + "%";
+              document.getElementById("mission-timer-text").textContent = "FLIGHT TIME REMAINING: " + Math.ceil(leftMs/1000) + "s";
+          }
+      }
+  }
 }
 
 function bootGame(){
