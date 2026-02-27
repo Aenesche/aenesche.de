@@ -127,6 +127,16 @@
     .drag-over { border-color: var(--warn) !important; background: rgba(255, 68, 68, 0.1) !important; }
     
     .mission-panel { border: 1px solid var(--warn); background: rgba(255,68,68,0.05); padding: 15px; margin-top: 20px; text-align: center;}
+
+    @keyframes droneTakeoff {
+    0% { transform: translateY(0) scale(1); opacity: 1; filter: brightness(1); }
+    20% { transform: translateY(5px) scale(0.98); filter: brightness(1.2); }
+    100% { transform: translateY(-150px) scale(0.5); opacity: 0; filter: blur(2px); }
+}
+.anim-takeoff { 
+    animation: droneTakeoff 1.2s cubic-bezier(0.5, 0, 0.2, 1) forwards; 
+    pointer-events: none;
+}
   </style>
 </head>
 <body>
@@ -1165,6 +1175,14 @@ function startMission() {
     };
 
     log(`SERVER: Mission started. ETA: ${Math.ceil(duration/1000)}s`, "warn");
+
+  // CSS Takeoff Animation triggern
+    const grid = document.querySelector(".drone-grid");
+    grid.classList.add("anim-takeoff");
+    setTimeout(() => {
+        grid.classList.remove("anim-takeoff");
+    }, duration); // Wird am Ende der Mission wieder resettet
+  
     saveToServer();
     renderNewWorld();
 }
