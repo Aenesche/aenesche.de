@@ -337,7 +337,7 @@ const DRONES = [
 function droneUpgradeCost(droneBasePrice, level){
   const base = droneBasePrice * 12;
   return Math.floor(base * Math.pow(2.6, level));
-
+}
 
 const TECH = [
   { id:"globalCps", name:"Optimization Pass", desc:"+5% global CPS (repeatable)", type:"repeat", baseCost:6, growth:1.35 },
