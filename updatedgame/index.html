@@ -304,6 +304,15 @@
                style="min-height: 100px; padding-bottom: 20px;">
           </div>
         </div>
+        <div class="panel" style="margin-top: 14px;">
+          <h2>RESEARCH LAB (TECH TREE)</h2>
+          <div class="stats" style="grid-template-columns: 1fr; margin-bottom: 10px;">
+            <div class="stat"><div class="k">Neural Research</div><div class="v"><span id="nrp-display" style="color: #00ff88;">0</span> <small>N-RP</small></div></div>
+          </div>
+          <div class="hint">Erforsche Blaupausen und produziere unendlich viele Bauteile.</div>
+          <div class="list" id="nw-tech-list">
+            </div>
+        </div>
       </div>
     </div>
   </div>
@@ -950,6 +959,52 @@ function renderNewWorld() {
         invList.appendChild(div);
     });
 
+  // Ressourcen updaten
+    document.getElementById("po-display").textContent = state.newWorld.po || 0;
+    document.getElementById("nrp-display").textContent = state.newWorld.nrp || 0; // NEU
+    document.getElementById("legacy-cp").textContent = fmt(state.coins);
+
+    // Tech Tree updaten
+    const techList = document.getElementById("nw-tech-list");
+    if(techList) {
+        techList.innerHTML = "";
+        const unlocked = state.newWorld.unlockedNodes || [];
+        
+        Object.keys(TECH_TREE).forEach(nodeId => {
+            const node = TECH_TREE[nodeId];
+            const part = PART_CATALOG[node.partId];
+            
+            // Nur anzeigen, wenn Requirement erfüllt ist (oder Start-Node)
+            if (node.req === null || unlocked.includes(node.req)) {
+                const div = document.createElement("div");
+                div.className = "item";
+                
+                const isUnlocked = unlocked.includes(nodeId);
+                const color = RARITIES[part.rarity].color;
+                
+                let costText = "";
+                let btnHTML = "";
+                
+                if (isUnlocked) {
+                    costText = `Craft Cost: ${fmt(node.buyCost.cp)} CP | ${node.buyCost.po} PO`;
+                    btnHTML = `<button class="mini" onclick="buyCraftedPart('${nodeId}')" style="border-color: ${color}; color: ${color};">CRAFT PART</button>`;
+                } else {
+                    costText = `Research Cost: ${fmt(node.unlockCost.rp)} RP | ${node.unlockCost.nrp} N-RP`;
+                    btnHTML = `<button class="mini" onclick="unlockNode('${nodeId}')">RESEARCH</button>`;
+                }
+
+                div.innerHTML = `
+                    <div class="itemTop">
+                        <div class="itemName" style="color: ${color};">${part.name}</div>
+                        <div class="itemMeta">${isUnlocked ? "UNLOCKED" : "LOCKED"}</div>
+                    </div>
+                    <div class="itemMeta" style="margin-top:6px;">${costText}</div>
+                    <div class="itemBtns">${btnHTML}</div>
+                `;
+                techList.appendChild(div);
+            }
+        });
+    }
     // Hangar Slots updaten
     const types = ["props", "battery", "frame", "fc", "camera"];
     let partsEquipped = 0;
@@ -1109,20 +1164,69 @@ function claimMissionResult() {
     const m = state.newWorld.mission;
 
     if (m.crashed) {
-        log(`CRITICAL FAILURE! Drone crashed (Risk was ${Math.round(m.risk*100)}%). All equipped parts LOST.`, "bad");
+        log(`CRITICAL FAILURE! Drone crashed. All equipped parts LOST.`, "bad");
         state.newWorld.hangar = { frame: null, props: null, battery: null, fc: null, camera: null };
     } else {
         state.newWorld.po = (state.newWorld.po || 0) + m.poGained;
+        state.newWorld.nrp = (state.newWorld.nrp || 0) + m.nrpGained; // NEU
         m.drops.forEach(d => state.newWorld.inventory.push(d));
-        log(`MISSION SUCCESS! Extracted +${m.poGained} PO.`, "ok");
+        log(`MISSION SUCCESS! Extracted +${m.poGained} PO & +${m.nrpGained} N-RP.`, "ok");
         m.drops.forEach(d => log(`LOOT DROP: ${d.name} (${d.rarity})`, "ok"));
     }
-
     state.newWorld.mission = null;
     saveToServer();
     renderNewWorld();
 }
 
+  // --- TECH TREE LOGIK ---
+function unlockNode(nodeId) {
+    const node = TECH_TREE[nodeId];
+    if(!node) return;
+    
+    // Prüfe Währungen
+    if (state.rp < node.unlockCost.rp || (state.newWorld.nrp || 0) < node.unlockCost.nrp) {
+        log("Not enough resources to research this blueprint!", "bad");
+        return;
+    }
+    
+    // Abziehen
+    state.rp -= node.unlockCost.rp;
+    state.newWorld.nrp -= node.unlockCost.nrp;
+    
+    // Freischalten
+    if(!state.newWorld.unlockedNodes) state.newWorld.unlockedNodes = [];
+    state.newWorld.unlockedNodes.push(nodeId);
+    
+    log(`BLUEPRINT RESEARCHED: ${PART_CATALOG[node.partId].name}`, "ok");
+    saveToServer();
+    renderNewWorld();
+}
+
+function buyCraftedPart(nodeId) {
+    const node = TECH_TREE[nodeId];
+    if(!node) return;
+    
+    if (state.coins < node.buyCost.cp || (state.newWorld.po || 0) < node.buyCost.po) {
+        log("Not enough materials to craft this part!", "bad");
+        return;
+    }
+    
+    state.coins -= node.buyCost.cp;
+    state.newWorld.po -= node.buyCost.po;
+    
+    const baseItem = PART_CATALOG[node.partId];
+    state.newWorld.inventory.push({
+        id: "craft_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+        catalogId: node.partId,
+        type: baseItem.type,
+        name: baseItem.name,
+        rarity: baseItem.rarity
+    });
+    
+    log(`PRODUCED: ${baseItem.name}`, "ok");
+    saveToServer();
+    renderNewWorld();
+}
 // Verbesserter Debug Button mit echten Rarities!
 // --- EMERGENCY SHOP ---
 function buyEmergencyKit() {
