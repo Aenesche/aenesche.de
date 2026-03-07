@@ -298,6 +298,120 @@ function renderNewWorld() {
         }
     }
 }
+let currentTechTab = "battery";
+let selectedTechNode = null;
+
+function openTechTree() {
+    document.getElementById("nw-wrap").style.display = "none";
+    document.getElementById("tech-wrap").style.display = "block";
+    switchTechTab('battery'); // Default Tab
+}
+
+function exitTechTree() {
+    document.getElementById("tech-wrap").style.display = "none";
+    document.getElementById("nw-wrap").style.display = "block";
+    renderNewWorld();
+}
+
+function switchTechTab(type) {
+    currentTechTab = type;
+    selectedTechNode = null;
+    document.getElementById("tech-detail-panel").innerHTML = `<div style="color: var(--muted);">Wähle einen Knotenpunkt im Tech-Tree aus, um Details zu sehen.</div>`;
+    
+    // Button Highlighting
+    document.querySelectorAll(".tech-nav button").forEach(b => b.classList.remove("active"));
+    document.getElementById("tab-" + type).classList.add("active");
+    
+    renderTechTreeCanvas();
+}
+
+function renderTechTreeCanvas() {
+    const nodesContainer = document.getElementById("tree-nodes");
+    const svgContainer = document.getElementById("tree-lines");
+    nodesContainer.innerHTML = "";
+    svgContainer.innerHTML = "";
+
+    const unlocked = state.newWorld.unlockedNodes || [];
+
+    // Filtert alle Nodes, die zum aktuellen Tab gehören
+    Object.keys(TECH_TREE).forEach(nodeId => {
+        const node = TECH_TREE[nodeId];
+        if (node.treeType !== currentTechTab) return;
+
+        const part = PART_CATALOG[node.partId];
+        const isUnlocked = unlocked.includes(nodeId);
+        const isReachable = node.req.length === 0 || node.req.some(reqId => unlocked.includes(reqId));
+        
+        // 1. ZIEHE LINIEN ZU DEN VORGÄNGERN
+        node.req.forEach(reqId => {
+            const parentNode = TECH_TREE[reqId];
+            if(parentNode) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+                line.setAttribute('x1', `${parentNode.x}%`);
+                line.setAttribute('y1', `${parentNode.y}%`);
+                line.setAttribute('x2', `${node.x}%`);
+                line.setAttribute('y2', `${node.y}%`);
+                // Linie wird grün, wenn dieser Node erforscht ist
+                line.setAttribute('stroke', isUnlocked ? '#00ff88' : '#333');
+                line.setAttribute('stroke-width', '3');
+                svgContainer.appendChild(line);
+            }
+        });
+
+        // 2. ZEICHNE DEN NODE
+        const el = document.createElement("div");
+        el.className = `tree-node ${isUnlocked ? 'unlocked' : (isReachable ? 'reachable' : 'locked')}`;
+        el.style.left = `${node.x}%`;
+        el.style.top = `${node.y}%`;
+        
+        // Farbe basierend auf Seltenheit
+        el.style.color = RARITIES[part.rarity].color;
+        el.innerHTML = `<span>${part.type.charAt(0).toUpperCase()}</span>`; // Zeigt nur den 1. Buchstaben als Icon
+        
+        el.onclick = () => selectTechNode(nodeId);
+        
+        nodesContainer.appendChild(el);
+    });
+}
+
+function selectTechNode(nodeId) {
+    selectedTechNode = nodeId;
+    const node = TECH_TREE[nodeId];
+    const part = PART_CATALOG[node.partId];
+    const unlocked = state.newWorld.unlockedNodes || [];
+    const isUnlocked = unlocked.includes(nodeId);
+    const color = RARITIES[part.rarity].color;
+
+    const panel = document.getElementById("tech-detail-panel");
+    
+    let specialText = part.special ? `<br><span style="color:var(--warn)">★ Special: ${part.special.type.toUpperCase()} (${part.special.value})</span>` : "";
+    
+    let btnHTML = "";
+    if (isUnlocked) {
+        btnHTML = `
+            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Crafting Cost: ${fmt(node.buyCost.cp)} CP | ${node.buyCost.po} PO</div>
+            <button onclick="buyCraftedPart('${nodeId}')" style="border-color: ${color}; color: ${color}; width: 100%;">CRAFT PART</button>
+        `;
+    } else {
+        btnHTML = `
+            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Research Cost: ${fmt(node.unlockCost.rp)} RP | ${node.unlockCost.nrp} N-RP</div>
+            <button onclick="unlockNode('${nodeId}')" style="width: 100%;">RESEARCH BLUEPRINT</button>
+        `;
+    }
+
+    panel.innerHTML = `
+        <div style="flex: 1;">
+            <div style="font-size: 14px; color: ${color}; font-weight: bold;">${part.name}</div>
+            <div style="font-size: 11px; color: var(--muted); margin-top: 5px;">
+                Type: ${part.type.toUpperCase()} | Rarity: ${part.rarity}
+                ${specialText}
+            </div>
+        </div>
+        <div style="text-align: right; width: 250px;">
+            ${btnHTML}
+        </div>
+    `;
+}
 
 function render(){
   const cps = coinsPerSecond(); const rps = rpPerSecond(); const cp = clickPower();
