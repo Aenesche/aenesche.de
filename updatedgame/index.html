@@ -7,8 +7,69 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>AI DRONE LAB · Server Edition</title>
   <style>
-    /* ... (BEHALTE DEIN KOMPLETTES CSS HIER EXAKT SO WIE ES WAR) ... */
-    /* Füge hier einfach deinen gesamten alten <style> Block ein, um Platz zu sparen habe ich ihn hier gekürzt */
+    :root{
+      --bg:#0a0a0a; --panel:#0f0f0f; --text:#eaeaea; --muted:#7a7a7a;
+      --line:#1f1f1f; --accent:#bdbdbd; --warn:#ff4444;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--mono); letter-spacing:.2px; }
+    a{ color:var(--accent); text-decoration:none; } a:hover{ text-decoration:underline; }
+    .wrap{ max-width: 1100px; margin:0 auto; padding: 22px 14px 70px; }
+    #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+    .auth-box { width: 100%; max-width: 400px; }
+    .auth-box input { width: 100%; background: #050505; color: var(--text); border: 1px solid var(--line); padding: 12px; margin-bottom: 10px; font-family: var(--mono); }
+    .auth-box input:focus { border-color: var(--accent); outline: none; }
+    .topbar{ display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap; border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:14px; }
+    .title{ font-size:16px; } .sub{ color:var(--muted); font-size:12px; margin-top:6px; }
+    .tag{ display:inline-block; border:1px solid var(--line); padding:3px 6px; font-size:11px; color:var(--muted); }
+    .grid{ display:grid; grid-template-columns: 1.15fr .85fr; gap:14px; margin-top:14px; }
+    @media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
+    .panel{ background:var(--panel); border:1px solid var(--line); padding:13px; }
+    .panel h2{ margin:0 0 10px; font-size:13px; color:var(--accent); font-weight:600; letter-spacing:.6px; }
+    .stats{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-top:8px; }
+    @media (max-width: 720px){ .stats{ grid-template-columns: 1fr 1fr; } }
+    .stat{ border:1px solid var(--line); padding:10px; background:#0b0b0b; }
+    .k{ color:var(--muted); font-size:11px; margin-bottom:6px; } .v{ font-size:16px; } .v small{ color:var(--muted); font-size:12px; }
+    .buttons{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    button{ appearance:none; background:transparent; color:var(--text); border:1px solid var(--line); padding:10px 12px; cursor:pointer; font-family:var(--mono); font-size:12px; letter-spacing:.3px; user-select:none; }
+    button:hover{ border-color:var(--accent); color:var(--accent); }
+    button:disabled{ opacity:.45; cursor:not-allowed; color:var(--muted); border-color:var(--line); }
+    .hint{ color:var(--muted); font-size:12px; margin-top:10px; line-height:1.35; }
+    .list{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+    .item{ border:1px solid var(--line); background:#0b0b0b; padding:10px; }
+    .itemTop{ display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
+    .itemName{ font-size:12px; } .itemMeta{ font-size:11px; color:var(--muted); }
+    .itemBtns{ margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; } .mini{ padding:7px 10px; font-size:11px; }
+    .monoBox{ border:1px solid var(--line); background:#050505; padding:10px; font-size:12px; white-space:pre-wrap; max-height:220px; overflow:auto; }
+    .ok{ color:var(--accent); } .bad{ color:var(--warn); }
+    .twoCols{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width: 720px){ .twoCols{ grid-template-columns:1fr; } }
+    .hangar{ border:1px solid var(--line); background:#050505; padding:10px; min-height:120px; }
+    .hangarRow{ display:flex; gap:10px; align-items:center; justify-content:space-between; border-bottom:1px dashed #141414; padding:7px 0; }
+    .hangarRow:last-child{ border-bottom:none; }
+    .hangarLeft{ display:flex; gap:10px; align-items:center; }
+    .icon{ width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--line); color:var(--accent); font-size:12px; }
+    .count{ color:var(--muted); font-size:12px; }
+    .bar{ height:6px; border:1px solid var(--line); background:#060606; overflow:hidden; width:160px; }
+    .bar > div{ height:100%; background:var(--accent); width:0%; }
+    @media (max-width: 420px){ .bar{ width:120px; } }
+    .nw-header { color: var(--warn); border-bottom: 1px solid var(--warn); padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;}
+    .drone-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 400px; margin: 0 auto 20px; }
+    .part-slot { border: 1px dashed var(--muted); background: #080808; padding: 20px 5px; text-align: center; font-size: 11px; color: var(--muted); display: flex; flex-direction: column; gap: 5px; }
+    .part-slot.filled { border: 1px solid var(--accent); color: var(--text); background: #111; }
+    .slot-frame { grid-column: 2; grid-row: 2; border-color: var(--text); } .slot-props { grid-column: 2; grid-row: 1; }
+    .slot-cam   { grid-column: 2; grid-row: 3; } .slot-batt  { grid-column: 1; grid-row: 2; } .slot-fc    { grid-column: 3; grid-row: 2; }
+    .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px; }
+    .inv-item { border: 1px solid var(--line); background: #0b0b0b; padding: 10px 5px; text-align: center; font-size: 10px; cursor: pointer; transition: all 0.2s ease; }
+    .inv-item:hover { border-color: var(--accent); background: #151515;}
+    .inv-item:active { cursor: grabbing; transform: scale(0.95); }
+    @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .anim-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    .drag-over { border-color: var(--warn) !important; background: rgba(255, 68, 68, 0.1) !important; }
+    .mission-panel { border: 1px solid var(--warn); background: rgba(255,68,68,0.05); padding: 15px; margin-top: 20px; text-align: center;}
+    @keyframes droneTakeoff { 0% { transform: translateY(0) scale(1); opacity: 1; filter: brightness(1); } 20% { transform: translateY(5px) scale(0.98); filter: brightness(1.2); } 100% { transform: translateY(-150px) scale(0.5); opacity: 0; filter: blur(2px); } }
+    .anim-takeoff { animation: droneTakeoff 1.2s cubic-bezier(0.5, 0, 0.2, 1) forwards; pointer-events: none; }
   </style>
 </head>
 <body>
