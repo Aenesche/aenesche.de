@@ -70,6 +70,23 @@
     .mission-panel { border: 1px solid var(--warn); background: rgba(255,68,68,0.05); padding: 15px; margin-top: 20px; text-align: center;}
     @keyframes droneTakeoff { 0% { transform: translateY(0) scale(1); opacity: 1; filter: brightness(1); } 20% { transform: translateY(5px) scale(0.98); filter: brightness(1.2); } 100% { transform: translateY(-150px) scale(0.5); opacity: 0; filter: blur(2px); } }
     .anim-takeoff { animation: droneTakeoff 1.2s cubic-bezier(0.5, 0, 0.2, 1) forwards; pointer-events: none; }
+  
+  /* TECH TREE STYLES */
+    .tech-nav { display: flex; justify-content: center; gap: 10px; padding: 15px; border-top: 1px solid var(--line); margin-top: 10px; background: #050505; }
+    .tech-nav button { flex: 1; max-width: 150px; }
+    .tech-nav button.active { border-color: var(--accent); color: var(--accent); background: #111; }
+    
+    .tree-container { position: relative; width: 100%; height: 600px; background: #080808; border: 1px solid var(--line); overflow: auto; background-image: radial-gradient(circle at 5px 5px, #1a1a1a 1px, transparent 1px); background-size: 30px 30px; }
+    .tree-scroll-area { position: absolute; width: 1200px; height: 1000px; /* Hier kannst du den Platz vergrößern */ }
+    
+    .tree-node { position: absolute; width: 44px; height: 44px; background: #050505; border: 2px solid #333; border-radius: 5px; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; z-index: 10; }
+    .tree-node:hover { transform: translate(-50%, -50%) scale(1.1); border-color: var(--accent); }
+    .tree-node.unlocked { border-color: #00ff88; background: rgba(0, 255, 136, 0.1); }
+    .tree-node.reachable { border-color: var(--warn); box-shadow: 0 0 10px rgba(255, 68, 68, 0.2); }
+    .tree-node.locked { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
+    .tree-node img, .tree-node span { font-size: 18px; font-weight: bold; }
+    
+    .tech-details { min-height: 120px; border: 1px solid var(--line); padding: 15px; background: #050505; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
