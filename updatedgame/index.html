@@ -274,6 +274,36 @@
       </div>
     </div>
   </div>
+            <div class="wrap" id="tech-wrap" style="display: none;">
+    <div class="nw-header">
+      <div>
+        <div class="title" style="color: #00ff88;">R&D ARCHIVES</div>
+        <div class="sub">Advanced Blueprint Trees</div>
+      </div>
+      <div class="sub">
+        <a href="#" onclick="exitTechTree()" style="color: var(--accent);">< BACK TO ASSEMBLY</a>
+      </div>
+    </div>
+
+    <div class="tree-container" id="tree-container">
+        <div class="tree-scroll-area">
+            <svg id="tree-lines" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></svg>
+            <div id="tree-nodes" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+        </div>
+    </div>
+
+    <div class="tech-details" id="tech-detail-panel">
+        <div style="color: var(--muted);">Wähle einen Knotenpunkt im Tech-Tree aus, um Details zu sehen.</div>
+    </div>
+
+    <div class="tech-nav">
+        <button id="tab-battery" class="active" onclick="switchTechTab('battery')">BATTERY</button>
+        <button id="tab-frame" onclick="switchTechTab('frame')">FRAME</button>
+        <button id="tab-props" onclick="switchTechTab('props')">PROPS</button>
+        <button id="tab-fc" onclick="switchTechTab('fc')">FLIGHT CTRL</button>
+        <button id="tab-camera" onclick="switchTechTab('camera')">CAMERA</button>
+    </div>
+  </div>
 
   <script src="js/data.js"></script>
   <script src="js/ui.js"></script>
