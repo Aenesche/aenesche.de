@@ -333,7 +333,6 @@ function renderTechTreeCanvas() {
 
     const unlocked = state.newWorld.unlockedNodes || [];
 
-    // Filtert alle Nodes, die zum aktuellen Tab gehören
     Object.keys(TECH_TREE).forEach(nodeId => {
         const node = TECH_TREE[nodeId];
         if (node.treeType !== currentTechTab) return;
@@ -342,7 +341,6 @@ function renderTechTreeCanvas() {
         const isUnlocked = unlocked.includes(nodeId);
         const isReachable = node.req.length === 0 || node.req.some(reqId => unlocked.includes(reqId));
         
-        // 1. ZIEHE LINIEN ZU DEN VORGÄNGERN
         node.req.forEach(reqId => {
             const parentNode = TECH_TREE[reqId];
             if(parentNode) {
@@ -351,25 +349,23 @@ function renderTechTreeCanvas() {
                 line.setAttribute('y1', `${parentNode.y}%`);
                 line.setAttribute('x2', `${node.x}%`);
                 line.setAttribute('y2', `${node.y}%`);
-                // Linie wird grün, wenn dieser Node erforscht ist
                 line.setAttribute('stroke', isUnlocked ? '#00ff88' : '#333');
                 line.setAttribute('stroke-width', '3');
                 svgContainer.appendChild(line);
             }
         });
 
-        // 2. ZEICHNE DEN NODE
         const el = document.createElement("div");
         el.className = `tree-node ${isUnlocked ? 'unlocked' : (isReachable ? 'reachable' : 'locked')}`;
         el.style.left = `${node.x}%`;
         el.style.top = `${node.y}%`;
         
-        // Farbe basierend auf Seltenheit
         el.style.color = RARITIES[part.rarity].color;
-        el.innerHTML = `<span>${part.type.charAt(0).toUpperCase()}</span>`; // Zeigt nur den 1. Buchstaben als Icon
+        
+        // HIER IST DIE ÄNDERUNG: Wir schreiben den vollen Namen in die Box!
+        el.innerHTML = `<span>${part.name}</span>`; 
         
         el.onclick = () => selectTechNode(nodeId);
-        
         nodesContainer.appendChild(el);
     });
 }
@@ -384,6 +380,14 @@ function selectTechNode(nodeId) {
 
     const panel = document.getElementById("tech-detail-panel");
     
+    // STATS GENERIEREN: Je nach Bauteil-Typ den passenden Wert anzeigen
+    let statsText = "";
+    if (part.type === "battery") statsText = `Missionszeit: ${Math.round(part.timeMult * 100)}%`;
+    if (part.type === "frame") statsText = `Absturzrisiko: ${Math.round(part.breakChance * 100)}%`;
+    if (part.type === "fc") statsText = `Sicherheit: +${Math.round(part.safety * 100)}%`;
+    if (part.type === "props") statsText = `PO Ertrag: x${part.poMult}`;
+    if (part.type === "camera") statsText = `Loot-Glück: x${part.luckBonus}`;
+
     let specialText = part.special ? `<br><span style="color:var(--warn)">★ Special: ${part.special.type.toUpperCase()} (${part.special.value})</span>` : "";
     
     let btnHTML = "";
@@ -402,8 +406,9 @@ function selectTechNode(nodeId) {
     panel.innerHTML = `
         <div style="flex: 1;">
             <div style="font-size: 14px; color: ${color}; font-weight: bold;">${part.name}</div>
-            <div style="font-size: 11px; color: var(--muted); margin-top: 5px;">
+            <div style="font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.4;">
                 Type: ${part.type.toUpperCase()} | Rarity: ${part.rarity}
+                <br><span style="color: #eaeaea;">Stats: ${statsText}</span>
                 ${specialText}
             </div>
         </div>
@@ -412,7 +417,6 @@ function selectTechNode(nodeId) {
         </div>
     `;
 }
-
 function render(){
   const cps = coinsPerSecond(); const rps = rpPerSecond(); const cp = clickPower();
   el.coins.textContent = fmt(state.coins); el.cps.textContent = cps.toFixed(cps<10?2:1);
