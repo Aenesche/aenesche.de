@@ -59,24 +59,55 @@ const RARITIES = {
     "Ultra Rare": { weight: 5, color: "#ff2da6", dropChance: 0.01 }
 };
 
+// --- BAUTEILE KATALOG (NEUES SLOT-SYSTEM 1-50, 200+) ---
 const PART_CATALOG = {
-    "fr_com_1": { type: "frame", rarity: "Common", name: "Cardboard Frame", breakChance: 0.40 },
-    "fr_com_2": { type: "frame", rarity: "Common", name: "Plastic Frame", breakChance: 0.35 },
-    "fc_com_1": { type: "fc", rarity: "Common", name: "Basic Gyro", safety: 0.05 },
-    "pr_com_1": { type: "props", rarity: "Common", name: "Plastic Props", poMult: 1.0 },
-    "ba_com_1": { type: "battery", rarity: "Common", name: "NiMH Pack", timeMult: 1.0 },
-    "ca_com_1": { type: "camera", rarity: "Common", name: "VGA Cam", luckBonus: 1.0 },
-    "fr_rar_1": { type: "frame", rarity: "Rare", name: "Carbon Fiber Frame", breakChance: 0.25 },
-    "fc_rar_safe": { type: "fc", rarity: "Rare", name: "Guardian FC", safety: 0.15 },
-    "ba_rar_fast": { type: "battery", rarity: "Rare", name: "LiPo 3S", timeMult: 0.70 },
-    "fr_drop_rar_1": { type: "frame", rarity: "Rare", name: "Scavenged Titanium", breakChance: 0.15 },
-    "pr_drop_leg_1": { type: "props", rarity: "Legendary", name: "Aero-Magnetic Blades", poMult: 4.5 },
-    "ca_drop_ult_1": { type: "camera", rarity: "Ultra Rare", name: "Void-Eye Lens", luckBonus: 10.0 }
+    // BATTERIEN (001 - 050: Standard Progression)
+    "bat_001": { type: "battery", rarity: "Common", name: "NiMH Block", timeMult: 0.95, special: null },
+    "bat_002": { type: "battery", rarity: "Common", name: "Li-Ion 2S", timeMult: 0.85, special: null },
+    "bat_003": { type: "battery", rarity: "Rare", name: "LiPo 4S", timeMult: 0.70, special: { type: "po_boost", value: 1.5 } }, // 50% mehr PO
+    
+    // BATTERIEN (200+: Super Rare / Special)
+    "bat_200": { type: "battery", rarity: "Legendary", name: "Dark Matter Core", timeMult: 0.30, special: { type: "void_find", value: 0.05 } }, // Findet extrem seltene Void Gems
+
+    // FRAMES
+    "fra_001": { type: "frame", rarity: "Common", name: "Cardboard Frame", breakChance: 0.40, special: null },
+    "fra_002": { type: "frame", rarity: "Rare", name: "Carbon X", breakChance: 0.20, special: null }
 };
 
+// --- DER NEUE 2D TECH TREE ---
+// x und y sind Prozentwerte (0 bis 100) auf dem Canvas!
 const TECH_TREE = {
-    "node_fr_1": { partId: "fr_com_1", req: null, unlockCost: { rp: 10000, nrp: 0 }, buyCost: { cp: 50e12, po: 0 } },
-    "node_fr_2": { partId: "fr_com_2", req: "node_fr_1", unlockCost: { rp: 50000, nrp: 5 }, buyCost: { cp: 100e12, po: 10 } },
-    "node_fc_safe": { partId: "fc_rar_safe", req: "node_fr_2", unlockCost: { rp: 100000, nrp: 20 }, buyCost: { cp: 250e12, po: 50 } },
-    "node_ba_fast": { partId: "ba_rar_fast", req: "node_fr_2", unlockCost: { rp: 100000, nrp: 20 }, buyCost: { cp: 250e12, po: 50 } }
+    // --- BATTERY TREE ---
+    "node_bat_001": { 
+        treeType: "battery", partId: "bat_001", req: [], 
+        x: 50, y: 10, // Startet oben in der Mitte
+        unlockCost: { rp: 1000, nrp: 0 }, buyCost: { cp: 5e12, po: 0 } 
+    },
+    "node_bat_002": { 
+        treeType: "battery", partId: "bat_002", req: ["node_bat_001"], 
+        x: 50, y: 30, // Geht gerade nach unten
+        unlockCost: { rp: 5000, nrp: 5 }, buyCost: { cp: 20e12, po: 5 } 
+    },
+    "node_bat_003": { 
+        treeType: "battery", partId: "bat_003", req: ["node_bat_002"], 
+        x: 30, y: 55, // Geht diagonal nach links unten!
+        unlockCost: { rp: 25000, nrp: 20 }, buyCost: { cp: 100e12, po: 25 } 
+    },
+    "node_bat_200": { 
+        treeType: "battery", partId: "bat_200", req: ["node_bat_002"], 
+        x: 70, y: 55, // Geht diagonal nach rechts unten! (Spaltung)
+        unlockCost: { rp: 500000, nrp: 150 }, buyCost: { cp: 900e12, po: 500 } 
+    },
+
+    // --- FRAME TREE ---
+    "node_fra_001": { 
+        treeType: "frame", partId: "fra_001", req: [], 
+        x: 50, y: 10, 
+        unlockCost: { rp: 1000, nrp: 0 }, buyCost: { cp: 5e12, po: 0 } 
+    },
+    "node_fra_002": { 
+        treeType: "frame", partId: "fra_002", req: ["node_fra_001"], 
+        x: 50, y: 40, 
+        unlockCost: { rp: 10000, nrp: 10 }, buyCost: { cp: 50e12, po: 10 } 
+    }
 };
