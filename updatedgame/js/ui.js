@@ -301,11 +301,99 @@ function renderNewWorld() {
 let currentTechTab = "battery";
 let selectedTechNode = null;
 
+// --- TECH TREE KAMERA VARIABLEN ---
+let currentTechTab = "battery";
+let selectedTechNode = null;
+let treeScale = 1;
+let treePanX = 0;
+let treePanY = 0;
+let isTreeDragging = false;
+let startDragX, startDragY;
+
 function openTechTree() {
     document.getElementById("nw-wrap").style.display = "none";
     document.getElementById("tech-wrap").style.display = "block";
-    switchTechTab('battery'); // Default Tab
+    
+    // Auto-Zoom out für Handys beim Öffnen
+    treeScale = window.innerWidth < 768 ? 0.6 : 1; 
+    treePanX = 0; treePanY = 0;
+    
+    switchTechTab('battery');
+    setTimeout(initTreePanZoom, 50); // Aktiviert Steuerung nachdem das UI gerendert ist
 }
+
+function exitTechTree() {
+    document.getElementById("tech-wrap").style.display = "none";
+    document.getElementById("nw-wrap").style.display = "block";
+    renderNewWorld();
+}
+
+// --- DIE NEUE PAN & ZOOM ENGINE ---
+function initTreePanZoom() {
+    const container = document.getElementById("tree-container");
+    const scrollArea = document.querySelector(".tree-scroll-area");
+    if(!container || !scrollArea) return;
+
+    function applyTransform() {
+        scrollArea.style.transform = `translate(${treePanX}px, ${treePanY}px) scale(${treeScale})`;
+    }
+
+    // 1. Zoom mit Mausrad
+    container.onwheel = (e) => {
+        e.preventDefault();
+        const zoomIntensity = 0.1;
+        const wheel = e.deltaY < 0 ? 1 : -1;
+        const zoomFactor = Math.exp(wheel * zoomIntensity);
+
+        const rect = container.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Zoom zentriert auf den Mauszeiger!
+        treePanX = mouseX - (mouseX - treePanX) * zoomFactor;
+        treePanY = mouseY - (mouseY - treePanY) * zoomFactor;
+        treeScale *= zoomFactor;
+        treeScale = Math.min(Math.max(0.3, treeScale), 3); // Max-Zoom: 3x, Min-Zoom: 0.3x
+
+        applyTransform();
+    };
+
+    // 2. Schieben mit der Maus (Pan)
+    container.onmousedown = (e) => {
+        isTreeDragging = true;
+        startDragX = e.clientX - treePanX;
+        startDragY = e.clientY - treePanY;
+    };
+    window.onmousemove = (e) => {
+        if (!isTreeDragging) return;
+        treePanX = e.clientX - startDragX;
+        treePanY = e.clientY - startDragY;
+        applyTransform();
+    };
+    window.onmouseup = () => isTreeDragging = false;
+
+    // 3. Touch-Support für Handy/iPad
+    container.ontouchstart = (e) => {
+        if(e.touches.length === 1) {
+            isTreeDragging = true;
+            startDragX = e.touches[0].clientX - treePanX;
+            startDragY = e.touches[0].clientY - treePanY;
+        }
+    };
+    container.ontouchmove = (e) => {
+        if(!isTreeDragging || e.touches.length !== 1) return;
+        e.preventDefault(); // Verhindert das Scrollen der ganzen Webseite
+        treePanX = e.touches[0].clientX - startDragX;
+        treePanY = e.touches[0].clientY - startDragY;
+        applyTransform();
+    };
+    container.ontouchend = () => isTreeDragging = false;
+
+    applyTransform(); // Initial ausführen
+}
+// -------------------------------------------------------------------
+// ACHTUNG: Die Funktionen switchTechTab, renderTechTreeCanvas, selectTechNode etc. 
+// bleiben exakt so erhalten, wie du sie schon in der ui.js stehen hast!
 
 function exitTechTree() {
     document.getElementById("tech-wrap").style.display = "none";
