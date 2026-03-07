@@ -240,27 +240,60 @@ function claimMissionResult() {
 function unlockNode(nodeId) {
     const node = TECH_TREE[nodeId];
     if(!node) return;
+    
+    // Prüfe Währungen
     if (state.rp < node.unlockCost.rp || (state.newWorld.nrp || 0) < node.unlockCost.nrp) {
         log("Not enough resources to research this blueprint!", "bad"); return;
     }
-    state.rp -= node.unlockCost.rp; state.newWorld.nrp -= node.unlockCost.nrp;
+    
+    // Abziehen & Freischalten
+    state.rp -= node.unlockCost.rp; 
+    state.newWorld.nrp -= node.unlockCost.nrp;
     if(!state.newWorld.unlockedNodes) state.newWorld.unlockedNodes = [];
     state.newWorld.unlockedNodes.push(nodeId);
+    
     log(`BLUEPRINT RESEARCHED: ${PART_CATALOG[node.partId].name}`, "ok");
-    saveToServer(); renderNewWorld();
+    saveToServer(); 
+    
+    // UI UPDATES: Aktualisiere sowohl das Inventar als auch den 2D-Baum
+    renderNewWorld(); 
+    if (document.getElementById("tech-wrap").style.display === "block") {
+        renderTechTreeCanvas(); // Zeichnet die grünen Linien neu
+        selectTechNode(nodeId); // Ändert den Button im Panel von "Research" auf "Craft"
+    }
 }
 
 function buyCraftedPart(nodeId) {
     const node = TECH_TREE[nodeId];
     if(!node) return;
+    
+    // Prüfe Währungen
     if (state.coins < node.buyCost.cp || (state.newWorld.po || 0) < node.buyCost.po) {
         log("Not enough materials to craft this part!", "bad"); return;
     }
-    state.coins -= node.buyCost.cp; state.newWorld.po -= node.buyCost.po;
+    
+    // Abziehen & Herstellen
+    state.coins -= node.buyCost.cp; 
+    state.newWorld.po -= node.buyCost.po;
+    
     const baseItem = PART_CATALOG[node.partId];
-    state.newWorld.inventory.push({ id: "craft_" + Date.now() + "_" + Math.floor(Math.random()*1000), catalogId: node.partId, type: baseItem.type, name: baseItem.name, rarity: baseItem.rarity });
+    state.newWorld.inventory.push({ 
+        id: "craft_" + Date.now() + "_" + Math.floor(Math.random()*1000), 
+        catalogId: node.partId, 
+        type: baseItem.type, 
+        name: baseItem.name, 
+        rarity: baseItem.rarity 
+    });
+    
     log(`PRODUCED: ${baseItem.name}`, "ok");
-    saveToServer(); renderNewWorld();
+    saveToServer(); 
+    
+    // UI UPDATES
+    renderNewWorld(); 
+    if (document.getElementById("tech-wrap").style.display === "block") {
+        // Wir rufen hier selectTechNode nochmal auf, falls sich die Ressourcen geändert haben
+        selectTechNode(nodeId); 
+    }
 }
 
 function buyEmergencyKit() {
