@@ -1055,7 +1055,6 @@ function renderNewWorld() {
     const progContainer = document.getElementById("mission-progress-container");
     const claimBtn = document.getElementById("claimMissionBtn");
 
-    const isMissionActive = !!state.newWorld.mission;
     const isMissionDone = isMissionActive && now() >= state.newWorld.mission.endTime;
 
     // Wenn Mission aktiv ist, Inventar-Drag & Klicks blockieren
