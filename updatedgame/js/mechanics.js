@@ -36,6 +36,10 @@ function isUnlocked(u){
   return false;
 }
 function dronePrice(drone){ return Math.floor(drone.basePrice * Math.pow(PRICE_GROWTH, state.owned[drone.id] || 0)); }
+function droneUpgradeCost(droneBasePrice, level){
+  const base = droneBasePrice * 12;
+  return Math.floor(base * Math.pow(2.6, level));
+}
 function rpLabPrice(){ return Math.floor(RP_LAB.basePrice * Math.pow(RP_LAB.priceGrowth, state.rpLabOwned || 0)); }
 function droneMultiplier(droneId){ return Math.pow(2, state.dUp[droneId] || 0); }
 function globalCpsMultiplier(){ return Math.pow(1.05, state.techLvl.globalCps || 0); }
