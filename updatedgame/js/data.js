@@ -267,8 +267,64 @@ const PART_CATALOG = {
     //############################################################################################################################################################################################
     //############################################################################################################################################################################################
   
-  // Dummy Frame (damit Missionen startbar bleiben)
-    "fra_001": { type: "frame", rarity: "Common", name: "Cardboard Frame", breakChance: 0.40, special: null }
+  // ==========================================
+    // ⬛ FRAMES TIER 1 (Common) - Holz & Plastik
+    // ==========================================
+    "fra_001": { type: "frame", rarity: "Common", name: "Cardboard Frame", breakChance: 0.40, special: null },
+    "fra_002": { type: "frame", rarity: "Common", name: "Balsa Wood Skeleton", breakChance: 0.35, special: null },
+    "fra_003": { type: "frame", rarity: "Common", name: "3D-Printed PLA", breakChance: 0.30, special: null },
+    "fra_004": { type: "frame", rarity: "Common", name: "Injected ABS Frame", breakChance: 0.25, special: null },
+
+    // ==========================================
+    // ⬛ FRAMES TIER 2 (Rare) - Carbon & Alu (Breite Basis)
+    // ==========================================
+    // Pfad A (Starr & Schwer)
+    "fra_005a": { type: "frame", rarity: "Rare", name: "Aluminum X-Frame", breakChance: 0.22, special: null },
+    "fra_006a": { type: "frame", rarity: "Rare", name: "Forged Alu Monocoque", breakChance: 0.18, special: null },
+    // Pfad B (Leicht & Flexibel)
+    "fra_005b": { type: "frame", rarity: "Rare", name: "Basic Carbon-Fiber", breakChance: 0.20, special: null },
+    "fra_006b": { type: "frame", rarity: "Rare", name: "Woven Carbon Tube", breakChance: 0.16, special: null },
+
+    // ==========================================
+    // ⬛ FRAMES TIER 3 (Super Rare) - Legierungen (Void Gems ab hier!)
+    // ==========================================
+    // Strang A (Links - Pure Rüstung)
+    "fra_007a": { type: "frame", rarity: "Super Rare", name: "Titanium Struts", breakChance: 0.14, special: null },
+    "fra_008a": { type: "frame", rarity: "Super Rare", name: "Tungsten Alloy Frame", breakChance: 0.10, special: null },
+    // Strang M (Mitte - Utility Rüstung)
+    "fra_007m": { type: "frame", rarity: "Super Rare", name: "Polycarbonate Shell", breakChance: 0.12, special: null },
+    "fra_008m": { type: "frame", rarity: "Super Rare", name: "Kevlar-Weave Body", breakChance: 0.08, special: null },
+    // Strang B (Rechts - Tech Rüstung)
+    "fra_007b": { type: "frame", rarity: "Super Rare", name: "Graphene Skeleton", breakChance: 0.13, special: null },
+    "fra_008b": { type: "frame", rarity: "Super Rare", name: "Aerogel Core Frame", breakChance: 0.09, special: null },
+    "fra_201":  { type: "frame", rarity: "Legendary", name: "Loot-Bunker Frame", breakChance: 0.15, special: { type: "loot_armor", value: 0.5 } }, // Exot: Wenn er crasht, rettet er 50% des Loots!
+
+    // ==========================================
+    // ⬛ FRAMES TIER 4 (Legendary) - Smarte Metalle
+    // ==========================================
+    "fra_009a": { type: "frame", rarity: "Legendary", name: "Nano-Carbon Matrix", breakChance: 0.06, special: null },
+    "fra_010a": { type: "frame", rarity: "Legendary", name: "Liquid-Metal Frame", breakChance: 0.04, special: null },
+    
+    "fra_009m": { type: "frame", rarity: "Legendary", name: "Magnetic-Repulsion Hull", breakChance: 0.05, special: null },
+    "fra_010m": { type: "frame", rarity: "Legendary", name: "Kinetic-Absorber", breakChance: 0.03, special: null },
+    "fra_202":  { type: "frame", rarity: "Ultra Rare", name: "Phoenix Alloy", breakChance: 0.05, special: { type: "rebirth", value: 0.1 } }, // Exot: 10% Chance, einen tödlichen Crash sofort zu heilen
+    
+    "fra_009b": { type: "frame", rarity: "Legendary", name: "Hardlight-Projector", breakChance: 0.055, special: null },
+    "fra_010b": { type: "frame", rarity: "Legendary", name: "Plasma-Shielded Core", breakChance: 0.035, special: null },
+
+    // ==========================================
+    // ⬛ FRAMES TIER 5 (Ultra Rare) - Die Unzerstörbaren (0%)
+    // ==========================================
+    "fra_011": { type: "frame", rarity: "Ultra Rare", name: "Aegis Energy Shield", breakChance: 0.01, special: null }, // Nur noch 1% Risiko!
+    "fra_012": { type: "frame", rarity: "Ultra Rare", name: "The Monolith", breakChance: 0.00, special: null }, // 0% - Der perfekte Frame.
+    
+    "fra_203": { type: "frame", rarity: "Ultra Rare", name: "Juggernaut Carapace", breakChance: 0.00, special: { type: "heavyweight", value: 1.5 } }, // Exot: 0% Crash, ABER erhöht Missionsdauer um 50%.
+    "fra_204": { type: "frame", rarity: "Ultra Rare", name: "Void-Forged Aegis", breakChance: 0.005, special: { type: "void_find", value: 0.02 } }, // Exot: Nahezu unzerstörbar + 2% Void Gems.
+
+    // ==========================================
+    // 🌌 DROP-EXCLUSIVE (Unconnected)
+    // ==========================================
+    "fra_d01": { type: "frame", rarity: "Ultra Rare", name: "Tesseract Hull", breakChance: 0.00, special: { type: "save_parts", value: 4 } } // Unzerstörbar UND beschützt alle anderen Teile.
 };
 
 // --- DER NEUE 2D TECH TREE (BATTERIEN) ---
@@ -449,6 +505,47 @@ const TECH_TREE = {
   //############################################################################################################################################################################################
   //############################################################################################################################################################################################
       
+// --- DER NEUE 2D TECH TREE (FRAMES - DAS SCHILD) ---
+    // TIER 1 (Die Spitze des Schildes)
+    "n_fra_001": { treeType: "frame", partId: "fra_001", req: [], x: 50, y: 5, unlockCost: { rp: 500, nrp: 0, vg: 0 }, buyCost: { cp: 1e12, po: 0, vg: 0 } },
+    "n_fra_002": { treeType: "frame", partId: "fra_002", req: ["n_fra_001"], x: 50, y: 10, unlockCost: { rp: 1500, nrp: 0, vg: 0 }, buyCost: { cp: 5e12, po: 0, vg: 0 } },
+    "n_fra_003": { treeType: "frame", partId: "fra_003", req: ["n_fra_002"], x: 50, y: 15, unlockCost: { rp: 8000, nrp: 2, vg: 0 }, buyCost: { cp: 25e12, po: 5, vg: 0 } },
+    "n_fra_004": { treeType: "frame", partId: "fra_004", req: ["n_fra_003"], x: 50, y: 20, unlockCost: { rp: 25000, nrp: 8, vg: 0 }, buyCost: { cp: 100e12, po: 20, vg: 0 } },
 
-    "dummy_fra": { treeType: "frame", partId: "fra_001", req: [], x: 50, y: 10, unlockCost: { rp: 0, nrp: 0, vg: 0 }, buyCost: { cp: 0, po: 0, vg: 0 } }
+    // TIER 2 (Das Schild wird massiv und breit)
+    "n_fra_005a": { treeType: "frame", partId: "fra_005a", req: ["n_fra_004"], x: 30, y: 28, unlockCost: { rp: 0, nrp: 30, vg: 0 }, buyCost: { cp: 0, po: 80, vg: 0 } },
+    "n_fra_006a": { treeType: "frame", partId: "fra_006a", req: ["n_fra_005a"], x: 20, y: 36, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 200, vg: 0 } },
+
+    "n_fra_005b": { treeType: "frame", partId: "fra_005b", req: ["n_fra_004"], x: 70, y: 28, unlockCost: { rp: 0, nrp: 30, vg: 0 }, buyCost: { cp: 0, po: 80, vg: 0 } },
+    "n_fra_006b": { treeType: "frame", partId: "fra_006b", req: ["n_fra_005b"], x: 80, y: 36, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 200, vg: 0 } },
+
+    // TIER 3 (Die breite Rüstungs-Mauer - Void Gems!)
+    "n_fra_007a": { treeType: "frame", partId: "fra_007a", req: ["n_fra_006a"], x: 15, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 2 }, buyCost: { cp: 0, po: 600, vg: 1 } },
+    "n_fra_008a": { treeType: "frame", partId: "fra_008a", req: ["n_fra_007a"], x: 15, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
+
+    "n_fra_007m": { treeType: "frame", partId: "fra_007m", req: ["n_fra_006a", "n_fra_006b"], x: 50, y: 48, unlockCost: { rp: 0, nrp: 300, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
+    "n_fra_008m": { treeType: "frame", partId: "fra_008m", req: ["n_fra_007m"], x: 50, y: 56, unlockCost: { rp: 0, nrp: 600, vg: 6 }, buyCost: { cp: 0, po: 2000, vg: 4 } },
+
+    "n_fra_007b": { treeType: "frame", partId: "fra_007b", req: ["n_fra_006b"], x: 85, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 2 }, buyCost: { cp: 0, po: 600, vg: 1 } },
+    "n_fra_008b": { treeType: "frame", partId: "fra_008b", req: ["n_fra_007b"], x: 85, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
+    "n_fra_201":  { treeType: "frame", partId: "fra_201",  req: ["n_fra_007b"], x: 98, y: 48, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 3000, vg: 5 } }, // Exot Loot-Bunker
+
+    // TIER 4 (Das Schild verjüngt sich nach unten)
+    "n_fra_009a": { treeType: "frame", partId: "fra_009a", req: ["n_fra_008a"], x: 25, y: 68, unlockCost: { rp: 0, nrp: 1500, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
+    "n_fra_010a": { treeType: "frame", partId: "fra_010a", req: ["n_fra_009a"], x: 35, y: 76, unlockCost: { rp: 0, nrp: 3500, vg: 30 }, buyCost: { cp: 0, po: 8000, vg: 15 } },
+
+    "n_fra_009m": { treeType: "frame", partId: "fra_009m", req: ["n_fra_008m"], x: 50, y: 68, unlockCost: { rp: 0, nrp: 2000, vg: 20 }, buyCost: { cp: 0, po: 5000, vg: 12 } },
+    "n_fra_010m": { treeType: "frame", partId: "fra_010m", req: ["n_fra_009m"], x: 50, y: 76, unlockCost: { rp: 0, nrp: 4500, vg: 40 }, buyCost: { cp: 0, po: 10000, vg: 25 } },
+    "n_fra_202":  { treeType: "frame", partId: "fra_202",  req: ["n_fra_009m"], x: 65, y: 68, unlockCost: { rp: 0, nrp: 6000, vg: 80 }, buyCost: { cp: 0, po: 15000, vg: 40 } }, // Exot Phoenix
+
+    "n_fra_009b": { treeType: "frame", partId: "fra_009b", req: ["n_fra_008b"], x: 75, y: 68, unlockCost: { rp: 0, nrp: 1500, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
+    "n_fra_010b": { treeType: "frame", partId: "fra_010b", req: ["n_fra_009b"], x: 65, y: 76, unlockCost: { rp: 0, nrp: 3500, vg: 30 }, buyCost: { cp: 0, po: 8000, vg: 15 } },
+
+    // TIER 5 (Der massive 0% Block in der Mitte)
+    "n_fra_011": { treeType: "frame", partId: "fra_011", req: ["n_fra_010a", "n_fra_010m", "n_fra_010b"], x: 50, y: 88, unlockCost: { rp: 0, nrp: 15000, vg: 120 }, buyCost: { cp: 0, po: 40000, vg: 60 } },
+    "n_fra_012": { treeType: "frame", partId: "fra_012", req: ["n_fra_011"], x: 50, y: 96, unlockCost: { rp: 0, nrp: 40000, vg: 300 }, buyCost: { cp: 0, po: 150000, vg: 200 } }, // 0% Crash!
+    
+    "n_fra_203": { treeType: "frame", partId: "fra_203", req: ["n_fra_011"], x: 30, y: 88, unlockCost: { rp: 0, nrp: 20000, vg: 150 }, buyCost: { cp: 0, po: 60000, vg: 80 } }, // Exot Juggernaut
+    "n_fra_204": { treeType: "frame", partId: "fra_204", req: ["n_fra_012"], x: 70, y: 96, unlockCost: { rp: 0, nrp: 60000, vg: 450 }, buyCost: { cp: 0, po: 250000, vg: 300 } }  // Exot Void Aegis
+
 };
