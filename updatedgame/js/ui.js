@@ -636,11 +636,14 @@ function selectTechNode(nodeId) {
     const part = PART_CATALOG[node.partId];
     const unlocked = state.newWorld.unlockedNodes || [];
     const isUnlocked = unlocked.includes(nodeId);
+    
+    // NEU: Ist dieser Knoten überhaupt schon erreichbar?
+    const isReachable = node.dropOnly ? false : (node.req.length === 0 || node.req.some(reqId => unlocked.includes(reqId)));
 
     let color = RARITIES[part.rarity].color;
     let panelHTML = "";
 
-    // --- DROP-EXCLUSIVE VERSTECKEN ---
+    // FALL 1: Verstecktes Drop-Exclusive (Noch nicht gefunden)
     if (node.dropOnly && !isUnlocked) {
         panelHTML = `
             <div style="flex: 1;">
@@ -653,8 +656,23 @@ function selectTechNode(nodeId) {
                 <button disabled style="border-color: #333; color: #333; width: 100%;">UNDISCOVERED</button>
             </div>
         `;
-    } else {
-        // --- NORMALE STATS GENERIEREN ---
+    } 
+    // FALL 2: Fog of War - Normales Item, aber Pfad noch nicht erreicht
+    else if (!node.dropOnly && !isUnlocked && !isReachable) {
+        panelHTML = `
+            <div style="flex: 1;">
+                <h3 style="margin: 0 0 5px; color: #444;">ENCRYPTED BLUEPRINT</h3>
+                <div style="font-size: 11px; color: #444; margin-bottom: 10px;">Rarity: ???</div>
+                <div style="font-size: 12px; color: var(--muted);">Dieser Bauplan ist gesperrt.<br>Erforsche zuerst die vorherigen Knotenpunkte.</div>
+            </div>
+            <div style="width: 200px; text-align: right;">
+                <div style="font-size: 11px; color: #444; margin-bottom: 5px;">Status: Locked</div>
+                <button disabled style="border-color: #333; color: #333; width: 100%;">LOCKED</button>
+            </div>
+        `;
+    } 
+    // FALL 3: Erreichbar oder bereits erforscht (Zeige alle Daten!)
+    else {
         let statsText = "";
         if (part.type === "battery") statsText = `Missionszeit: ${Math.round(part.timeMult * 100)}%`;
         if (part.type === "props") statsText = `Ertrag: PO x${part.poMult} | N-RP x${part.nrpMult}`;
@@ -669,7 +687,6 @@ function selectTechNode(nodeId) {
             statsText += `<br><br><span style="color: #00ff88; font-size: 0.9em;">[ Special: ${part.special.type.toUpperCase()} ]</span>`;
         }
 
-        // --- BUTTONS GENERIEREN ---
         let btnHTML = "";
         if (node.dropOnly) {
             btnHTML = `
@@ -695,12 +712,11 @@ function selectTechNode(nodeId) {
             } else {
                 btnHTML = `
                     <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Research: ${resCost.join(' | ')}</div>
-                    <button onclick="unlockNode('${nodeId}')" style="width: 100%; cursor: pointer;">RESEARCH BLUEPRINT</button>
+                    <button onclick="unlockNode('${nodeId}')" style="border-color: #00ff88; color: #00ff88; width: 100%; cursor: pointer;">RESEARCH BLUEPRINT</button>
                 `;
             }
         }
 
-        // HTML zusammenbauen
         panelHTML = `
             <div style="flex: 1;">
                 <h3 style="margin: 0 0 5px; color: ${color};">${part.name}</h3>
@@ -712,7 +728,6 @@ function selectTechNode(nodeId) {
             </div>
         `;
     }
-
-    // Ab ins DOM damit
+    
     document.getElementById("tech-detail-panel").innerHTML = panelHTML;
 }
