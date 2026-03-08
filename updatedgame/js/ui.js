@@ -161,135 +161,130 @@ function renderNewWorld() {
   if (!state || !state.newWorld) return;
 
   const nwRpEl = document.getElementById("nw-rp-display");
-    if (nwRpEl) nwRpEl.textContent = fmt(state.rp || 0);
+  if (nwRpEl) nwRpEl.textContent = fmt(state.rp || 0);
   
-    document.getElementById("po-display").textContent = state.newWorld.po || 0;
-    document.getElementById("legacy-cp").textContent = fmt(state.coins);
-    
-    // NRP Anzeige (neu positioniert)
-    const nrpDisplay = document.getElementById("nrp-display");
-    if(nrpDisplay) nrpDisplay.textContent = state.newWorld.nrp || 0;
+  document.getElementById("po-display").textContent = state.newWorld.po || 0;
+  document.getElementById("legacy-cp").textContent = fmt(state.coins);
+  
+  const nrpDisplay = document.getElementById("nrp-display");
+  if(nrpDisplay) nrpDisplay.textContent = state.newWorld.nrp || 0;
 
-    const filterVal = document.getElementById("inv-filter").value;
-    let displayItems = [...(state.newWorld.inventory || [])];
+  const filterVal = document.getElementById("inv-filter").value;
+  let displayItems = [...(state.newWorld.inventory || [])];
 
-    if (filterVal === "sort_rarity") {
-        displayItems.sort((a, b) => RARITIES[b.rarity].weight - RARITIES[a.rarity].weight);
-    } else if (filterVal.startsWith("type_")) {
-        const t = filterVal.split("_")[1];
-        displayItems = displayItems.filter(p => p.type === t);
-    }
-
-    const invList = document.getElementById("inventory-list");
-    invList.innerHTML = "";
-    displayItems.forEach(part => {
-        const color = RARITIES[part.rarity].color;
-        const div = document.createElement("div");
-        div.className = "inv-item anim-pop";
-        div.draggable = true;
-        div.ondragstart = (ev) => dragStart(ev, part.id);
-        div.onclick = () => equipPart(part.id); 
-        div.innerHTML = `<b style="color: ${color};">${part.rarity}</b><br><span style="color: var(--muted);">${part.type.toUpperCase()}</span><br>${part.name}`;
-        invList.appendChild(div);
-    });
-
-    const types = ["props", "battery", "frame", "fc", "camera"];
-    let partsEquipped = 0;
-    const isMissionActive = !!state.newWorld.mission;
-
-    types.forEach(type => {
-        const slot = document.getElementById("slot-" + type);
-        const equipped = state.newWorld.hangar[type];
-        
-        slot.style.pointerEvents = isMissionActive ? 'none' : 'auto';
-        slot.style.opacity = isMissionActive ? '0.5' : '1';
-        
-        slot.ondragover = (ev) => allowDrop(ev);
-        slot.ondragenter = (ev) => dragEnterSlot(ev, slot);
-        slot.ondragleave = (ev) => dragLeaveSlot(ev, slot);
-        slot.ondrop = (ev) => dropToSlot(ev, type);
-        
-        if(equipped) {
-            const color = RARITIES[equipped.rarity].color;
-            slot.classList.add("filled", "anim-pop");
-            slot.draggable = !isMissionActive; 
-            slot.ondragstart = (ev) => dragStartEquipped(ev, type);
-            slot.innerHTML = `<b style="color: var(--muted);">${type.toUpperCase()}</b><br><span style="color: ${color}">${equipped.name}</span>`;
-            slot.onclick = isMissionActive ? null : () => unequipPart(type);
-            partsEquipped++;
-        } else {
-            slot.classList.remove("filled", "anim-pop");
-            slot.draggable = false;
-            slot.ondragstart = null;
-            slot.innerHTML = `${type.toUpperCase()}<br><small>empty</small>`;
-            slot.onclick = null;
-        }
-    });
-
-    const renderField = document.getElementById("drone-render-field");
-    const startBtn = document.getElementById("startMissionBtn");
-    const progContainer = document.getElementById("mission-progress-container");
-    const claimBtn = document.getElementById("claimMissionBtn");
-    // --- SCHRITT 3: UI STATUS LOGIK ---
-    const isMissionActive = !!state.newWorld.mission;
-    const m = state.newWorld.mission;
-    const isWaitingForClaim = isMissionActive && m.status === "WAITING_FOR_CLAIM";
-
-    // Pointer-Events sperren, wenn Mission läuft oder auf Claim wartet
-    if (isMissionActive) {
-        document.querySelectorAll('.inv-item, .part-slot').forEach(elem => {
-            elem.style.pointerEvents = 'none';
-            if (elem.classList.contains('inv-item')) elem.style.opacity = '0.4';
-        });
-    }
-
-    // Die drei Zustände der Mission Control UI:
-    if (!isMissionActive) {
-        // ZUSTAND 1: Keine Mission (Bereit zum Starten)
-        progContainer.style.display = "none";
-        claimBtn.style.display = "none";
-        startBtn.style.display = "block";
-        
-        if (partsEquipped === 5) {
-            renderField.innerHTML = "▀▄▀▄▀ [ DROHNE BEREIT ] ▀▄▀▄▀<br><small>Wartet auf Freigabe.</small>";
-            renderField.style.color = "#00ff88";
-            startBtn.disabled = false;
-        } else {
-            renderField.innerHTML = "[ SYSTEM OFFLINE ]<br><small>Teile fehlen (" + partsEquipped + "/5)</small>";
-            renderField.style.color = "var(--warn)";
-            startBtn.disabled = true;
-        }
-    } 
-    else if (m.status === "IN_PROGRESS") {
-        // ZUSTAND 2: Mission läuft (Ladebalken zeigen)
-        startBtn.style.display = "none";
-        claimBtn.style.display = "none";
-        progContainer.style.display = "block";
-        renderField.innerHTML = ">>> MISSION IN PROGRESS <<< <br><small>Drohne in Sektor 7...</small>";
-        renderField.style.color = "var(--warn)";
-    } 
-    else if (isWaitingForClaim) {
-        // ZUSTAND 3: Mission fertig (Claim Button zeigen)
-        startBtn.style.display = "none";
-        progContainer.style.display = "none";
-        claimBtn.style.display = "block";
-
-        if (m.result && m.result.crashed) {
-            renderField.innerHTML = "!!! CRITICAL CRASH !!!<br><small>Signal verloren. Drohne zerstört.</small>";
-            renderField.style.color = "var(--warn)";
-            claimBtn.textContent = "BERGE TRÜMMER (LOSE PARTS)";
-            claimBtn.style.borderColor = "var(--warn)";
-            claimBtn.style.color = "var(--warn)";
-        } else {
-            renderField.innerHTML = "[ MISSION COMPLETE ]<br><small>Loot abholbereit.</small>";
-            renderField.style.color = "#00ff88";
-            claimBtn.textContent = "CLAIM LOOT";
-            claimBtn.style.borderColor = "#00ff88";
-            claimBtn.style.color = "#00ff88";
-        }
-    }
+  if (filterVal === "sort_rarity") {
+      displayItems.sort((a, b) => RARITIES[b.rarity].weight - RARITIES[a.rarity].weight);
+  } else if (filterVal.startsWith("type_")) {
+      const t = filterVal.split("_")[1];
+      displayItems = displayItems.filter(p => p.type === t);
   }
 
+  const invList = document.getElementById("inventory-list");
+  invList.innerHTML = "";
+  displayItems.forEach(part => {
+      const color = RARITIES[part.rarity].color;
+      const div = document.createElement("div");
+      div.className = "inv-item anim-pop";
+      div.draggable = true;
+      div.ondragstart = (ev) => dragStart(ev, part.id);
+      div.onclick = () => equipPart(part.id); 
+      div.innerHTML = `<b style="color: ${color};">${part.rarity}</b><br><span style="color: var(--muted);">${part.type.toUpperCase()}</span><br>${part.name}`;
+      invList.appendChild(div);
+  });
+
+  const types = ["props", "battery", "frame", "fc", "camera"];
+  let partsEquipped = 0;
+  
+  // HIER IST DIE KORREKTUR: Wir definieren m und isMissionActive nur EINMAL ganz oben!
+  const m = state.newWorld.mission;
+  const isMissionActive = !!m;
+
+  types.forEach(type => {
+      const slot = document.getElementById("slot-" + type);
+      const equipped = state.newWorld.hangar[type];
+      
+      slot.style.pointerEvents = isMissionActive ? 'none' : 'auto';
+      slot.style.opacity = isMissionActive ? '0.5' : '1';
+      
+      slot.ondragover = (ev) => allowDrop(ev);
+      slot.ondragenter = (ev) => dragEnterSlot(ev, slot);
+      slot.ondragleave = (ev) => dragLeaveSlot(ev, slot);
+      slot.ondrop = (ev) => dropToSlot(ev, type);
+      
+      if(equipped) {
+          const color = RARITIES[equipped.rarity].color;
+          slot.classList.add("filled", "anim-pop");
+          slot.draggable = !isMissionActive; 
+          slot.ondragstart = (ev) => dragStartEquipped(ev, type);
+          slot.innerHTML = `<b style="color: var(--muted);">${type.toUpperCase()}</b><br><span style="color: ${color}">${equipped.name}</span>`;
+          slot.onclick = isMissionActive ? null : () => unequipPart(type);
+          partsEquipped++;
+      } else {
+          slot.classList.remove("filled", "anim-pop");
+          slot.draggable = false;
+          slot.ondragstart = null;
+          slot.innerHTML = `${type.toUpperCase()}<br><small>empty</small>`;
+          slot.onclick = null;
+      }
+  });
+
+  const renderField = document.getElementById("drone-render-field");
+  const startBtn = document.getElementById("startMissionBtn");
+  const progContainer = document.getElementById("mission-progress-container");
+  const claimBtn = document.getElementById("claimMissionBtn");
+  
+  // --- UI STATUS LOGIK ---
+  const isWaitingForClaim = isMissionActive && m.status === "WAITING_FOR_CLAIM";
+
+  if (isMissionActive) {
+      document.querySelectorAll('.inv-item, .part-slot').forEach(elem => {
+          elem.style.pointerEvents = 'none';
+          if (elem.classList.contains('inv-item')) elem.style.opacity = '0.4';
+      });
+  }
+
+  if (!isMissionActive) {
+      progContainer.style.display = "none";
+      claimBtn.style.display = "none";
+      startBtn.style.display = "block";
+      
+      if (partsEquipped === 5) {
+          renderField.innerHTML = "▀▄▀▄▀ [ DROHNE BEREIT ] ▀▄▀▄▀<br><small>Wartet auf Freigabe.</small>";
+          renderField.style.color = "#00ff88";
+          startBtn.disabled = false;
+      } else {
+          renderField.innerHTML = "[ SYSTEM OFFLINE ]<br><small>Teile fehlen (" + partsEquipped + "/5)</small>";
+          renderField.style.color = "var(--warn)";
+          startBtn.disabled = true;
+      }
+  } 
+  else if (m.status === "IN_PROGRESS") {
+      startBtn.style.display = "none";
+      claimBtn.style.display = "none";
+      progContainer.style.display = "block";
+      renderField.innerHTML = ">>> MISSION IN PROGRESS <<< <br><small>Drohne in Sektor 7...</small>";
+      renderField.style.color = "var(--warn)";
+  } 
+  else if (isWaitingForClaim) {
+      startBtn.style.display = "none";
+      progContainer.style.display = "none";
+      claimBtn.style.display = "block";
+
+      if (m.result && m.result.crashed) {
+          renderField.innerHTML = "!!! CRITICAL CRASH !!!<br><small>Signal verloren. Drohne zerstört.</small>";
+          renderField.style.color = "var(--warn)";
+          claimBtn.textContent = "BERGE TRÜMMER (LOSE PARTS)";
+          claimBtn.style.borderColor = "var(--warn)";
+          claimBtn.style.color = "var(--warn)";
+      } else {
+          renderField.innerHTML = "[ MISSION COMPLETE ]<br><small>Loot abholbereit.</small>";
+          renderField.style.color = "#00ff88";
+          claimBtn.textContent = "CLAIM LOOT";
+          claimBtn.style.borderColor = "#00ff88";
+          claimBtn.style.color = "#00ff88";
+      }
+  }
+}
 function render(){
   const cps = coinsPerSecond(); const rps = rpPerSecond(); const cp = clickPower();
   el.coins.textContent = fmt(state.coins); el.cps.textContent = cps.toFixed(cps<10?2:1);
