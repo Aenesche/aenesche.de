@@ -416,12 +416,12 @@ const TECH_TREE = {
     "n_cam_006b": { treeType: "camera", partId: "cam_006b", req: ["n_cam_005b"], x: 80, y: 38, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 200, vg: 0 } },
 
     // TIER 3 (Die breiteste Stelle des Auges - VOID GEMS KOSTEN STARTEN HIER)
-    "n_cam_007a": { treeType: "camera", partId: "cam_007a", req: ["n_cam_006a"], x: 15, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 2 }, buyCost: { cp: 0, po: 600, vg: 1 } },
-    "n_cam_008a": { treeType: "camera", partId: "cam_008a", req: ["n_cam_007a"], x: 15, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
+    "n_cam_007a": { treeType: "camera", partId: "cam_007a", req: ["n_cam_006a"], x: 15, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 0 }, buyCost: { cp: 0, po: 600, vg: 0 } },
+    "n_cam_008a": { treeType: "camera", partId: "cam_008a", req: ["n_cam_007a"], x: 15, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 0 }, buyCost: { cp: 0, po: 1500, vg: 0 } },
 
     // Der Void-Kern (Entsteht in der Mitte aus den äußeren Ringen!)
-    "n_cam_007m": { treeType: "camera", partId: "cam_007m", req: ["n_cam_006a", "n_cam_006b"], x: 50, y: 48, unlockCost: { rp: 0, nrp: 300, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
-    "n_cam_008m": { treeType: "camera", partId: "cam_008m", req: ["n_cam_007m"], x: 42, y: 56, unlockCost: { rp: 0, nrp: 600, vg: 6 }, buyCost: { cp: 0, po: 2000, vg: 4 } },
+    "n_cam_007m": { treeType: "camera", partId: "cam_007m", req: ["n_cam_006a", "n_cam_006b"], x: 50, y: 48, unlockCost: { rp: 0, nrp: 300, vg: 1 }, buyCost: { cp: 0, po: 800, vg: 0 } },
+    "n_cam_008m": { treeType: "camera", partId: "cam_008m", req: ["n_cam_007m"], x: 42, y: 56, unlockCost: { rp: 0, nrp: 600, vg: 0 }, buyCost: { cp: 0, po: 2000, vg: 1 } },
 
     "n_cam_007b": { treeType: "camera", partId: "cam_007b", req: ["n_cam_006b"], x: 85, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 2 }, buyCost: { cp: 0, po: 600, vg: 1 } },
     "n_cam_008b": { treeType: "camera", partId: "cam_008b", req: ["n_cam_007b"], x: 85, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
