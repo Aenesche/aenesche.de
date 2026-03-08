@@ -132,6 +132,15 @@
     text-shadow: 0 0 3px currentColor;
     font-weight: bold;
 }
+
+    /* Animation für erfolgreiches Craften/Researchen */
+    @keyframes techFlash {
+        0% { background-color: rgba(0, 255, 136, 0.3); border-color: #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.4); }
+        100% { background-color: #050505; border-color: var(--line); box-shadow: none; }
+    }
+    .flash-buy {
+        animation: techFlash 0.6s ease-out;
+    }
   </style>
 </head>
 <body>
