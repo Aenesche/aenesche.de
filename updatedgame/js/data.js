@@ -148,71 +148,70 @@ const PART_CATALOG = {
 
 // --- DER NEUE 2D TECH TREE (BATTERIEN) ---
 // Beachte die neuen 'vg' (Void Gems) in den Kosten!
+// --- DER NEUE 2D TECH TREE (BATTERIEN) ---
 const TECH_TREE = {
-    // TIER 1
+    // TIER 1 (CP und RP regieren noch)
     "n_bat_001": { treeType: "battery", partId: "bat_001", req: [], x: 50, y: 5, unlockCost: { rp: 500, nrp: 0, vg: 0 }, buyCost: { cp: 1e12, po: 0, vg: 0 } },
     "n_bat_002": { treeType: "battery", partId: "bat_002", req: ["n_bat_001"], x: 50, y: 9, unlockCost: { rp: 1000, nrp: 0, vg: 0 }, buyCost: { cp: 5e12, po: 0, vg: 0 } },
     "n_bat_003": { treeType: "battery", partId: "bat_003", req: ["n_bat_002"], x: 50, y: 13, unlockCost: { rp: 5000, nrp: 0, vg: 0 }, buyCost: { cp: 20e12, po: 0, vg: 0 } },
     "n_bat_004": { treeType: "battery", partId: "bat_004", req: ["n_bat_003"], x: 50, y: 17, unlockCost: { rp: 15000, nrp: 2, vg: 0 }, buyCost: { cp: 50e12, po: 5, vg: 0 } },
     "n_bat_005": { treeType: "battery", partId: "bat_005", req: ["n_bat_004"], x: 50, y: 21, unlockCost: { rp: 50000, nrp: 5, vg: 0 }, buyCost: { cp: 150e12, po: 15, vg: 0 } },
-    "n_bat_006": { treeType: "battery", partId: "bat_006", req: ["n_bat_003"], x: 62, y: 13, unlockCost: { rp: 8000, nrp: 1, vg: 0 }, buyCost: { cp: 30e12, po: 2, vg: 0 } }, // Dead End
+    "n_bat_006": { treeType: "battery", partId: "bat_006", req: ["n_bat_003"], x: 62, y: 13, unlockCost: { rp: 8000, nrp: 1, vg: 0 }, buyCost: { cp: 30e12, po: 2, vg: 0 } }, 
 
-    // TIER 2
-    "n_bat_007": { treeType: "battery", partId: "bat_007", req: ["n_bat_005"], x: 50, y: 26, unlockCost: { rp: 100000, nrp: 15, vg: 0 }, buyCost: { cp: 400e12, po: 30, vg: 0 } },
-    "n_bat_008": { treeType: "battery", partId: "bat_008", req: ["n_bat_007"], x: 50, y: 30, unlockCost: { rp: 250000, nrp: 30, vg: 0 }, buyCost: { cp: 800e12, po: 60, vg: 0 } },
-    // Split A (Links) & Split B (Rechts)
-    "n_bat_009a": { treeType: "battery", partId: "bat_009a", req: ["n_bat_008"], x: 40, y: 34, unlockCost: { rp: 500000, nrp: 50, vg: 0 }, buyCost: { cp: 1500e12, po: 100, vg: 0 } },
-    "n_bat_010a": { treeType: "battery", partId: "bat_010a", req: ["n_bat_009a"], x: 40, y: 38, unlockCost: { rp: 800000, nrp: 80, vg: 0 }, buyCost: { cp: 3000e12, po: 150, vg: 0 } },
-    "n_bat_011a": { treeType: "battery", partId: "bat_011a", req: ["n_bat_010a"], x: 40, y: 42, unlockCost: { rp: 1500000, nrp: 120, vg: 0 }, buyCost: { cp: 6000e12, po: 250, vg: 0 } },
+    // TIER 2 (CP und RP faden radikal aus, PO & N-RP übernehmen)
+    "n_bat_007": { treeType: "battery", partId: "bat_007", req: ["n_bat_005"], x: 50, y: 26, unlockCost: { rp: 20000, nrp: 15, vg: 0 }, buyCost: { cp: 100e12, po: 30, vg: 0 } },
+    "n_bat_008": { treeType: "battery", partId: "bat_008", req: ["n_bat_007"], x: 50, y: 30, unlockCost: { rp: 0, nrp: 30, vg: 0 }, buyCost: { cp: 0, po: 60, vg: 0 } }, // AB HIER 0 RP/CP!
     
-    "n_bat_009b": { treeType: "battery", partId: "bat_009b", req: ["n_bat_008"], x: 60, y: 34, unlockCost: { rp: 500000, nrp: 50, vg: 0 }, buyCost: { cp: 1500e12, po: 100, vg: 0 } },
-    "n_bat_010b": { treeType: "battery", partId: "bat_010b", req: ["n_bat_009b"], x: 60, y: 38, unlockCost: { rp: 800000, nrp: 80, vg: 0 }, buyCost: { cp: 3000e12, po: 150, vg: 0 } },
-    "n_bat_011b": { treeType: "battery", partId: "bat_011b", req: ["n_bat_010b"], x: 60, y: 42, unlockCost: { rp: 1500000, nrp: 120, vg: 0 }, buyCost: { cp: 6000e12, po: 250, vg: 0 } },
-    "n_bat_012b": { treeType: "battery", partId: "bat_012b", req: ["n_bat_009b"], x: 72, y: 34, unlockCost: { rp: 600000, nrp: 60, vg: 0 }, buyCost: { cp: 2000e12, po: 120, vg: 0 } }, // Dead End B
+    // Split A (Links) & Split B (Rechts) -> Ausschließlich PO und N-RP
+    "n_bat_009a": { treeType: "battery", partId: "bat_009a", req: ["n_bat_008"], x: 40, y: 34, unlockCost: { rp: 0, nrp: 50, vg: 0 }, buyCost: { cp: 0, po: 100, vg: 0 } },
+    "n_bat_010a": { treeType: "battery", partId: "bat_010a", req: ["n_bat_009a"], x: 40, y: 38, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 150, vg: 0 } },
+    "n_bat_011a": { treeType: "battery", partId: "bat_011a", req: ["n_bat_010a"], x: 40, y: 42, unlockCost: { rp: 0, nrp: 120, vg: 0 }, buyCost: { cp: 0, po: 250, vg: 0 } },
+    
+    "n_bat_009b": { treeType: "battery", partId: "bat_009b", req: ["n_bat_008"], x: 60, y: 34, unlockCost: { rp: 0, nrp: 50, vg: 0 }, buyCost: { cp: 0, po: 100, vg: 0 } },
+    "n_bat_010b": { treeType: "battery", partId: "bat_010b", req: ["n_bat_009b"], x: 60, y: 38, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 150, vg: 0 } },
+    "n_bat_011b": { treeType: "battery", partId: "bat_011b", req: ["n_bat_010b"], x: 60, y: 42, unlockCost: { rp: 0, nrp: 120, vg: 0 }, buyCost: { cp: 0, po: 250, vg: 0 } },
+    "n_bat_012b": { treeType: "battery", partId: "bat_012b", req: ["n_bat_009b"], x: 72, y: 34, unlockCost: { rp: 0, nrp: 60, vg: 0 }, buyCost: { cp: 0, po: 120, vg: 0 } }, 
 
-    // TIER 3 (Hier starten die Void Gems Kosten!)
-    "n_bat_013a": { treeType: "battery", partId: "bat_013a", req: ["n_bat_011a"], x: 35, y: 47, unlockCost: { rp: 3000000, nrp: 200, vg: 1 }, buyCost: { cp: 15000e12, po: 500, vg: 0 } },
-    "n_bat_014a": { treeType: "battery", partId: "bat_014a", req: ["n_bat_013a"], x: 35, y: 51, unlockCost: { rp: 5000000, nrp: 350, vg: 2 }, buyCost: { cp: 25000e12, po: 800, vg: 1 } },
-    "n_bat_015a": { treeType: "battery", partId: "bat_015a", req: ["n_bat_014a"], x: 35, y: 55, unlockCost: { rp: 8000000, nrp: 500, vg: 5 }, buyCost: { cp: 45000e12, po: 1200, vg: 2 } },
+    // TIER 3 (Void Gems kommen dazu)
+    "n_bat_013a": { treeType: "battery", partId: "bat_013a", req: ["n_bat_011a"], x: 35, y: 47, unlockCost: { rp: 0, nrp: 200, vg: 1 }, buyCost: { cp: 0, po: 500, vg: 0 } },
+    "n_bat_014a": { treeType: "battery", partId: "bat_014a", req: ["n_bat_013a"], x: 35, y: 51, unlockCost: { rp: 0, nrp: 350, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
+    "n_bat_015a": { treeType: "battery", partId: "bat_015a", req: ["n_bat_014a"], x: 35, y: 55, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1200, vg: 2 } },
 
-    "n_bat_013m": { treeType: "battery", partId: "bat_013m", req: ["n_bat_011a", "n_bat_011b"], x: 50, y: 47, unlockCost: { rp: 4000000, nrp: 250, vg: 1 }, buyCost: { cp: 20000e12, po: 600, vg: 0 } }, // Führt A und B zusammen
-    "n_bat_014m": { treeType: "battery", partId: "bat_014m", req: ["n_bat_013m"], x: 50, y: 51, unlockCost: { rp: 6000000, nrp: 400, vg: 2 }, buyCost: { cp: 30000e12, po: 900, vg: 1 } },
-    "n_bat_015m": { treeType: "battery", partId: "bat_015m", req: ["n_bat_014m"], x: 50, y: 55, unlockCost: { rp: 9000000, nrp: 600, vg: 5 }, buyCost: { cp: 50000e12, po: 1500, vg: 2 } },
+    "n_bat_013m": { treeType: "battery", partId: "bat_013m", req: ["n_bat_011a", "n_bat_011b"], x: 50, y: 47, unlockCost: { rp: 0, nrp: 250, vg: 1 }, buyCost: { cp: 0, po: 600, vg: 0 } }, 
+    "n_bat_014m": { treeType: "battery", partId: "bat_014m", req: ["n_bat_013m"], x: 50, y: 51, unlockCost: { rp: 0, nrp: 400, vg: 2 }, buyCost: { cp: 0, po: 900, vg: 1 } },
+    "n_bat_015m": { treeType: "battery", partId: "bat_015m", req: ["n_bat_014m"], x: 50, y: 55, unlockCost: { rp: 0, nrp: 600, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 2 } },
 
-    "n_bat_013b": { treeType: "battery", partId: "bat_013b", req: ["n_bat_011b"], x: 65, y: 47, unlockCost: { rp: 3000000, nrp: 200, vg: 1 }, buyCost: { cp: 15000e12, po: 500, vg: 0 } },
-    "n_bat_014b": { treeType: "battery", partId: "bat_014b", req: ["n_bat_013b"], x: 65, y: 51, unlockCost: { rp: 5000000, nrp: 350, vg: 2 }, buyCost: { cp: 25000e12, po: 800, vg: 1 } },
-    "n_bat_015b": { treeType: "battery", partId: "bat_015b", req: ["n_bat_014b"], x: 65, y: 55, unlockCost: { rp: 8000000, nrp: 500, vg: 5 }, buyCost: { cp: 45000e12, po: 1200, vg: 2 } },
+    "n_bat_013b": { treeType: "battery", partId: "bat_013b", req: ["n_bat_011b"], x: 65, y: 47, unlockCost: { rp: 0, nrp: 200, vg: 1 }, buyCost: { cp: 0, po: 500, vg: 0 } },
+    "n_bat_014b": { treeType: "battery", partId: "bat_014b", req: ["n_bat_013b"], x: 65, y: 51, unlockCost: { rp: 0, nrp: 350, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
+    "n_bat_015b": { treeType: "battery", partId: "bat_015b", req: ["n_bat_014b"], x: 65, y: 55, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1200, vg: 2 } },
 
-    // Strang C (Dead End ab 13a)
-    "n_bat_013c": { treeType: "battery", partId: "bat_013c", req: ["n_bat_013a"], x: 20, y: 47, unlockCost: { rp: 3500000, nrp: 220, vg: 1 }, buyCost: { cp: 18000e12, po: 550, vg: 0 } },
-    "n_bat_014c": { treeType: "battery", partId: "bat_014c", req: ["n_bat_013c"], x: 20, y: 51, unlockCost: { rp: 5500000, nrp: 380, vg: 2 }, buyCost: { cp: 28000e12, po: 850, vg: 1 } },
-    "n_bat_201":  { treeType: "battery", partId: "bat_201",  req: ["n_bat_014c"], x: 20, y: 55, unlockCost: { rp: 10000000, nrp: 700, vg: 8 }, buyCost: { cp: 60000e12, po: 1800, vg: 3 } }, // Exot C
+    "n_bat_013c": { treeType: "battery", partId: "bat_013c", req: ["n_bat_013a"], x: 20, y: 47, unlockCost: { rp: 0, nrp: 220, vg: 1 }, buyCost: { cp: 0, po: 550, vg: 0 } },
+    "n_bat_014c": { treeType: "battery", partId: "bat_014c", req: ["n_bat_013c"], x: 20, y: 51, unlockCost: { rp: 0, nrp: 380, vg: 2 }, buyCost: { cp: 0, po: 850, vg: 1 } },
+    "n_bat_201":  { treeType: "battery", partId: "bat_201",  req: ["n_bat_014c"], x: 20, y: 55, unlockCost: { rp: 0, nrp: 700, vg: 8 }, buyCost: { cp: 0, po: 1800, vg: 3 } }, 
 
     // TIER 4
-    "n_bat_016a": { treeType: "battery", partId: "bat_016a", req: ["n_bat_015a"], x: 35, y: 60, unlockCost: { rp: 15000000, nrp: 1000, vg: 10 }, buyCost: { cp: 80000e12, po: 2500, vg: 5 } },
-    "n_bat_017a": { treeType: "battery", partId: "bat_017a", req: ["n_bat_016a"], x: 35, y: 64, unlockCost: { rp: 25000000, nrp: 1800, vg: 15 }, buyCost: { cp: 150000e12, po: 4000, vg: 8 } },
-    "n_bat_018a": { treeType: "battery", partId: "bat_018a", req: ["n_bat_017a"], x: 35, y: 68, unlockCost: { rp: 40000000, nrp: 3000, vg: 25 }, buyCost: { cp: 300000e12, po: 7000, vg: 15 } },
+    "n_bat_016a": { treeType: "battery", partId: "bat_016a", req: ["n_bat_015a"], x: 35, y: 60, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 2500, vg: 5 } },
+    "n_bat_017a": { treeType: "battery", partId: "bat_017a", req: ["n_bat_016a"], x: 35, y: 64, unlockCost: { rp: 0, nrp: 1800, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
+    "n_bat_018a": { treeType: "battery", partId: "bat_018a", req: ["n_bat_017a"], x: 35, y: 68, unlockCost: { rp: 0, nrp: 3000, vg: 25 }, buyCost: { cp: 0, po: 7000, vg: 15 } },
 
-    "n_bat_016m": { treeType: "battery", partId: "bat_016m", req: ["n_bat_015m"], x: 50, y: 60, unlockCost: { rp: 18000000, nrp: 1200, vg: 12 }, buyCost: { cp: 100000e12, po: 3000, vg: 6 } },
-    "n_bat_017m": { treeType: "battery", partId: "bat_017m", req: ["n_bat_016m"], x: 50, y: 64, unlockCost: { rp: 30000000, nrp: 2200, vg: 18 }, buyCost: { cp: 200000e12, po: 5000, vg: 10 } },
-    "n_bat_018m": { treeType: "battery", partId: "bat_018m", req: ["n_bat_017m"], x: 50, y: 68, unlockCost: { rp: 50000000, nrp: 3500, vg: 30 }, buyCost: { cp: 400000e12, po: 9000, vg: 18 } },
+    "n_bat_016m": { treeType: "battery", partId: "bat_016m", req: ["n_bat_015m"], x: 50, y: 60, unlockCost: { rp: 0, nrp: 1200, vg: 12 }, buyCost: { cp: 0, po: 3000, vg: 6 } },
+    "n_bat_017m": { treeType: "battery", partId: "bat_017m", req: ["n_bat_016m"], x: 50, y: 64, unlockCost: { rp: 0, nrp: 2200, vg: 18 }, buyCost: { cp: 0, po: 5000, vg: 10 } },
+    "n_bat_018m": { treeType: "battery", partId: "bat_018m", req: ["n_bat_017m"], x: 50, y: 68, unlockCost: { rp: 0, nrp: 3500, vg: 30 }, buyCost: { cp: 0, po: 9000, vg: 18 } },
 
-    // Strang B endet hier!
-    "n_bat_016b": { treeType: "battery", partId: "bat_016b", req: ["n_bat_015b"], x: 65, y: 60, unlockCost: { rp: 15000000, nrp: 1000, vg: 10 }, buyCost: { cp: 80000e12, po: 2500, vg: 5 } },
-    "n_bat_017b": { treeType: "battery", partId: "bat_017b", req: ["n_bat_016b"], x: 65, y: 64, unlockCost: { rp: 25000000, nrp: 1800, vg: 15 }, buyCost: { cp: 150000e12, po: 4000, vg: 8 } },
-    "n_bat_018b": { treeType: "battery", partId: "bat_018b", req: ["n_bat_017b"], x: 65, y: 68, unlockCost: { rp: 40000000, nrp: 3000, vg: 25 }, buyCost: { cp: 300000e12, po: 7000, vg: 15 } },
-    "n_bat_202":  { treeType: "battery", partId: "bat_202",  req: ["n_bat_017b"], x: 78, y: 64, unlockCost: { rp: 60000000, nrp: 5000, vg: 40 }, buyCost: { cp: 500000e12, po: 10000, vg: 20 } }, // Exot 1 (Kamikaze)
+    "n_bat_016b": { treeType: "battery", partId: "bat_016b", req: ["n_bat_015b"], x: 65, y: 60, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 2500, vg: 5 } },
+    "n_bat_017b": { treeType: "battery", partId: "bat_017b", req: ["n_bat_016b"], x: 65, y: 64, unlockCost: { rp: 0, nrp: 1800, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
+    "n_bat_018b": { treeType: "battery", partId: "bat_018b", req: ["n_bat_017b"], x: 65, y: 68, unlockCost: { rp: 0, nrp: 3000, vg: 25 }, buyCost: { cp: 0, po: 7000, vg: 15 } },
+    "n_bat_202":  { treeType: "battery", partId: "bat_202",  req: ["n_bat_017b"], x: 78, y: 64, unlockCost: { rp: 0, nrp: 5000, vg: 40 }, buyCost: { cp: 0, po: 10000, vg: 20 } }, 
 
     // TIER 5
-    "n_bat_019a": { treeType: "battery", partId: "bat_019a", req: ["n_bat_018a"], x: 35, y: 74, unlockCost: { rp: 100000000, nrp: 8000, vg: 60 }, buyCost: { cp: 1000000e12, po: 20000, vg: 35 } },
-    "n_bat_020a": { treeType: "battery", partId: "bat_020a", req: ["n_bat_019a"], x: 35, y: 79, unlockCost: { rp: 250000000, nrp: 15000, vg: 120 }, buyCost: { cp: 3000000e12, po: 50000, vg: 80 } },
-    "n_bat_203":  { treeType: "battery", partId: "bat_203",  req: ["n_bat_019a"], x: 20, y: 74, unlockCost: { rp: 150000000, nrp: 12000, vg: 90 }, buyCost: { cp: 2000000e12, po: 35000, vg: 50 } }, // Exot 2 (Versicherung)
+    "n_bat_019a": { treeType: "battery", partId: "bat_019a", req: ["n_bat_018a"], x: 35, y: 74, unlockCost: { rp: 0, nrp: 8000, vg: 60 }, buyCost: { cp: 0, po: 20000, vg: 35 } },
+    "n_bat_020a": { treeType: "battery", partId: "bat_020a", req: ["n_bat_019a"], x: 35, y: 79, unlockCost: { rp: 0, nrp: 15000, vg: 120 }, buyCost: { cp: 0, po: 50000, vg: 80 } },
+    "n_bat_203":  { treeType: "battery", partId: "bat_203",  req: ["n_bat_019a"], x: 20, y: 74, unlockCost: { rp: 0, nrp: 12000, vg: 90 }, buyCost: { cp: 0, po: 35000, vg: 50 } }, 
 
-    "n_bat_019m": { treeType: "battery", partId: "bat_019m", req: ["n_bat_018m"], x: 50, y: 74, unlockCost: { rp: 120000000, nrp: 9000, vg: 70 }, buyCost: { cp: 1200000e12, po: 25000, vg: 40 } },
-    "n_bat_020m": { treeType: "battery", partId: "bat_020m", req: ["n_bat_019m"], x: 50, y: 79, unlockCost: { rp: 300000000, nrp: 20000, vg: 150 }, buyCost: { cp: 4000000e12, po: 70000, vg: 100 } },
-    "n_bat_204":  { treeType: "battery", partId: "bat_204",  req: ["n_bat_019m"], x: 65, y: 74, unlockCost: { rp: 180000000, nrp: 14000, vg: 100 }, buyCost: { cp: 2500000e12, po: 45000, vg: 60 } }, // Exot 3 (AFK Loot)
-    "n_bat_205":  { treeType: "battery", partId: "bat_205",  req: ["n_bat_020m"], x: 50, y: 84, unlockCost: { rp: 500000000, nrp: 35000, vg: 300 }, buyCost: { cp: 8000000e12, po: 150000, vg: 200 } }, // Exot 4 (Void Hunter)
+    "n_bat_019m": { treeType: "battery", partId: "bat_019m", req: ["n_bat_018m"], x: 50, y: 74, unlockCost: { rp: 0, nrp: 9000, vg: 70 }, buyCost: { cp: 0, po: 25000, vg: 40 } },
+    "n_bat_020m": { treeType: "battery", partId: "bat_020m", req: ["n_bat_019m"], x: 50, y: 79, unlockCost: { rp: 0, nrp: 20000, vg: 150 }, buyCost: { cp: 0, po: 70000, vg: 100 } },
+    "n_bat_204":  { treeType: "battery", partId: "bat_204",  req: ["n_bat_019m"], x: 65, y: 74, unlockCost: { rp: 0, nrp: 14000, vg: 100 }, buyCost: { cp: 0, po: 45000, vg: 60 } }, 
+    "n_bat_205":  { treeType: "battery", partId: "bat_205",  req: ["n_bat_020m"], x: 50, y: 84, unlockCost: { rp: 0, nrp: 35000, vg: 300 }, buyCost: { cp: 0, po: 150000, vg: 200 } }, 
 
-    // Dummy-Nodes, damit die anderen Tabs im Menü (die aktuell leer sind) nicht abstürzen
     "dummy_fra": { treeType: "frame", partId: "fra_001", req: [], x: 50, y: 10, unlockCost: { rp: 0, nrp: 0, vg: 0 }, buyCost: { cp: 0, po: 0, vg: 0 } }
 };
