@@ -264,6 +264,12 @@ const PART_CATALOG = {
     // ==========================================
     "cam_d01": { type: "camera", rarity: "Ultra Rare", name: "Eye of the Creator", luckBonus: 350.0, vgChance: 0.25, special: null }, // Absolutes RNG Monster
 
+    // ==========================================
+    // 📷 KAMERAS: DIE DJI SYNERGIE-EXOTEN (Einfügen bei den Kameras)
+    // ==========================================
+    "cam_dji_v1": { type: "camera", rarity: "Super Rare", name: "D-JI Air Action", luckBonus: 10.0, vgChance: 0.02, special: { type: "synergy_ready", value: "v1" } },
+    "cam_dji_o3": { type: "camera", rarity: "Legendary", name: "D-JI O3 Pro-Lens", luckBonus: 30.0, vgChance: 0.06, special: { type: "synergy_ready", value: "o3" } },
+
     //############################################################################################################################################################################################
     //############################################################################################################################################################################################
   
@@ -324,7 +330,41 @@ const PART_CATALOG = {
     // ==========================================
     // 🌌 DROP-EXCLUSIVE (Unconnected)
     // ==========================================
-    "fra_d01": { type: "frame", rarity: "Ultra Rare", name: "Tesseract Hull", breakChance: 0.00, special: { type: "save_parts", value: 4 } } // Unzerstörbar UND beschützt alle anderen Teile.
+    "fra_d01": { type: "frame", rarity: "Ultra Rare", name: "Tesseract Hull", breakChance: 0.00, special: { type: "save_parts", value: 4 } }, // Unzerstörbar UND beschützt alle anderen Teile.
+
+    // ==========================================
+    // 🎛️ FLIGHT CONTROLLER (FC) TIER 1 (Common)
+    // ==========================================
+    "fc_001": { type: "fc", rarity: "Common", name: "F1 Basic Board", safety: 0, special: null },
+    "fc_002": { type: "fc", rarity: "Common", name: "F3 Acro Board", safety: 0, special: { type: "agility_boost", value: 0.05 } }, // 5% schnellere Mission
+    "fc_003": { type: "fc", rarity: "Common", name: "F4 Advanced Board", safety: 0.02, special: { type: "auto_level", value: 0.02 } }, // Senkt Crash-Risiko pauschal um 2%
+
+    // ==========================================
+    // 🎛️ FLIGHT CONTROLLER (FC) TIER 2 (Rare)
+    // ==========================================
+    "fc_004m": { type: "fc", rarity: "Rare", name: "F7 Processing Unit", safety: 0, special: { type: "blackbox", value: 0.5 } }, // Sichert 50% N-RP bei Crash
+    "fc_004a": { type: "fc", rarity: "Rare", name: "Basic GPS-Modul", safety: 0, special: { type: "rth_v1", value: 1 } }, // Rettet 1 Bauteil bei Crash
+    "fc_004b": { type: "fc", rarity: "Rare", name: "VTX Clean Feed", safety: 0, special: { type: "luck_boost", value: 5.0 } }, // Flacher Luck Bonus für die Kamera
+
+    // ==========================================
+    // 🎛️ FLIGHT CONTROLLER (FC) TIER 3 (Super Rare) - Void Gems ab hier!
+    // ==========================================
+    "fc_005m": { type: "fc", rarity: "Super Rare", name: "H7 Dual-Core Board", safety: 0, special: { type: "overclock_po", value: 0.2 } }, // +20% PO Ertrag
+    "fc_005a": { type: "fc", rarity: "Super Rare", name: "Sat-Nav Rescue System", safety: 0, special: { type: "rth_v2", value: 3 } }, // Rettet 3 Bauteile bei Crash
+    "fc_005b": { type: "fc", rarity: "Super Rare", name: "Digital Air Unit V1", safety: 0, special: { type: "set_bonus_v1", value: 2.0 } }, // Verdoppelt Stats der D-JI Action Cam
+
+    // ==========================================
+    // 🎛️ FLIGHT CONTROLLER (FC) TIER 4 (Legendary)
+    // ==========================================
+    "fc_006m": { type: "fc", rarity: "Legendary", name: "AI-Copilot Chip", safety: 0, special: { type: "pity_timer", value: 0.01 } }, // Erhöht Chance auf Rare+ bei Nieten
+    "fc_006a": { type: "fc", rarity: "Legendary", name: "Quantum-Lock RTH", safety: 0, special: { type: "rth_flawless", value: 5 } }, // Rettet ALLE Bauteile bei Crash
+    "fc_006b": { type: "fc", rarity: "Legendary", name: "O3 HD Air Unit", safety: 0, special: { type: "set_bonus_o3", value: 3.0 } }, // Verdreifacht Stats der D-JI O3 Cam
+
+    // ==========================================
+    // 🎛️ FLIGHT CONTROLLER (FC) TIER 5 (Ultra Rare)
+    // ==========================================
+    "fc_007": { type: "fc", rarity: "Ultra Rare", name: "The Hive-Mind Node", safety: 0, special: { type: "drone_swarm", value: 3 } }, // Würfelt 3x pro Mission und gibt den besten Loot
+    "fc_201": { type: "fc", rarity: "Ultra Rare", name: "Crash-Capitalizer", safety: 0, special: { type: "insurance_fraud", value: 1.0 } } // Exot: Massive Auszahlung bei Crash-Verlusten
 };
 
 // --- DER NEUE 2D TECH TREE (BATTERIEN) ---
@@ -501,6 +541,10 @@ const TECH_TREE = {
     
     "n_cam_203": { treeType: "camera", partId: "cam_203", req: ["n_cam_011"], x: 30, y: 91, unlockCost: { rp: 0, nrp: 20000, vg: 150 }, buyCost: { cp: 0, po: 60000, vg: 80 } }, // Exot Decoder
     "n_cam_204": { treeType: "camera", partId: "cam_204", req: ["n_cam_012"], x: 65, y: 95, unlockCost: { rp: 0, nrp: 50000, vg: 400 }, buyCost: { cp: 0, po: 200000, vg: 250 } },  // Exot Jackpot
+
+  // --- DIE DJI KAMERAS IM KAMERA BAUM (Hängen an Strang B) ---
+    "n_cam_dji_1": { treeType: "camera", partId: "cam_dji_v1", req: ["n_cam_008b"], x: 95, y: 56, unlockCost: { rp: 0, nrp: 1200, vg: 8 }, buyCost: { cp: 0, po: 3500, vg: 4 } },
+    "n_cam_dji_2": { treeType: "camera", partId: "cam_dji_o3", req: ["n_cam_010b"], x: 80, y: 76, unlockCost: { rp: 0, nrp: 5000, vg: 45 }, buyCost: { cp: 0, po: 12000, vg: 20 } },
       
   //############################################################################################################################################################################################
   //############################################################################################################################################################################################
@@ -552,5 +596,33 @@ const TECH_TREE = {
     
     // Die ultimativen Exoten wachsen aus den End-Knoten in den Boden
     "n_fra_203": { treeType: "frame", partId: "fra_203", req: ["n_fra_012"], x: 20, y: 96, unlockCost: { rp: 0, nrp: 50000, vg: 300 }, buyCost: { cp: 0, po: 150000, vg: 200 } }, // Exot Juggernaut
-    "n_fra_204": { treeType: "frame", partId: "fra_204", req: ["n_fra_011"], x: 78, y: 94, unlockCost: { rp: 0, nrp: 40000, vg: 250 }, buyCost: { cp: 0, po: 120000, vg: 180 } }  // Exot Void Aegis
+    "n_fra_204": { treeType: "frame", partId: "fra_204", req: ["n_fra_011"], x: 78, y: 94, unlockCost: { rp: 0, nrp: 40000, vg: 250 }, buyCost: { cp: 0, po: 120000, vg: 180 } },  // Exot Void Aegis
+
+    //############################################################################################################################################################################################
+    //############################################################################################################################################################################################
+    // --- DER NEUE 2D TECH TREE (FC - DIE LEITERPLATTE) ---
+    // TIER 1 (Der CPU Hauptstrang)
+    "n_fc_001": { treeType: "fc", partId: "fc_001", req: [], x: 50, y: 5, unlockCost: { rp: 1000, nrp: 0, vg: 0 }, buyCost: { cp: 5e12, po: 0, vg: 0 } },
+    "n_fc_002": { treeType: "fc", partId: "fc_002", req: ["n_fc_001"], x: 50, y: 12, unlockCost: { rp: 5000, nrp: 0, vg: 0 }, buyCost: { cp: 20e12, po: 0, vg: 0 } },
+    "n_fc_003": { treeType: "fc", partId: "fc_003", req: ["n_fc_002"], x: 50, y: 19, unlockCost: { rp: 20000, nrp: 5, vg: 0 }, buyCost: { cp: 80e12, po: 10, vg: 0 } },
+
+    // TIER 2 (90-Grad Abzweigungen)
+    "n_fc_004m": { treeType: "fc", partId: "fc_004m", req: ["n_fc_003"], x: 50, y: 30, unlockCost: { rp: 0, nrp: 50, vg: 0 }, buyCost: { cp: 0, po: 150, vg: 0 } },
+    // A (Links) und B (Rechts) zweigen EXAKT horizontal ab (gleiches Y wie 004m)
+    "n_fc_004a": { treeType: "fc", partId: "fc_004a", req: ["n_fc_004m"], x: 30, y: 30, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 250, vg: 0 } },
+    "n_fc_004b": { treeType: "fc", partId: "fc_004b", req: ["n_fc_004m"], x: 70, y: 33, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 250, vg: 0 } },
+
+    // TIER 3 (Void Gems! Linien gehen schnurgerade nach unten)
+    "n_fc_005m": { treeType: "fc", partId: "fc_005m", req: ["n_fc_004m"], x: 50, y: 46, unlockCost: { rp: 0, nrp: 400, vg: 3 }, buyCost: { cp: 0, po: 1000, vg: 1 } },
+    "n_fc_005a": { treeType: "fc", partId: "fc_005a", req: ["n_fc_004a"], x: 30, y: 50, unlockCost: { rp: 0, nrp: 600, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
+    "n_fc_005b": { treeType: "fc", partId: "fc_005b", req: ["n_fc_004b"], x: 70, y: 46, unlockCost: { rp: 0, nrp: 600, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
+
+    // TIER 4 (Legendäre Chips)
+    "n_fc_006m": { treeType: "fc", partId: "fc_006m", req: ["n_fc_005m"], x: 50, y: 64, unlockCost: { rp: 0, nrp: 2500, vg: 20 }, buyCost: { cp: 0, po: 6000, vg: 10 } },
+    "n_fc_006a": { treeType: "fc", partId: "fc_006a", req: ["n_fc_005a"], x: 30, y: 61, unlockCost: { rp: 0, nrp: 3500, vg: 35 }, buyCost: { cp: 0, po: 9000, vg: 18 } },
+    "n_fc_006b": { treeType: "fc", partId: "fc_006b", req: ["n_fc_005b"], x: 70, y: 67, unlockCost: { rp: 0, nrp: 3500, vg: 35 }, buyCost: { cp: 0, po: 9000, vg: 18 } },
+
+    // TIER 5 (Endgame-Prozessor in der Mitte, Exot rechts außen)
+    "n_fc_007": { treeType: "fc", partId: "fc_007", req: ["n_fc_006m"], x: 50, y: 86, unlockCost: { rp: 0, nrp: 18000, vg: 150 }, buyCost: { cp: 0, po: 50000, vg: 80 } },
+    "n_fc_201": { treeType: "fc", partId: "fc_201", req: ["n_fc_006b"], x: 70, y: 91, unlockCost: { rp: 0, nrp: 25000, vg: 200 }, buyCost: { cp: 0, po: 75000, vg: 100 } } // Exot Versicherungsbetrug
 };
