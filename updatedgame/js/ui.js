@@ -603,7 +603,7 @@ function selectTechNode(nodeId) {
     
     let statsText = "";
     if (part.type === "battery") statsText = `Missionszeit: ${Math.round(part.timeMult * 100)}%`;
-    if (part.type === "frame") statsText = `Absturzrisiko: ${Math.round(part.breakChance * 100)}%`;
+    if (part.type === "frame") statsText = `Absturzrisiko: ${(part.breakChance * 100).toFixed(1)}%`;
     if (part.type === "fc") statsText = `Sicherheit: +${Math.round(part.safety * 100)}%`;
     if (part.type === "props") statsText = `Ertrag: PO x${part.poMult} | N-RP x${part.nrpMult}`;    
     if (part.type === "camera") {
