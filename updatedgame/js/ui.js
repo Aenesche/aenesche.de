@@ -298,8 +298,6 @@ function renderNewWorld() {
         }
     }
 }
-let currentTechTab = "battery";
-let selectedTechNode = null;
 
 // --- TECH TREE KAMERA VARIABLEN ---
 let currentTechTab = "battery";
