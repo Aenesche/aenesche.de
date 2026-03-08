@@ -164,10 +164,14 @@ function renderNewWorld() {
   if (nwRpEl) nwRpEl.textContent = fmt(state.rp || 0);
   
   document.getElementById("po-display").textContent = state.newWorld.po || 0;
-  document.getElementById("legacy-cp").textContent = fmt(state.coins);
-  
-  const nrpDisplay = document.getElementById("nrp-display");
-  if(nrpDisplay) nrpDisplay.textContent = state.newWorld.nrp || 0;
+    document.getElementById("legacy-cp").textContent = fmt(state.coins);
+    
+    const nrpDisplay = document.getElementById("nrp-display");
+    if(nrpDisplay) nrpDisplay.textContent = state.newWorld.nrp || 0;
+
+    // NEU: VG Display
+    const vgDisplay = document.getElementById("vg-display");
+    if(vgDisplay) vgDisplay.textContent = state.newWorld.vg || 0;
 
   const filterVal = document.getElementById("inv-filter").value;
   let displayItems = [...(state.newWorld.inventory || [])];
