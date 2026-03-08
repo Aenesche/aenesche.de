@@ -373,7 +373,7 @@ function initTreePanZoom() {
 
     container.onwheel = (e) => {
         e.preventDefault();
-        const zoomIntensity = 0.1;
+        const zoomIntensity = 0.05;
         const wheel = e.deltaY < 0 ? 1 : -1;
         const zoomFactor = Math.exp(wheel * zoomIntensity);
 
