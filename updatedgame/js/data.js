@@ -421,11 +421,11 @@ const TECH_TREE = {
 
     // Der Void-Kern (Entsteht in der Mitte aus den äußeren Ringen!)
     "n_cam_007m": { treeType: "camera", partId: "cam_007m", req: ["n_cam_006a", "n_cam_006b"], x: 50, y: 48, unlockCost: { rp: 0, nrp: 300, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
-    "n_cam_008m": { treeType: "camera", partId: "cam_008m", req: ["n_cam_007m"], x: 50, y: 56, unlockCost: { rp: 0, nrp: 600, vg: 6 }, buyCost: { cp: 0, po: 2000, vg: 4 } },
+    "n_cam_008m": { treeType: "camera", partId: "cam_008m", req: ["n_cam_007m"], x: 42, y: 56, unlockCost: { rp: 0, nrp: 600, vg: 6 }, buyCost: { cp: 0, po: 2000, vg: 4 } },
 
     "n_cam_007b": { treeType: "camera", partId: "cam_007b", req: ["n_cam_006b"], x: 85, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 2 }, buyCost: { cp: 0, po: 600, vg: 1 } },
     "n_cam_008b": { treeType: "camera", partId: "cam_008b", req: ["n_cam_007b"], x: 85, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
-    "n_cam_201":  { treeType: "camera", partId: "cam_201",  req: ["n_cam_007b"], x: 98, y: 48, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 3000, vg: 5 } }, // Exot
+    "n_cam_201":  { treeType: "camera", partId: "cam_201",  req: ["n_cam_007b"], x: 98, y: 52, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 3000, vg: 5 } }, // Exot
 
     // TIER 4 (Die Linse schließt sich wieder)
     "n_cam_009a": { treeType: "camera", partId: "cam_009a", req: ["n_cam_008a"], x: 25, y: 68, unlockCost: { rp: 0, nrp: 1500, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
@@ -440,11 +440,11 @@ const TECH_TREE = {
 
     // TIER 5 (Die Pupille - Alles läuft exakt auf X=50 zusammen)
     // Alle drei Stränge der Ebene 4 bündeln sich in 011!
-    "n_cam_011": { treeType: "camera", partId: "cam_011", req: ["n_cam_010a", "n_cam_010m", "n_cam_010b"], x: 50, y: 86, unlockCost: { rp: 0, nrp: 15000, vg: 120 }, buyCost: { cp: 0, po: 40000, vg: 60 } },
-    "n_cam_012": { treeType: "camera", partId: "cam_012", req: ["n_cam_011"], x: 50, y: 94, unlockCost: { rp: 0, nrp: 35000, vg: 250 }, buyCost: { cp: 0, po: 100000, vg: 150 } },
+    "n_cam_011": { treeType: "camera", partId: "cam_011", req: ["n_cam_010a", "n_cam_010m", "n_cam_010b"], x: 50, y: 83, unlockCost: { rp: 0, nrp: 15000, vg: 120 }, buyCost: { cp: 0, po: 40000, vg: 60 } },
+    "n_cam_012": { treeType: "camera", partId: "cam_012", req: ["n_cam_011"], x: 50, y: 91, unlockCost: { rp: 0, nrp: 35000, vg: 250 }, buyCost: { cp: 0, po: 100000, vg: 150 } },
     
-    "n_cam_203": { treeType: "camera", partId: "cam_203", req: ["n_cam_011"], x: 30, y: 86, unlockCost: { rp: 0, nrp: 20000, vg: 150 }, buyCost: { cp: 0, po: 60000, vg: 80 } }, // Exot Decoder
-    "n_cam_204": { treeType: "camera", partId: "cam_204", req: ["n_cam_012"], x: 70, y: 94, unlockCost: { rp: 0, nrp: 50000, vg: 400 }, buyCost: { cp: 0, po: 200000, vg: 250 } },  // Exot Jackpot
+    "n_cam_203": { treeType: "camera", partId: "cam_203", req: ["n_cam_011"], x: 30, y: 91, unlockCost: { rp: 0, nrp: 20000, vg: 150 }, buyCost: { cp: 0, po: 60000, vg: 80 } }, // Exot Decoder
+    "n_cam_204": { treeType: "camera", partId: "cam_204", req: ["n_cam_012"], x: 65, y: 95, unlockCost: { rp: 0, nrp: 50000, vg: 400 }, buyCost: { cp: 0, po: 200000, vg: 250 } },  // Exot Jackpot
       
   //############################################################################################################################################################################################
   //############################################################################################################################################################################################
