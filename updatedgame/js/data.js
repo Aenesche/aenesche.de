@@ -636,8 +636,8 @@ const TECH_TREE = {
     
     "n_cam_d01": { treeType: "camera", partId: "cam_d01", req: [], x: 85, y: 25, dropOnly: true, unlockCost: {}, buyCost: {} },
     
-    "n_fra_d01": { treeType: "frame", partId: "fra_d01", req: [], x: 25, y: 30, dropOnly: true, unlockCost: {}, buyCost: {} },
+    "n_fra_d01": { treeType: "frame", partId: "fra_d01", req: [], x: 25, y: 30, dropOnly: true, unlockCost: {}, buyCost: {} }
 
     // Dummy (muss am Ende bleiben!)
-    "dummy_fra": { treeType: "frame", partId: "fra_001", req: [], x: 50, y: 10, unlockCost: { rp: 0, nrp: 0, vg: 0 }, buyCost: { cp: 0, po: 0, vg: 0 } }
+    //"dummy_fra": { treeType: "frame", partId: "fra_001", req: [], x: 50, y: 10, unlockCost: { rp: 0, nrp: 0, vg: 0 }, buyCost: { cp: 0, po: 0, vg: 0 } }
 };
