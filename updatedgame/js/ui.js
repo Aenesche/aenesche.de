@@ -384,7 +384,7 @@ function initTreePanZoom() {
         treePanX = mouseX - (mouseX - treePanX) * zoomFactor;
         treePanY = mouseY - (mouseY - treePanY) * zoomFactor;
         treeScale *= zoomFactor;
-        treeScale = Math.min(Math.max(0.3, treeScale), 3); 
+        treeScale = Math.min(Math.max(0.6, treeScale), 1.8); 
         applyTransform();
     };
 
