@@ -205,6 +205,67 @@ const PART_CATALOG = {
 
     //############################################################################################################################################################################################
     //############################################################################################################################################################################################
+
+    // ==========================================
+    // 📷 KAMERA TIER 1 (Common) - Fokus: Linear
+    // ==========================================
+    "cam_001": { type: "camera", rarity: "Common", name: "VGA Web-Cam", luckBonus: 1.2, vgChance: 0.0, special: null },
+    "cam_002": { type: "camera", rarity: "Common", name: "720p Action Lens", luckBonus: 1.5, vgChance: 0.0, special: null },
+    "cam_003": { type: "camera", rarity: "Common", name: "1080p CMOS Sensor", luckBonus: 2.0, vgChance: 0.0, special: null },
+    "cam_004": { type: "camera", rarity: "Common", name: "Dual-Lens Setup", luckBonus: 2.5, vgChance: 0.0, special: null },
+
+    // ==========================================
+    // 📷 KAMERA TIER 2 (Rare) - Das Auge öffnet sich
+    // ==========================================
+    // Pfad A (Reines Drop-Glück)
+    "cam_005a": { type: "camera", rarity: "Rare", name: "Basic IR-Scanner", luckBonus: 3.5, vgChance: 0.0, special: null },
+    "cam_006a": { type: "camera", rarity: "Rare", name: "Wide-Angle Array", luckBonus: 5.0, vgChance: 0.0, special: null },
+    // Pfad B (Ressourcen-Fokus)
+    "cam_005b": { type: "camera", rarity: "Rare", name: "Scrap-Scanner", luckBonus: 2.5, vgChance: 0.0, special: { type: "flat_po", chance: 0.30, value: 50e12 } }, // 30% Chance auf 50T PO
+    "cam_006b": { type: "camera", rarity: "Rare", name: "Data-Lens", luckBonus: 2.8, vgChance: 0.0, special: { type: "flat_nrp", chance: 0.20, value: 15 } }, // 20% Chance auf 15 N-RP
+    
+    // ==========================================
+    // 📷 KAMERA TIER 3 (Super Rare) - VOID GEMS ERSCHEINEN!
+    // ==========================================
+    // Strang A (Glück + Bisschen VG)
+    "cam_007a": { type: "camera", rarity: "Super Rare", name: "Lidar Point-Cloud", luckBonus: 10.0, vgChance: 0.01, special: null }, // 1% VG
+    "cam_008a": { type: "camera", rarity: "Super Rare", name: "Multi-Spectral", luckBonus: 15.0, vgChance: 0.01, special: null },
+    // Strang M (Purer Void-Fokus in der Mitte)
+    "cam_007m": { type: "camera", rarity: "Super Rare", name: "Anomaly Detector", luckBonus: 5.0, vgChance: 0.03, special: null }, // 3% VG
+    "cam_008m": { type: "camera", rarity: "Super Rare", name: "Rift-Scanner", luckBonus: 8.0, vgChance: 0.04, special: null },
+    // Strang B (Ressourcen + Bisschen VG)
+    "cam_007b": { type: "camera", rarity: "Super Rare", name: "Deep-Sonar", luckBonus: 6.0, vgChance: 0.01, special: { type: "flat_po", chance: 0.40, value: 500e12 } }, 
+    "cam_008b": { type: "camera", rarity: "Super Rare", name: "Logic-Analyzer", luckBonus: 7.0, vgChance: 0.01, special: { type: "flat_nrp", chance: 0.30, value: 40 } },
+    "cam_201":  { type: "camera", rarity: "Legendary", name: "The Pity-Lens", luckBonus: 1.0, vgChance: 0.0, special: { type: "guarantee_rare", value: 1 } }, // Exot T3
+
+    // ==========================================
+    // 📷 KAMERA TIER 4 (Legendary) - Das Auge schließt sich langsam
+    // ==========================================
+    "cam_009a": { type: "camera", rarity: "Legendary", name: "AI-Swarm Optics", luckBonus: 30.0, vgChance: 0.04, special: null },
+    "cam_010a": { type: "camera", rarity: "Legendary", name: "Quantum Lens", luckBonus: 50.0, vgChance: 0.05, special: null },
+    
+    "cam_009m": { type: "camera", rarity: "Legendary", name: "Dark-Energy Sensor", luckBonus: 20.0, vgChance: 0.08, special: null }, // 8% VG
+    "cam_010m": { type: "camera", rarity: "Legendary", name: "Void-Tracer", luckBonus: 25.0, vgChance: 0.10, special: null }, // 10% VG
+    
+    "cam_009b": { type: "camera", rarity: "Legendary", name: "Seismic Optics", luckBonus: 25.0, vgChance: 0.04, special: { type: "flat_po", chance: 0.50, value: 5000e12 } }, 
+    "cam_010b": { type: "camera", rarity: "Legendary", name: "Neural-Link Cam", luckBonus: 30.0, vgChance: 0.04, special: { type: "flat_nrp", chance: 0.40, value: 100 } },
+    "cam_202":  { type: "camera", rarity: "Ultra Rare", name: "Void-Magnet", luckBonus: 0.5, vgChance: 0.20, special: { type: "no_parts", value: 1 } }, // Exot: Findet NUR Void Gems!
+
+    // ==========================================
+    // 📷 KAMERA TIER 5 (Ultra Rare) - Die Pupille (Linear)
+    // ==========================================
+    "cam_011": { type: "camera", rarity: "Ultra Rare", name: "Dimensional Eye", luckBonus: 100.0, vgChance: 0.12, special: null },
+    "cam_012": { type: "camera", rarity: "Ultra Rare", name: "The Observer", luckBonus: 150.0, vgChance: 0.15, special: null },
+    "cam_203": { type: "camera", rarity: "Ultra Rare", name: "Blueprint Decoder", luckBonus: 60.0, vgChance: 0.08, special: { type: "blueprint_drop", chance: 0.10 } }, // 10% Chance auf Blueprint Drop
+    "cam_204": { type: "camera", rarity: "Ultra Rare", name: "Jackpot-Lens", luckBonus: 200.0, vgChance: 0.05, special: null }, // Erreicht die 2% Obergrenze!
+
+    // ==========================================
+    // 🌌 DROP-EXCLUSIVE (Unconnected)
+    // ==========================================
+    "cam_d01": { type: "camera", rarity: "Ultra Rare", name: "Eye of the Creator", luckBonus: 350.0, vgChance: 0.25, special: null }, // Absolutes RNG Monster
+
+    //############################################################################################################################################################################################
+    //############################################################################################################################################################################################
   
   // Dummy Frame (damit Missionen startbar bleiben)
     "fra_001": { type: "frame", rarity: "Common", name: "Cardboard Frame", breakChance: 0.40, special: null }
@@ -339,6 +400,54 @@ const TECH_TREE = {
       
 //############################################################################################################################################################################################
 //############################################################################################################################################################################################
+
+  // --- DER NEUE 2D TECH TREE (KAMERAS - DAS AUGE) ---
+    // TIER 1 (Der optische Nerv - Linear)
+    "n_cam_001": { treeType: "camera", partId: "cam_001", req: [], x: 50, y: 5, unlockCost: { rp: 500, nrp: 0, vg: 0 }, buyCost: { cp: 1e12, po: 0, vg: 0 } },
+    "n_cam_002": { treeType: "camera", partId: "cam_002", req: ["n_cam_001"], x: 50, y: 11, unlockCost: { rp: 1500, nrp: 0, vg: 0 }, buyCost: { cp: 5e12, po: 0, vg: 0 } },
+    "n_cam_003": { treeType: "camera", partId: "cam_003", req: ["n_cam_002"], x: 50, y: 17, unlockCost: { rp: 8000, nrp: 2, vg: 0 }, buyCost: { cp: 25e12, po: 5, vg: 0 } },
+    "n_cam_004": { treeType: "camera", partId: "cam_004", req: ["n_cam_003"], x: 50, y: 22, unlockCost: { rp: 25000, nrp: 8, vg: 0 }, buyCost: { cp: 100e12, po: 20, vg: 0 } },
+
+    // TIER 2 (Die Linse öffnet sich nach außen)
+    "n_cam_005a": { treeType: "camera", partId: "cam_005a", req: ["n_cam_004"], x: 30, y: 30, unlockCost: { rp: 0, nrp: 30, vg: 0 }, buyCost: { cp: 0, po: 80, vg: 0 } },
+    "n_cam_006a": { treeType: "camera", partId: "cam_006a", req: ["n_cam_005a"], x: 20, y: 38, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 200, vg: 0 } },
+
+    "n_cam_005b": { treeType: "camera", partId: "cam_005b", req: ["n_cam_004"], x: 70, y: 30, unlockCost: { rp: 0, nrp: 30, vg: 0 }, buyCost: { cp: 0, po: 80, vg: 0 } },
+    "n_cam_006b": { treeType: "camera", partId: "cam_006b", req: ["n_cam_005b"], x: 80, y: 38, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 200, vg: 0 } },
+
+    // TIER 3 (Die breiteste Stelle des Auges - VOID GEMS KOSTEN STARTEN HIER)
+    "n_cam_007a": { treeType: "camera", partId: "cam_007a", req: ["n_cam_006a"], x: 15, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 2 }, buyCost: { cp: 0, po: 600, vg: 1 } },
+    "n_cam_008a": { treeType: "camera", partId: "cam_008a", req: ["n_cam_007a"], x: 15, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
+
+    // Der Void-Kern (Entsteht in der Mitte aus den äußeren Ringen!)
+    "n_cam_007m": { treeType: "camera", partId: "cam_007m", req: ["n_cam_006a", "n_cam_006b"], x: 50, y: 48, unlockCost: { rp: 0, nrp: 300, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
+    "n_cam_008m": { treeType: "camera", partId: "cam_008m", req: ["n_cam_007m"], x: 50, y: 56, unlockCost: { rp: 0, nrp: 600, vg: 6 }, buyCost: { cp: 0, po: 2000, vg: 4 } },
+
+    "n_cam_007b": { treeType: "camera", partId: "cam_007b", req: ["n_cam_006b"], x: 85, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 2 }, buyCost: { cp: 0, po: 600, vg: 1 } },
+    "n_cam_008b": { treeType: "camera", partId: "cam_008b", req: ["n_cam_007b"], x: 85, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
+    "n_cam_201":  { treeType: "camera", partId: "cam_201",  req: ["n_cam_007b"], x: 98, y: 48, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 3000, vg: 5 } }, // Exot
+
+    // TIER 4 (Die Linse schließt sich wieder)
+    "n_cam_009a": { treeType: "camera", partId: "cam_009a", req: ["n_cam_008a"], x: 25, y: 68, unlockCost: { rp: 0, nrp: 1500, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
+    "n_cam_010a": { treeType: "camera", partId: "cam_010a", req: ["n_cam_009a"], x: 35, y: 76, unlockCost: { rp: 0, nrp: 3500, vg: 30 }, buyCost: { cp: 0, po: 8000, vg: 15 } },
+
+    "n_cam_009m": { treeType: "camera", partId: "cam_009m", req: ["n_cam_008m"], x: 50, y: 68, unlockCost: { rp: 0, nrp: 2000, vg: 20 }, buyCost: { cp: 0, po: 5000, vg: 12 } },
+    "n_cam_010m": { treeType: "camera", partId: "cam_010m", req: ["n_cam_009m"], x: 50, y: 76, unlockCost: { rp: 0, nrp: 4500, vg: 40 }, buyCost: { cp: 0, po: 10000, vg: 25 } },
+    "n_cam_202":  { treeType: "camera", partId: "cam_202",  req: ["n_cam_009m"], x: 65, y: 68, unlockCost: { rp: 0, nrp: 6000, vg: 80 }, buyCost: { cp: 0, po: 15000, vg: 40 } }, // Exot Void-Magnet
+
+    "n_cam_009b": { treeType: "camera", partId: "cam_009b", req: ["n_cam_008b"], x: 75, y: 68, unlockCost: { rp: 0, nrp: 1500, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
+    "n_cam_010b": { treeType: "camera", partId: "cam_010b", req: ["n_cam_009b"], x: 65, y: 76, unlockCost: { rp: 0, nrp: 3500, vg: 30 }, buyCost: { cp: 0, po: 8000, vg: 15 } },
+
+    // TIER 5 (Die Pupille - Alles läuft exakt auf X=50 zusammen)
+    // Alle drei Stränge der Ebene 4 bündeln sich in 011!
+    "n_cam_011": { treeType: "camera", partId: "cam_011", req: ["n_cam_010a", "n_cam_010m", "n_cam_010b"], x: 50, y: 86, unlockCost: { rp: 0, nrp: 15000, vg: 120 }, buyCost: { cp: 0, po: 40000, vg: 60 } },
+    "n_cam_012": { treeType: "camera", partId: "cam_012", req: ["n_cam_011"], x: 50, y: 94, unlockCost: { rp: 0, nrp: 35000, vg: 250 }, buyCost: { cp: 0, po: 100000, vg: 150 } },
+    
+    "n_cam_203": { treeType: "camera", partId: "cam_203", req: ["n_cam_011"], x: 30, y: 86, unlockCost: { rp: 0, nrp: 20000, vg: 150 }, buyCost: { cp: 0, po: 60000, vg: 80 } }, // Exot Decoder
+    "n_cam_204": { treeType: "camera", partId: "cam_204", req: ["n_cam_012"], x: 70, y: 94, unlockCost: { rp: 0, nrp: 50000, vg: 400 }, buyCost: { cp: 0, po: 200000, vg: 250 } },  // Exot Jackpot
+      
+  //############################################################################################################################################################################################
+  //############################################################################################################################################################################################
       
 
     "dummy_fra": { treeType: "frame", partId: "fra_001", req: [], x: 50, y: 10, unlockCost: { rp: 0, nrp: 0, vg: 0 }, buyCost: { cp: 0, po: 0, vg: 0 } }
