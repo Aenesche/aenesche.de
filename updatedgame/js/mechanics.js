@@ -291,6 +291,42 @@ function claimMissionResult() {
     saveToServer();
     renderNewWorld();
 }
+function unlockNode(nodeId) {
+    const node = TECH_TREE[nodeId];
+    if(!node) return;
+    
+    // SICHERHEIT: Prüfen, ob der Knoten auf dem Pfad erreichbar ist!
+    const isReachable = node.dropOnly ? false : (node.req.length === 0 || node.req.some(reqId => state.newWorld.unlockedNodes.includes(reqId)));
+    
+    if (!isReachable) {
+        log("Blueprint locked! Research previous nodes first.", "bad");
+        return;
+    }
+
+    const reqRp = node.unlockCost.rp || 0;
+    const reqNrp = node.unlockCost.nrp || 0;
+    const reqVg = node.unlockCost.vg || 0;
+
+    if (state.rp < reqRp || (state.newWorld.nrp || 0) < reqNrp || (state.newWorld.vg || 0) < reqVg) {
+        log("Not enough resources to research this blueprint!", "bad"); return;
+    }
+    
+    state.rp -= reqRp; 
+    state.newWorld.nrp -= reqNrp;
+    state.newWorld.vg -= reqVg;
+
+    if(!state.newWorld.unlockedNodes) state.newWorld.unlockedNodes = [];
+    state.newWorld.unlockedNodes.push(nodeId);
+    
+    log(`BLUEPRINT RESEARCHED: ${PART_CATALOG[node.partId].name}`, "ok");
+    saveToServer(); 
+    
+    renderNewWorld(); 
+    if (document.getElementById("tech-wrap").style.display === "block") {
+        renderTechTreeCanvas(); 
+        selectTechNode(nodeId); 
+    }
+}
 
 function buyCraftedPart(nodeId) {
     const node = TECH_TREE[nodeId];
