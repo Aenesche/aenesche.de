@@ -159,6 +159,10 @@ function dragLeaveSlot(ev, slotEl) { slotEl.classList.remove("drag-over"); }
 
 function renderNewWorld() {
   if (!state || !state.newWorld) return;
+
+  const nwRpEl = document.getElementById("nw-rp-display");
+    if (nwRpEl) nwRpEl.textContent = fmt(state.rp || 0);
+  
     document.getElementById("po-display").textContent = state.newWorld.po || 0;
     document.getElementById("legacy-cp").textContent = fmt(state.coins);
     
