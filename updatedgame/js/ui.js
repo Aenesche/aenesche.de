@@ -587,15 +587,26 @@ function selectTechNode(nodeId) {
 
     let specialText = part.special ? `<br><span style="color:var(--warn)">★ Special: ${part.special.type.toUpperCase()} (${part.special.value})</span>` : "";
     
+    // Kosten dynamisch formatieren (0-Werte werden ausgeblendet!)
+    let craftCost = [];
+    if(node.buyCost.cp > 0) craftCost.push(`${fmt(node.buyCost.cp)} CP`);
+    if(node.buyCost.po > 0) craftCost.push(`${fmt(node.buyCost.po)} PO`);
+    if(node.buyCost.vg > 0) craftCost.push(`${fmt(node.buyCost.vg)} VG`);
+
+    let resCost = [];
+    if(node.unlockCost.rp > 0) resCost.push(`${fmt(node.unlockCost.rp)} RP`);
+    if(node.unlockCost.nrp > 0) resCost.push(`${fmt(node.unlockCost.nrp)} N-RP`);
+    if(node.unlockCost.vg > 0) resCost.push(`${fmt(node.unlockCost.vg)} VG`);
+    
     let btnHTML = "";
     if (isUnlocked) {
         btnHTML = `
-            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Crafting Cost: ${fmt(node.buyCost.cp)} CP | ${node.buyCost.po} PO</div>
+            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Crafting: ${craftCost.join(' | ')}</div>
             <button onclick="buyCraftedPart('${nodeId}')" style="border-color: ${color}; color: ${color}; width: 100%;">CRAFT PART</button>
         `;
     } else {
         btnHTML = `
-            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Research Cost: ${fmt(node.unlockCost.rp)} RP | ${node.unlockCost.nrp} N-RP</div>
+            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Research: ${resCost.join(' | ')}</div>
             <button onclick="unlockNode('${nodeId}')" style="width: 100%;">RESEARCH BLUEPRINT</button>
         `;
     }
