@@ -284,58 +284,58 @@ const TECH_TREE = {
     // TIER 1 (Zick-Zack Layout)
     "n_pro_001": { treeType: "props", partId: "pro_001", req: [], x: 50, y: 5, unlockCost: { rp: 500, nrp: 0, vg: 0 }, buyCost: { cp: 1e12, po: 0, vg: 0 } },
     "n_pro_002": { treeType: "props", partId: "pro_002", req: ["n_pro_001"], x: 40, y: 9, unlockCost: { rp: 1000, nrp: 0, vg: 0 }, buyCost: { cp: 5e12, po: 0, vg: 0 } },
-    "n_pro_003": { treeType: "props", partId: "pro_003", req: ["n_pro_002"], x: 60, y: 13, unlockCost: { rp: 5000, nrp: 0, vg: 0 }, buyCost: { cp: 20e12, po: 0, vg: 0 } },
+    "n_pro_003": { treeType: "props", partId: "pro_003", req: ["n_pro_002"], x: 50, y: 13, unlockCost: { rp: 5000, nrp: 0, vg: 0 }, buyCost: { cp: 20e12, po: 0, vg: 0 } },
     "n_pro_004": { treeType: "props", partId: "pro_004", req: ["n_pro_003"], x: 40, y: 17, unlockCost: { rp: 15000, nrp: 2, vg: 0 }, buyCost: { cp: 50e12, po: 5, vg: 0 } },
     "n_pro_005": { treeType: "props", partId: "pro_005", req: ["n_pro_004"], x: 50, y: 21, unlockCost: { rp: 50000, nrp: 5, vg: 0 }, buyCost: { cp: 150e12, po: 15, vg: 0 } },
-    "n_pro_006": { treeType: "props", partId: "pro_006", req: ["n_pro_003"], x: 75, y: 13, unlockCost: { rp: 8000, nrp: 1, vg: 0 }, buyCost: { cp: 30e12, po: 2, vg: 0 } }, // Dead End
+    "n_pro_006": { treeType: "props", partId: "pro_006", req: ["n_pro_003"], x: 65, y: 13, unlockCost: { rp: 8000, nrp: 1, vg: 0 }, buyCost: { cp: 30e12, po: 2, vg: 0 } }, // Dead End
 
     // TIER 2 (Extremer Split)
     "n_pro_007": { treeType: "props", partId: "pro_007", req: ["n_pro_005"], x: 50, y: 25, unlockCost: { rp: 20000, nrp: 15, vg: 0 }, buyCost: { cp: 100e12, po: 30, vg: 0 } },
     "n_pro_008": { treeType: "props", partId: "pro_008", req: ["n_pro_007"], x: 50, y: 29, unlockCost: { rp: 0, nrp: 30, vg: 0 }, buyCost: { cp: 0, po: 60, vg: 0 } },
     
     // Weit nach Links (PO)
-    "n_pro_009a": { treeType: "props", partId: "pro_009a", req: ["n_pro_008"], x: 20, y: 34, unlockCost: { rp: 0, nrp: 50, vg: 0 }, buyCost: { cp: 0, po: 100, vg: 0 } },
-    "n_pro_010a": { treeType: "props", partId: "pro_010a", req: ["n_pro_009a"], x: 20, y: 38, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 150, vg: 0 } },
-    "n_pro_011a": { treeType: "props", partId: "pro_011a", req: ["n_pro_010a"], x: 20, y: 42, unlockCost: { rp: 0, nrp: 120, vg: 0 }, buyCost: { cp: 0, po: 250, vg: 0 } },
+    "n_pro_009a": { treeType: "props", partId: "pro_009a", req: ["n_pro_008"], x: 45, y: 34, unlockCost: { rp: 0, nrp: 50, vg: 0 }, buyCost: { cp: 0, po: 100, vg: 0 } },
+    "n_pro_010a": { treeType: "props", partId: "pro_010a", req: ["n_pro_009a"], x: 40, y: 38, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 150, vg: 0 } },
+    "n_pro_011a": { treeType: "props", partId: "pro_011a", req: ["n_pro_010a"], x: 35, y: 42, unlockCost: { rp: 0, nrp: 120, vg: 0 }, buyCost: { cp: 0, po: 250, vg: 0 } },
     
     // Weit nach Rechts (N-RP)
-    "n_pro_009b": { treeType: "props", partId: "pro_009b", req: ["n_pro_008"], x: 80, y: 34, unlockCost: { rp: 0, nrp: 50, vg: 0 }, buyCost: { cp: 0, po: 100, vg: 0 } },
-    "n_pro_010b": { treeType: "props", partId: "pro_010b", req: ["n_pro_009b"], x: 80, y: 38, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 150, vg: 0 } },
-    "n_pro_011b": { treeType: "props", partId: "pro_011b", req: ["n_pro_010b"], x: 80, y: 42, unlockCost: { rp: 0, nrp: 120, vg: 0 }, buyCost: { cp: 0, po: 250, vg: 0 } },
-    "n_pro_012b": { treeType: "props", partId: "pro_012b", req: ["n_pro_009b"], x: 95, y: 34, unlockCost: { rp: 0, nrp: 60, vg: 0 }, buyCost: { cp: 0, po: 120, vg: 0 } }, // Dead End
+    "n_pro_009b": { treeType: "props", partId: "pro_009b", req: ["n_pro_008"], x: 70, y: 34, unlockCost: { rp: 0, nrp: 50, vg: 0 }, buyCost: { cp: 0, po: 100, vg: 0 } },
+    "n_pro_010b": { treeType: "props", partId: "pro_010b", req: ["n_pro_009b"], x: 65, y: 38, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 150, vg: 0 } },
+    "n_pro_011b": { treeType: "props", partId: "pro_011b", req: ["n_pro_010b"], x: 65, y: 42, unlockCost: { rp: 0, nrp: 120, vg: 0 }, buyCost: { cp: 0, po: 250, vg: 0 } },
+    "n_pro_012b": { treeType: "props", partId: "pro_012b", req: ["n_pro_009b"], x: 85, y: 34, unlockCost: { rp: 0, nrp: 60, vg: 0 }, buyCost: { cp: 0, po: 120, vg: 0 } }, // Dead End
 
     // TIER 3 (Mitte bildet sich als Brücke)
-    "n_pro_013a": { treeType: "props", partId: "pro_013a", req: ["n_pro_011a"], x: 20, y: 47, unlockCost: { rp: 0, nrp: 200, vg: 1 }, buyCost: { cp: 0, po: 500, vg: 0 } },
-    "n_pro_014a": { treeType: "props", partId: "pro_014a", req: ["n_pro_013a"], x: 20, y: 52, unlockCost: { rp: 0, nrp: 350, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
-    "n_pro_015a": { treeType: "props", partId: "pro_015a", req: ["n_pro_014a"], x: 20, y: 57, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1200, vg: 2 } },
+    "n_pro_013a": { treeType: "props", partId: "pro_013a", req: ["n_pro_011a"], x: 35, y: 47, unlockCost: { rp: 0, nrp: 200, vg: 1 }, buyCost: { cp: 0, po: 500, vg: 0 } },
+    "n_pro_014a": { treeType: "props", partId: "pro_014a", req: ["n_pro_013a"], x: 35, y: 52, unlockCost: { rp: 0, nrp: 350, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
+    "n_pro_015a": { treeType: "props", partId: "pro_015a", req: ["n_pro_014a"], x: 35, y: 57, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1200, vg: 2 } },
 
     // Hybride Brücke (Von 11a und 11b nach innen!)
     "n_pro_013m": { treeType: "props", partId: "pro_013m", req: ["n_pro_011a", "n_pro_011b"], x: 50, y: 47, unlockCost: { rp: 0, nrp: 250, vg: 1 }, buyCost: { cp: 0, po: 600, vg: 0 } },
     "n_pro_014m": { treeType: "props", partId: "pro_014m", req: ["n_pro_013m"], x: 50, y: 52, unlockCost: { rp: 0, nrp: 400, vg: 2 }, buyCost: { cp: 0, po: 900, vg: 1 } },
     "n_pro_015m": { treeType: "props", partId: "pro_015m", req: ["n_pro_014m"], x: 50, y: 57, unlockCost: { rp: 0, nrp: 600, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 2 } },
 
-    "n_pro_013b": { treeType: "props", partId: "pro_013b", req: ["n_pro_011b"], x: 80, y: 47, unlockCost: { rp: 0, nrp: 200, vg: 1 }, buyCost: { cp: 0, po: 500, vg: 0 } },
-    "n_pro_014b": { treeType: "props", partId: "pro_014b", req: ["n_pro_013b"], x: 80, y: 52, unlockCost: { rp: 0, nrp: 350, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
-    "n_pro_015b": { treeType: "props", partId: "pro_015b", req: ["n_pro_014b"], x: 80, y: 57, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1200, vg: 2 } },
-    "n_pro_201":  { treeType: "props", partId: "pro_201",  req: ["n_pro_014b"], x: 95, y: 52, unlockCost: { rp: 0, nrp: 700, vg: 8 }, buyCost: { cp: 0, po: 1800, vg: 3 } }, // Exot
+    "n_pro_013b": { treeType: "props", partId: "pro_013b", req: ["n_pro_011b"], x: 65, y: 47, unlockCost: { rp: 0, nrp: 200, vg: 1 }, buyCost: { cp: 0, po: 500, vg: 0 } },
+    "n_pro_014b": { treeType: "props", partId: "pro_014b", req: ["n_pro_013b"], x: 65, y: 52, unlockCost: { rp: 0, nrp: 350, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
+    "n_pro_015b": { treeType: "props", partId: "pro_015b", req: ["n_pro_014b"], x: 65, y: 57, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1200, vg: 2 } },
+    "n_pro_201":  { treeType: "props", partId: "pro_201",  req: ["n_pro_014b"], x: 85, y: 52, unlockCost: { rp: 0, nrp: 700, vg: 8 }, buyCost: { cp: 0, po: 1800, vg: 3 } }, // Exot
 
     // TIER 4 (Strang B endet hier!)
-    "n_pro_016a": { treeType: "props", partId: "pro_016a", req: ["n_pro_015a"], x: 30, y: 64, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 2500, vg: 5 } },
-    "n_pro_017a": { treeType: "props", partId: "pro_017a", req: ["n_pro_016a"], x: 30, y: 69, unlockCost: { rp: 0, nrp: 1800, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
+    "n_pro_016a": { treeType: "props", partId: "pro_016a", req: ["n_pro_015a"], x: 25, y: 64, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 2500, vg: 5 } },
+    "n_pro_017a": { treeType: "props", partId: "pro_017a", req: ["n_pro_016a"], x: 25, y: 69, unlockCost: { rp: 0, nrp: 1800, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
     
     "n_pro_016m": { treeType: "props", partId: "pro_016m", req: ["n_pro_015m"], x: 50, y: 64, unlockCost: { rp: 0, nrp: 1200, vg: 12 }, buyCost: { cp: 0, po: 3000, vg: 6 } },
     "n_pro_017m": { treeType: "props", partId: "pro_017m", req: ["n_pro_016m"], x: 50, y: 69, unlockCost: { rp: 0, nrp: 2200, vg: 18 }, buyCost: { cp: 0, po: 5000, vg: 10 } },
 
-    "n_pro_016b": { treeType: "props", partId: "pro_016b", req: ["n_pro_015b"], x: 80, y: 64, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 2500, vg: 5 } },
-    "n_pro_202":  { treeType: "props", partId: "pro_202",  req: ["n_pro_016b"], x: 95, y: 64, unlockCost: { rp: 0, nrp: 5000, vg: 40 }, buyCost: { cp: 0, po: 10000, vg: 20 } }, // Exot (Ende B)
+    "n_pro_016b": { treeType: "props", partId: "pro_016b", req: ["n_pro_015b"], x: 65, y: 64, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 2500, vg: 5 } },
+    "n_pro_202":  { treeType: "props", partId: "pro_202",  req: ["n_pro_016b"], x: 85, y: 69, unlockCost: { rp: 0, nrp: 5000, vg: 40 }, buyCost: { cp: 0, po: 10000, vg: 20 } }, // Exot (Ende B)
 
     // TIER 5 (Asymmetrisch, verschiebt sich nach rechts)
     "n_pro_018a": { treeType: "props", partId: "pro_018a", req: ["n_pro_017a"], x: 35, y: 77, unlockCost: { rp: 0, nrp: 8000, vg: 60 }, buyCost: { cp: 0, po: 20000, vg: 35 } },
-    "n_pro_203":  { treeType: "props", partId: "pro_203",  req: ["n_pro_018a"], x: 20, y: 77, unlockCost: { rp: 0, nrp: 12000, vg: 90 }, buyCost: { cp: 0, po: 35000, vg: 50 } }, // Exot
+    "n_pro_203":  { treeType: "props", partId: "pro_203",  req: ["n_pro_018a"], x: 30, y: 80, unlockCost: { rp: 0, nrp: 12000, vg: 90 }, buyCost: { cp: 0, po: 35000, vg: 50 } }, // Exot
     
-    "n_pro_018m": { treeType: "props", partId: "pro_018m", req: ["n_pro_017m"], x: 65, y: 77, unlockCost: { rp: 0, nrp: 9000, vg: 70 }, buyCost: { cp: 0, po: 25000, vg: 40 } },
-    "n_pro_204":  { treeType: "props", partId: "pro_204",  req: ["n_pro_018m"], x: 80, y: 77, unlockCost: { rp: 0, nrp: 14000, vg: 100 }, buyCost: { cp: 0, po: 45000, vg: 60 } }, // Exot
-    "n_pro_205":  { treeType: "props", partId: "pro_205",  req: ["n_pro_018m"], x: 65, y: 83, unlockCost: { rp: 0, nrp: 35000, vg: 300 }, buyCost: { cp: 0, po: 150000, vg: 200 } },  // Exot
+    "n_pro_018m": { treeType: "props", partId: "pro_018m", req: ["n_pro_017m"], x: 60, y: 77, unlockCost: { rp: 0, nrp: 9000, vg: 70 }, buyCost: { cp: 0, po: 25000, vg: 40 } },
+    "n_pro_204":  { treeType: "props", partId: "pro_204",  req: ["n_pro_018m"], x: 75, y: 80, unlockCost: { rp: 0, nrp: 14000, vg: 100 }, buyCost: { cp: 0, po: 45000, vg: 60 } }, // Exot
+    "n_pro_205":  { treeType: "props", partId: "pro_205",  req: ["n_pro_018m"], x: 60, y: 83, unlockCost: { rp: 0, nrp: 35000, vg: 300 }, buyCost: { cp: 0, po: 150000, vg: 200 } },  // Exot
       
 //############################################################################################################################################################################################
 //############################################################################################################################################################################################
