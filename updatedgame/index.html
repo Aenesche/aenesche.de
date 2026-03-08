@@ -306,11 +306,20 @@
     </div>
   </div>
             <div class="wrap" id="tech-wrap" style="display: none;">
-    <div class="nw-header">
+    <div class="nw-header" style="align-items: center;">
       <div>
         <div class="title" style="color: #00ff88;">R&D ARCHIVES</div>
         <div class="sub">Advanced Blueprint Trees</div>
       </div>
+      
+      <div style="display: flex; gap: 15px; font-size: 12px; background: #0b0b0b; padding: 8px 15px; border: 1px solid var(--line); border-radius: 4px;">
+        <div><span style="color: var(--muted);">CP:</span> <span id="tt-cp">0</span></div>
+        <div><span style="color: var(--muted);">RP:</span> <span id="tt-rp">0</span></div>
+        <div><span style="color: var(--warn);">PO:</span> <span id="tt-po">0</span></div>
+        <div><span style="color: #00ff88;">N-RP:</span> <span id="tt-nrp">0</span></div>
+        <div><span style="color: #b300ff; font-weight: bold;">VG:</span> <span id="tt-vg">0</span></div>
+      </div>
+
       <div class="sub">
         <a href="#" onclick="exitTechTree()" style="color: var(--accent);">< BACK TO ASSEMBLY</a>
       </div>
