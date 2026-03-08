@@ -512,6 +512,13 @@ function renderTechTreeCanvas() {
             { y: 42.0, color: "#66d9ff", label: "TIER 3 (SUPER RARE)" },
             { y: 62.0, color: "#ffd700", label: "TIER 4 (LEGENDARY)" },
             { y: 82.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
+        ],
+        // NEU: Frame Linien (Das Schild-Layout braucht etwas andere Abstände)
+        frame: [
+            { y: 24.0, color: "#00ff88", label: "TIER 2 (RARE)" },
+            { y: 44.0, color: "#66d9ff", label: "TIER 3 (SUPER RARE)" },
+            { y: 64.0, color: "#ffd700", label: "TIER 4 (LEGENDARY)" },
+            { y: 84.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
         ]
     };
 
