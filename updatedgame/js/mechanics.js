@@ -362,4 +362,11 @@ function tick(){
         }
     }
 }
+  if (state.newWorld && document.getElementById("tech-wrap").style.display === "block") {
+        const ttCp = document.getElementById("tt-cp"); if(ttCp) ttCp.textContent = fmt(state.coins);
+        const ttRp = document.getElementById("tt-rp"); if(ttRp) ttRp.textContent = fmt(state.rp);
+        const ttPo = document.getElementById("tt-po"); if(ttPo) ttPo.textContent = Math.floor(state.newWorld.po || 0);
+        const ttNrp = document.getElementById("tt-nrp"); if(ttNrp) ttNrp.textContent = Math.floor(state.newWorld.nrp || 0);
+        const ttVg = document.getElementById("tt-vg"); if(ttVg) ttVg.textContent = Math.floor(state.newWorld.vg || 0);
+    }
 }
