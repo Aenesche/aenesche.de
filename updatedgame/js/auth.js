@@ -12,7 +12,8 @@ function defaultState(){
       activeThemeId: "default", effectsActive: { scanlines:false },
     },
     newWorld: {
-      po: 0, nrp: 0, unlockedNodes: [], inventory: [], 
+      po: 0, nrp: 0, vg: 0, // <-- vg: 0 hinzugefügt!
+      unlockedNodes: [], inventory: [], 
       hangar: { frame: null, props: null, battery: null, fc: null, camera: null }, 
       mission: null 
     },
