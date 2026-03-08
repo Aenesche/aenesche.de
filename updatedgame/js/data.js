@@ -423,8 +423,8 @@ const TECH_TREE = {
     "n_cam_007m": { treeType: "camera", partId: "cam_007m", req: ["n_cam_006a", "n_cam_006b"], x: 50, y: 48, unlockCost: { rp: 0, nrp: 300, vg: 1 }, buyCost: { cp: 0, po: 800, vg: 0 } },
     "n_cam_008m": { treeType: "camera", partId: "cam_008m", req: ["n_cam_007m"], x: 42, y: 56, unlockCost: { rp: 0, nrp: 600, vg: 0 }, buyCost: { cp: 0, po: 2000, vg: 1 } },
 
-    "n_cam_007b": { treeType: "camera", partId: "cam_007b", req: ["n_cam_006b"], x: 85, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 2 }, buyCost: { cp: 0, po: 600, vg: 1 } },
-    "n_cam_008b": { treeType: "camera", partId: "cam_008b", req: ["n_cam_007b"], x: 85, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
+    "n_cam_007b": { treeType: "camera", partId: "cam_007b", req: ["n_cam_006b"], x: 85, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 0 }, buyCost: { cp: 0, po: 600, vg: 0 } },
+    "n_cam_008b": { treeType: "camera", partId: "cam_008b", req: ["n_cam_007b"], x: 85, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 1 }, buyCost: { cp: 0, po: 1500, vg: 1 } },
     "n_cam_201":  { treeType: "camera", partId: "cam_201",  req: ["n_cam_007b"], x: 98, y: 52, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 3000, vg: 5 } }, // Exot
 
     // TIER 4 (Die Linse schließt sich wieder)
