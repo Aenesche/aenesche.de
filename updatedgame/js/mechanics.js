@@ -472,6 +472,9 @@ function tick(){
   el.cps.textContent = cps.toFixed(cps<10?2:1);
   el.rp.textContent = fmt(state.rp);
 
+  const nwRpDisplay = document.getElementById("nw-rp-display");
+      if (nwRpDisplay) nwRpDisplay.textContent = fmt(state.rp || 0);
+
   if (state.newWorld && document.getElementById("nw-wrap").style.display === "block") {
       document.getElementById("po-display").textContent = Math.floor(state.newWorld.po || 0);
       document.getElementById("nrp-display").textContent = Math.floor(state.newWorld.nrp || 0);
