@@ -113,7 +113,7 @@
     .tree-node:hover { transform: translate(-50%, -50%) scale(1.1); border-color: var(--accent); }
     .tree-node.unlocked { border-color: #00ff88; background: rgba(0, 255, 136, 0.1); }
     .tree-node.reachable { border-color: var(--warn); box-shadow: 0 0 10px rgba(255, 68, 68, 0.2); }
-    .tree-node.locked { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
+    .tree-node.locked { opacity: 0.5; filter: grayscale(1); }
     
     /* Schriftart für den Text im Node kleiner machen */
     .tree-node span { font-size: 11px; font-weight: bold; line-height: 1.2; }
@@ -280,10 +280,11 @@
         
         <div class="panel">
           <h2>RESOURCES</h2>
-          <div class="stats" style="grid-template-columns: 1fr 1fr 1fr;">
+          <div class="stats" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
             <div class="stat"><div class="k">Plutonium Ore</div><div class="v"><span id="po-display" style="color: var(--warn);">0</span> <small>PO</small></div></div>
             <div class="stat"><div class="k">Neural Research</div><div class="v"><span id="nrp-display" style="color: #00ff88;">0</span> <small>N-RP</small></div></div>
             <div class="stat"><div class="k">Legacy Coins</div><div class="v"><span id="legacy-cp">0</span> <small>CP</small></div></div>
+            <div class="stat"><div class="k">Research Pts</div><div class="v"><span id="nw-rp-display" style="color: #66d9ff;">0</span> <small>RP</small></div></div>
           </div>
         </div>
 
