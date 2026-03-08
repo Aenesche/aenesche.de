@@ -592,8 +592,7 @@ function selectTechNode(nodeId) {
     if (part.type === "battery") statsText = `Missionszeit: ${Math.round(part.timeMult * 100)}%`;
     if (part.type === "frame") statsText = `Absturzrisiko: ${Math.round(part.breakChance * 100)}%`;
     if (part.type === "fc") statsText = `Sicherheit: +${Math.round(part.safety * 100)}%`;
-    if (part.type === "props") statsText = `PO Ertrag: x${part.poMult}`;
-    if (part.type === "camera") statsText = `Loot-Glück: x${part.luckBonus}`;
+    if (part.type === "props") statsText = `Ertrag: PO x${part.poMult} | N-RP x${part.nrpMult}`;    if (part.type === "camera") statsText = `Loot-Glück: x${part.luckBonus}`;
 
     let specialText = part.special ? `<br><span style="color:var(--warn)">★ Special: ${part.special.type.toUpperCase()} (${part.special.value})</span>` : "";
     
