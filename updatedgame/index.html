@@ -234,19 +234,20 @@
         </div>
       </div>
 
-    <div class="grid">
-      <div class="panel">
-        <h2>DRONE ASSEMBLY</h2>
-        <div class="panel" style="margin-top: 14px;">
+    <div class="panel">
         <h2>MISSION LOG</h2>
         <div class="monoBox" id="nw-log"></div>
         <div class="hint">Server-Ereignisse und Loot-Drops werden hier protokolliert.</div>
       </div>
+
+      <div class="panel" style="margin-top: 15px;">
+        <h2>DRONE ASSEMBLY</h2>
         <div style="border: 1px solid var(--line); background: #050505; height: 120px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; text-align: center;">
             <div id="drone-render-field" style="color: var(--accent); font-size: 14px; letter-spacing: 2px;">
                 [ SYSTEM OFFLINE ]<br><small>Warte auf Assembly...</small>
             </div>
         </div>
+        
         <div class="drone-grid">
           <div class="part-slot slot-props" id="slot-props">PROPS<br><small>empty</small></div>
           <div class="part-slot slot-batt" id="slot-battery">BATTERY<br><small>empty</small></div>
@@ -263,16 +264,15 @@
           <button id="startMissionBtn" onclick="startMission()" disabled style="border-color: var(--warn); color: var(--warn); width: 100%;">START MISSION (REQ. 5 PARTS)</button>
           
           <div style="margin-top: 15px; width: 100%;">
-    <div style="background: #111; border: 1px solid var(--line); height: 24px; position: relative; border-radius: 3px; overflow: hidden;">
-        
-        <div id="mission-progress" style="background: #00ff88; width: 0%; height: 100%; transition: width 0.1s linear;"></div>
-        
-        <div id="mission-time" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; line-height: 24px; font-size: 12px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; pointer-events: none;">
-            STANDBY
-        </div>
-        
-    </div>
-</div>
+              <div style="background: #111; border: 1px solid var(--line); height: 24px; position: relative; border-radius: 3px; overflow: hidden;">
+                  <div id="mission-progress" style="background: #00ff88; width: 0%; height: 100%; transition: width 0.1s linear;"></div>
+                  <div id="mission-time" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; line-height: 24px; font-size: 12px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; pointer-events: none;">
+                      STANDBY
+                  </div>
+              </div>
+          </div>
+          </div>
+      </div>
           
           <button id="claimMissionBtn" onclick="claimMissionResult()" style="display: none; border-color: #00ff88; color: #00ff88; width: 100%; animation: popIn 0.5s forwards;">CLAIM LOOT</button>
         </div>
