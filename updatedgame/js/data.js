@@ -629,14 +629,14 @@ const TECH_TREE = {
   // ==========================================
     // 🌌 DROP-EXCLUSIVES (SCHWEBENDE NODES IM CANVAS)
     // ==========================================
-    "n_bat_d01": { treeType: "battery", partId: "bat_d01", req: [], x: 10, y: 30, dropOnly: true, unlockCost: {}, buyCost: {} },
+    "n_bat_d01": { treeType: "battery", partId: "bat_d01", req: [], x: 25, y: 30, dropOnly: true, unlockCost: {}, buyCost: {} },
     "n_bat_d02": { treeType: "battery", partId: "bat_d02", req: [], x: 85, y: 70, dropOnly: true, unlockCost: {}, buyCost: {} },
     
     "n_pro_d01": { treeType: "props", partId: "pro_d01", req: [], x: 37, y: 67, dropOnly: true, unlockCost: {}, buyCost: {} },
     
     "n_cam_d01": { treeType: "camera", partId: "cam_d01", req: [], x: 85, y: 25, dropOnly: true, unlockCost: {}, buyCost: {} },
     
-    "n_fra_d01": { treeType: "frame", partId: "fra_d01", req: [], x: 15, y: 20, dropOnly: true, unlockCost: {}, buyCost: {} },
+    "n_fra_d01": { treeType: "frame", partId: "fra_d01", req: [], x: 25, y: 30, dropOnly: true, unlockCost: {}, buyCost: {} },
 
     // Dummy (muss am Ende bleiben!)
     "dummy_fra": { treeType: "frame", partId: "fra_001", req: [], x: 50, y: 10, unlockCost: { rp: 0, nrp: 0, vg: 0 }, buyCost: { cp: 0, po: 0, vg: 0 } }
