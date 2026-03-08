@@ -641,4 +641,3 @@ const TECH_TREE = {
     // Dummy (muss am Ende bleiben!)
     "dummy_fra": { treeType: "frame", partId: "fra_001", req: [], x: 50, y: 10, unlockCost: { rp: 0, nrp: 0, vg: 0 }, buyCost: { cp: 0, po: 0, vg: 0 } }
 };
-};
