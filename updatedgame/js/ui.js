@@ -492,9 +492,6 @@ function renderTechTreeCanvas() {
     nodesContainer.innerHTML = "";
     svgContainer.innerHTML = "";
 
-    // --- DYNAMISCHE TIER TRENNLINIEN (Pro Tree anpassbar!) ---
-    // --- DYNAMISCHE TIER TRENNLINIEN ---
-    // --- DYNAMISCHE TIER TRENNLINIEN (Pro Tree anpassbar!) ---
     // --- DYNAMISCHE TIER TRENNLINIEN ---
     const TIER_LINES_CONFIG = {
         battery: [
@@ -521,7 +518,6 @@ function renderTechTreeCanvas() {
             { y: 62.0, color: "#ffd700", label: "TIER 4 (LEGENDARY)" },
             { y: 77.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
         ],
-        // NEU: Flight Controller (Geradlinige Platinen-Struktur)
         fc: [
             { y: 24.0, color: "#00ff88", label: "TIER 2 (RARE)" },
             { y: 39.0, color: "#66d9ff", label: "TIER 3 (SUPER RARE)" },
@@ -529,10 +525,10 @@ function renderTechTreeCanvas() {
             { y: 76.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
         ]
     };
+
     const tierLines = TIER_LINES_CONFIG[currentTechTab] || [];
 
     tierLines.forEach(tier => {
-        // Die gestrichelte Linie
         const line = document.createElementNS('http://www.w3.org/2000/svg','line');
         line.setAttribute('x1', '0%');
         line.setAttribute('y1', `${tier.y}%`);
@@ -540,14 +536,13 @@ function renderTechTreeCanvas() {
         line.setAttribute('y2', `${tier.y}%`);
         line.setAttribute('stroke', tier.color);
         line.setAttribute('stroke-width', '2');
-        line.setAttribute('stroke-dasharray', '12, 12'); // Gestrichelt
-        line.setAttribute('opacity', '0.2'); // Sehr dezent im Hintergrund
+        line.setAttribute('stroke-dasharray', '12, 12'); 
+        line.setAttribute('opacity', '0.2'); 
         svgContainer.appendChild(line);
 
-        // Der Text darüber
         const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-        text.setAttribute('x', '50%'); // In der Mitte
-        text.setAttribute('y', `${tier.y - 0.5}%`); // Leicht über der Linie
+        text.setAttribute('x', '50%'); 
+        text.setAttribute('y', `${tier.y - 0.5}%`); 
         text.setAttribute('fill', tier.color);
         text.setAttribute('opacity', '0.4');
         text.setAttribute('font-size', '28px');
@@ -567,8 +562,24 @@ function renderTechTreeCanvas() {
 
         const part = PART_CATALOG[node.partId];
         const isUnlocked = unlocked.includes(nodeId);
-        const isReachable = node.req.length === 0 || node.req.some(reqId => unlocked.includes(reqId));
+        // Drop-Only Teile können nicht durch Vorbedingungen erreicht werden
+        const isReachable = node.dropOnly ? false : (node.req.length === 0 || node.req.some(reqId => unlocked.includes(reqId)));
         
+        // --- NEU: Drop-Only Logik (Unbekannt vs. RGB) ---
+        let displayName = part.name;
+        let nodeColor = RARITIES[part.rarity].color;
+        let nodeClass = isUnlocked ? 'unlocked' : (isReachable ? 'reachable' : 'locked');
+
+        if (node.dropOnly) {
+            if (!isUnlocked) {
+                displayName = "[ ? ] UNKNOWN SIGNAL";
+                nodeColor = "#222"; 
+                nodeClass = "locked";
+            } else {
+                nodeClass = "unlocked exotic-rgb"; // RGB ANIMATION
+            }
+        }
+
         // Linien zwischen den Nodes
         node.req.forEach(reqId => {
             const parentNode = TECH_TREE[reqId];
@@ -586,12 +597,14 @@ function renderTechTreeCanvas() {
 
         // Nodes (Boxen) zeichnen
         const el = document.createElement("div");
-        el.className = `tree-node ${isUnlocked ? 'unlocked' : (isReachable ? 'reachable' : 'locked')}`;
+        el.className = `tree-node ${nodeClass}`;
         el.style.left = `${node.x}%`;
         el.style.top = `${node.y}%`;
         
-        el.style.color = RARITIES[part.rarity].color;
-        el.innerHTML = `<span>${part.name}</span>`; 
+        el.style.color = nodeColor;
+        if (node.dropOnly && !isUnlocked) el.style.borderColor = "#222"; 
+        
+        el.innerHTML = `<span style="pointer-events:none;">${displayName}</span>`; 
         
         el.onclick = () => selectTechNode(nodeId);
         nodesContainer.appendChild(el);
@@ -599,62 +612,86 @@ function renderTechTreeCanvas() {
 }
 
 function selectTechNode(nodeId) {
-    selectedTechNode = nodeId;
     const node = TECH_TREE[nodeId];
+    if(!node) return;
+    
     const part = PART_CATALOG[node.partId];
     const unlocked = state.newWorld.unlockedNodes || [];
     const isUnlocked = unlocked.includes(nodeId);
-    const color = RARITIES[part.rarity].color;
 
-    const panel = document.getElementById("tech-detail-panel");
-    
+    let color = RARITIES[part.rarity].color;
+
+    // --- NEU: Verstecke Info, wenn es ein unentdecktes Drop-Exclusive ist ---
+    if (node.dropOnly && !isUnlocked) {
+        document.getElementById("tt-detail-title").textContent = "UNKNOWN SIGNAL";
+        document.getElementById("tt-detail-title").style.color = "#555";
+        document.getElementById("tt-detail-rarity").textContent = "???";
+        document.getElementById("tt-detail-rarity").style.color = "#555";
+        document.getElementById("tt-detail-stats").innerHTML = "Verschlüsselte Daten...<br>Finde diese Anomalie in einer Mission.";
+        
+        document.getElementById("tt-detail-btn").innerHTML = `
+            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Source: Unknown</div>
+            <button disabled style="border-color: #333; color: #333; width: 100%;">UNDISCOVERED</button>
+        `;
+        return; // Bricht hier ab, zeigt keine echten Stats an!
+    }
+
+    // Normale Titel & Rarity setzen
+    document.getElementById("tt-detail-title").textContent = part.name;
+    document.getElementById("tt-detail-title").style.color = color;
+    document.getElementById("tt-detail-rarity").textContent = part.rarity;
+    document.getElementById("tt-detail-rarity").style.color = color;
+
+    // Dynamische Stats generieren
     let statsText = "";
     if (part.type === "battery") statsText = `Missionszeit: ${Math.round(part.timeMult * 100)}%`;
-    if (part.type === "frame") statsText = `Absturzrisiko: ${(part.breakChance * 100).toFixed(1)}%`;
-    if (part.type === "fc") statsText = `System-Architektur: ${part.safety > 0 ? 'Flugstabilisierung aktiv' : 'Pure Software-Logik'}`;
-    if (part.type === "props") statsText = `Ertrag: PO x${part.poMult} | N-RP x${part.nrpMult}`;    
+    if (part.type === "props") statsText = `Ertrag: PO x${part.poMult} | N-RP x${part.nrpMult}`;
     if (part.type === "camera") {
-        const vgText = part.vgChance > 0 ? `<span style="color:#b300ff"> | VG-Chance: ${Math.round(part.vgChance * 100)}%</span>` : "";
+        const vgText = part.vgChance > 0 ? ` <br><span style="color:#b300ff">VG-Chance: ${Math.round(part.vgChance * 100)}%</span>` : "";
         statsText = `Loot-Glück: x${part.luckBonus}${vgText}`;
     }
-    
-    let specialText = part.special ? `<br><span style="color:var(--warn)">★ Special: ${part.special.type.toUpperCase()} (${part.special.value})</span>` : "";
-    
-    // Kosten dynamisch formatieren (0-Werte werden ausgeblendet!)
-    let craftCost = [];
-    if(node.buyCost.cp > 0) craftCost.push(`${fmt(node.buyCost.cp)} CP`);
-    if(node.buyCost.po > 0) craftCost.push(`${fmt(node.buyCost.po)} PO`);
-    if(node.buyCost.vg > 0) craftCost.push(`${fmt(node.buyCost.vg)} VG`);
+    if (part.type === "frame") statsText = `Absturzrisiko: ${(part.breakChance * 100).toFixed(1)}%`;
+    if (part.type === "fc") statsText = `System: ${part.safety > 0 ? 'Stabilisierung aktiv' : 'Pure Software-Logik'}`;
 
-    let resCost = [];
-    if(node.unlockCost.rp > 0) resCost.push(`${fmt(node.unlockCost.rp)} RP`);
-    if(node.unlockCost.nrp > 0) resCost.push(`${fmt(node.unlockCost.nrp)} N-RP`);
-    if(node.unlockCost.vg > 0) resCost.push(`${fmt(node.unlockCost.vg)} VG`);
+    if (part.special) {
+        statsText += `<br><br><span style="color: #00ff88; font-size: 0.9em;">[ Special: ${part.special.type.toUpperCase()} ]</span>`;
+    }
     
+    document.getElementById("tt-detail-stats").innerHTML = statsText;
+
+    // Dynamische Kosten generieren
     let btnHTML = "";
-    if (isUnlocked) {
+    
+    if (node.dropOnly) {
+        // Drop-Only Item das bereits gefunden wurde
         btnHTML = `
-            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Crafting: ${craftCost.join(' | ')}</div>
-            <button onclick="buyCraftedPart('${nodeId}')" style="border-color: ${color}; color: ${color}; width: 100%;">CRAFT PART</button>
+            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Source: Anomaly Drop</div>
+            <button disabled style="border-color: #ff2da6; color: #ff2da6; width: 100%;">ACQUIRED</button>
         `;
     } else {
-        btnHTML = `
-            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Research: ${resCost.join(' | ')}</div>
-            <button onclick="unlockNode('${nodeId}')" style="width: 100%;">RESEARCH BLUEPRINT</button>
-        `;
-    }
+        // Normales Crafting/Research Item
+        let craftCost = [];
+        if(node.buyCost.cp > 0) craftCost.push(`${fmt(node.buyCost.cp)} CP`);
+        if(node.buyCost.po > 0) craftCost.push(`${fmt(node.buyCost.po)} PO`);
+        if(node.buyCost.vg > 0) craftCost.push(`${fmt(node.buyCost.vg)} VG`);
 
-    panel.innerHTML = `
-        <div style="flex: 1;">
-            <div style="font-size: 14px; color: ${color}; font-weight: bold;">${part.name}</div>
-            <div style="font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.4;">
-                Type: ${part.type.toUpperCase()} | Rarity: ${part.rarity}
-                <br><span style="color: #eaeaea;">Stats: ${statsText}</span>
-                ${specialText}
-            </div>
-        </div>
-        <div style="text-align: right; width: 250px;">
-            ${btnHTML}
-        </div>
-    `;
+        let resCost = [];
+        if(node.unlockCost.rp > 0) resCost.push(`${fmt(node.unlockCost.rp)} RP`);
+        if(node.unlockCost.nrp > 0) resCost.push(`${fmt(node.unlockCost.nrp)} N-RP`);
+        if(node.unlockCost.vg > 0) resCost.push(`${fmt(node.unlockCost.vg)} VG`);
+
+        if (isUnlocked) {
+            btnHTML = `
+                <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Crafting: ${craftCost.join(' | ')}</div>
+                <button onclick="buyCraftedPart('${nodeId}')" style="border-color: ${color}; color: ${color}; width: 100%;">CRAFT PART</button>
+            `;
+        } else {
+            btnHTML = `
+                <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Research: ${resCost.join(' | ')}</div>
+                <button onclick="unlockNode('${nodeId}')" style="width: 100%;">RESEARCH BLUEPRINT</button>
+            `;
+        }
+    }
+    
+    document.getElementById("tt-detail-btn").innerHTML = btnHTML;
 }
