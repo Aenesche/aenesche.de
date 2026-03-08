@@ -494,6 +494,8 @@ function renderTechTreeCanvas() {
 
     // --- DYNAMISCHE TIER TRENNLINIEN (Pro Tree anpassbar!) ---
     // --- DYNAMISCHE TIER TRENNLINIEN ---
+    // --- DYNAMISCHE TIER TRENNLINIEN (Pro Tree anpassbar!) ---
+    // --- DYNAMISCHE TIER TRENNLINIEN ---
     const TIER_LINES_CONFIG = {
         battery: [
             { y: 23.5, color: "#00ff88", label: "TIER 2 (RARE)" },
@@ -513,15 +515,20 @@ function renderTechTreeCanvas() {
             { y: 62.0, color: "#ffd700", label: "TIER 4 (LEGENDARY)" },
             { y: 82.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
         ],
-        // NEU: Frame Linien (Das Schild-Layout braucht etwas andere Abstände)
         frame: [
+            { y: 19.0, color: "#00ff88", label: "TIER 2 (RARE)" },
+            { y: 35.0, color: "#66d9ff", label: "TIER 3 (SUPER RARE)" },
+            { y: 62.0, color: "#ffd700", label: "TIER 4 (LEGENDARY)" },
+            { y: 77.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
+        ],
+        // NEU: Flight Controller (Geradlinige Platinen-Struktur)
+        fc: [
             { y: 24.0, color: "#00ff88", label: "TIER 2 (RARE)" },
-            { y: 44.0, color: "#66d9ff", label: "TIER 3 (SUPER RARE)" },
-            { y: 64.0, color: "#ffd700", label: "TIER 4 (LEGENDARY)" },
-            { y: 84.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
+            { y: 39.0, color: "#66d9ff", label: "TIER 3 (SUPER RARE)" },
+            { y: 56.0, color: "#ffd700", label: "TIER 4 (LEGENDARY)" },
+            { y: 76.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
         ]
     };
-
     const tierLines = TIER_LINES_CONFIG[currentTechTab] || [];
 
     tierLines.forEach(tier => {
