@@ -230,49 +230,65 @@ function renderNewWorld() {
     const startBtn = document.getElementById("startMissionBtn");
     const progContainer = document.getElementById("mission-progress-container");
     const claimBtn = document.getElementById("claimMissionBtn");
-    const isMissionDone = isMissionActive && now() >= state.newWorld.mission.endTime;
+    // --- SCHRITT 3: UI STATUS LOGIK ---
+    const isMissionActive = !!state.newWorld.mission;
+    const m = state.newWorld.mission;
+    const isWaitingForClaim = isMissionActive && m.status === "WAITING_FOR_CLAIM";
 
-    if(isMissionActive) {
+    // Pointer-Events sperren, wenn Mission läuft oder auf Claim wartet
+    if (isMissionActive) {
         document.querySelectorAll('.inv-item, .part-slot').forEach(elem => {
             elem.style.pointerEvents = 'none';
-            if(elem.classList.contains('inv-item')) elem.style.opacity = '0.4';
+            if (elem.classList.contains('inv-item')) elem.style.opacity = '0.4';
         });
     }
 
+    // Die drei Zustände der Mission Control UI:
     if (!isMissionActive) {
-        progContainer.style.display = "none"; claimBtn.style.display = "none"; startBtn.style.display = "block";
-        if(partsEquipped === 5) {
-            renderField.innerHTML = "▀▄▀▄▀ [ DROHNE BEREIT ] ▀▄▀▄▀<br><small style='color: var(--text);'>Wartet auf Freigabe.</small>";
-            renderField.style.color = "#00ff88"; 
-            startBtn.disabled = false; startBtn.textContent = "START MISSION (Dauer: ~30s)";
-            startBtn.style.background = "rgba(255, 68, 68, 0.15)"; startBtn.style.cursor = "pointer";
+        // ZUSTAND 1: Keine Mission (Bereit zum Starten)
+        progContainer.style.display = "none";
+        claimBtn.style.display = "none";
+        startBtn.style.display = "block";
+        
+        if (partsEquipped === 5) {
+            renderField.innerHTML = "▀▄▀▄▀ [ DROHNE BEREIT ] ▀▄▀▄▀<br><small>Wartet auf Freigabe.</small>";
+            renderField.style.color = "#00ff88";
+            startBtn.disabled = false;
         } else {
-            renderField.innerHTML = "[ SYSTEM OFFLINE ]<br><small>Es fehlen Teile (" + partsEquipped + "/5).</small>";
-            renderField.style.color = "var(--warn)"; 
-            startBtn.disabled = true; startBtn.textContent = "START MISSION (REQ. 5 PARTS)";
-            startBtn.style.background = "transparent"; startBtn.style.cursor = "not-allowed";
+            renderField.innerHTML = "[ SYSTEM OFFLINE ]<br><small>Teile fehlen (" + partsEquipped + "/5)</small>";
+            renderField.style.color = "var(--warn)";
+            startBtn.disabled = true;
         }
-    } else {
+    } 
+    else if (m.status === "IN_PROGRESS") {
+        // ZUSTAND 2: Mission läuft (Ladebalken zeigen)
         startBtn.style.display = "none";
+        claimBtn.style.display = "none";
+        progContainer.style.display = "block";
         renderField.innerHTML = ">>> MISSION IN PROGRESS <<< <br><small>Drohne in Sektor 7...</small>";
         renderField.style.color = "var(--warn)";
-        
-        if (isMissionDone) {
-            progContainer.style.display = "none"; claimBtn.style.display = "block";
-            if (state.newWorld.mission.crashed) {
-                renderField.innerHTML = "!!! CRITICAL CRASH !!!<br><small>Signal verloren. Drohne zerstört.</small>";
-                renderField.style.color = "var(--warn)"; claimBtn.textContent = "GO CRY ABOUT IT";
-                claimBtn.style.borderColor = "var(--warn)"; claimBtn.style.color = "var(--warn)";
-            } else {
-                renderField.innerHTML = "[ MISSION COMPLETE ]<br><small>Loot abholbereit.</small>";
-                renderField.style.color = "#00ff88"; claimBtn.textContent = "CLAIM LOOT";
-                claimBtn.style.borderColor = "#00ff88"; claimBtn.style.color = "#00ff88";
-            }
+    } 
+    else if (isWaitingForClaim) {
+        // ZUSTAND 3: Mission fertig (Claim Button zeigen)
+        startBtn.style.display = "none";
+        progContainer.style.display = "none";
+        claimBtn.style.display = "block";
+
+        if (m.result && m.result.crashed) {
+            renderField.innerHTML = "!!! CRITICAL CRASH !!!<br><small>Signal verloren. Drohne zerstört.</small>";
+            renderField.style.color = "var(--warn)";
+            claimBtn.textContent = "BERGE TRÜMMER (LOSE PARTS)";
+            claimBtn.style.borderColor = "var(--warn)";
+            claimBtn.style.color = "var(--warn)";
         } else {
-            progContainer.style.display = "block"; claimBtn.style.display = "none";
+            renderField.innerHTML = "[ MISSION COMPLETE ]<br><small>Loot abholbereit.</small>";
+            renderField.style.color = "#00ff88";
+            claimBtn.textContent = "CLAIM LOOT";
+            claimBtn.style.borderColor = "#00ff88";
+            claimBtn.style.color = "#00ff88";
         }
     }
-}
+  }
 
 function render(){
   const cps = coinsPerSecond(); const rps = rpPerSecond(); const cp = clickPower();
