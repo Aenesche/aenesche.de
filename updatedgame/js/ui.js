@@ -158,6 +158,7 @@ function dragEnterSlot(ev, slotEl) { ev.preventDefault(); slotEl.classList.add("
 function dragLeaveSlot(ev, slotEl) { slotEl.classList.remove("drag-over"); }
 
 function renderNewWorld() {
+  if (!state || !state.newWorld) return;
     document.getElementById("po-display").textContent = state.newWorld.po || 0;
     document.getElementById("legacy-cp").textContent = fmt(state.coins);
     
@@ -487,6 +488,7 @@ function switchTechTab(type) {
 }
 
 function renderTechTreeCanvas() {
+  if (!state || !state.newWorld) return;
     const nodesContainer = document.getElementById("tree-nodes");
     const svgContainer = document.getElementById("tree-lines");
     nodesContainer.innerHTML = "";
@@ -612,6 +614,7 @@ function renderTechTreeCanvas() {
 }
 
 function selectTechNode(nodeId) {
+  if (!state || !state.newWorld) return;
     const node = TECH_TREE[nodeId];
     if(!node) return;
     
