@@ -188,6 +188,10 @@ const BASE_MISSION_DURATION = 30000;
 // 🚁 MISSIONS-LOGIK (NEW WORLD)
 // ==========================================
 
+// ==========================================
+// 🚁 REFACtORED MISSIONS-LOGIK
+// ==========================================
+
 function startMission() {
     const h = state.newWorld.hangar;
     if (!h.battery || !h.frame || !h.props || !h.camera || !h.fc) {
@@ -197,26 +201,29 @@ function startMission() {
 
     const bat = PART_CATALOG[h.battery.catalogId];
     const props = PART_CATALOG[h.props.catalogId];
+    const frame = PART_CATALOG[h.frame.catalogId];
+    const fc = PART_CATALOG[h.fc.catalogId];
 
-    // 1. Basis-Zeit berechnen (30 Sekunden * Batterie-Multiplikator)
+    // Zeitberechnung
     let timeMult = bat.timeMult;
-    
-    // Specials, die die Zeit beeinflussen
-    if (PART_CATALOG[h.frame.catalogId].special?.type === "heavyweight") timeMult *= 1.5; // Juggernaut Frame
-    if (PART_CATALOG[h.fc.catalogId].special?.type === "agility_boost") timeMult *= 0.95; // F3 Acro FC
+    if (frame.special?.type === "heavyweight") timeMult *= 1.5;
+    if (fc.special?.type === "agility_boost") timeMult *= 0.95;
 
     let durationMs = 30000 * timeMult;
 
-    // Chrono-Stutter Exot: 10% Chance auf Instant-Mission!
+    // Sonderfall: Instant Mission
     if (props.special?.type === "instant_mission" && Math.random() < props.special.value) {
         durationMs = 0;
-        log("CHRONO-STUTTER TRIGGERED! Instant jump completed.", "ok");
+        log("CHRONO-STUTTER! Instant jump completed.", "ok");
     }
 
+    // STATE INITIALISIEREN
     state.newWorld.mission = {
+        status: "IN_PROGRESS",
         startTime: Date.now(),
         duration: durationMs,
-        completed: false
+        endTime: Date.now() + durationMs,
+        result: null // Wird in resolveMission befüllt
     };
 
     log("Drone launched into the wasteland!", "ok");
@@ -225,210 +232,64 @@ function startMission() {
 }
 
 function resolveMission() {
+    const m = state.newWorld.mission;
+    if (!m || m.status !== "IN_PROGRESS") return;
+
     const h = state.newWorld.hangar;
-    const bat = PART_CATALOG[h.battery.catalogId];
     const frame = PART_CATALOG[h.frame.catalogId];
     const props = PART_CATALOG[h.props.catalogId];
-    const cam = PART_CATALOG[h.camera.catalogId];
-    const fc = PART_CATALOG[h.fc.catalogId];
 
-    // --- 1. SYNERGIEN & MULTIPLIKATOREN SAMMELN ---
-    let luck = cam.luckBonus;
-    let vgChance = cam.vgChance || 0;
-    let crashRisk = frame.breakChance;
+    // Crash-Logik
+    const isCrash = Math.random() < frame.breakChance;
+    
+    // Loot-Berechnung (geparkt im result)
+    let totalPo = Math.floor((Math.random() * 50) + 10) * props.poMult;
+    let totalNrp = Math.floor((Math.random() * 5) + 1) * props.nrpMult;
 
-    // DJI Synergien checken
-    if (fc.special?.type === "set_bonus_v1" && cam.special?.type === "synergy_ready" && cam.special.value === "v1") luck *= fc.special.value;
-    if (fc.special?.type === "set_bonus_o3" && cam.special?.type === "synergy_ready" && cam.special.value === "o3") luck *= fc.special.value;
+    m.result = {
+        crashed: isCrash,
+        poGained: isCrash ? 0 : totalPo,
+        nrpGained: isCrash ? 0 : totalNrp,
+        drops: [] // Hier könnten später Items via generateLootDrop() rein
+    };
 
-    // Weitere Specials sammeln
-    if (bat.special?.type === "void_find") vgChance += bat.special.value;
-    if (frame.special?.type === "void_find") vgChance += frame.special.value;
-    if (fc.special?.type === "luck_boost") luck += fc.special.value;
-    if (bat.special?.type === "burnout_risk") crashRisk += bat.special.value;
-    if (props.special?.type === "burnout_risk" || props.special?.type === "break_risk") crashRisk += props.special.value;
-    if (fc.special?.type === "auto_level") crashRisk = Math.max(0, crashRisk - fc.special.value);
-
-    // --- 2. DER CRASH-WÜRFEL ---
-    const isCrash = Math.random() < crashRisk;
-
+    m.status = "WAITING_FOR_CLAIM"; // Der wichtigste Switch!
+    
     if (isCrash) {
-        // Phoenix Alloy Special (10% Chance, Crash zu ignorieren)
-        if (frame.special?.type === "rebirth" && Math.random() < frame.special.value) {
-            log("PHOENIX ALLOY ACTIVATED! Lethal crash averted.", "ok");
-        } else {
-            // Echter Crash! Was passiert mit den Bauteilen?
-            let savedPartsCount = 0;
-            if (fc.special?.type === "rth_flawless" || bat.special?.type === "save_parts" || frame.special?.type === "save_parts") {
-                savedPartsCount = 5; // Alles gerettet!
-                log("CRASH! But emergency systems saved all parts.", "warn");
-            } else if (fc.special?.type === "rth_v2") {
-                savedPartsCount = 3;
-            } else if (fc.special?.type === "rth_v1") {
-                savedPartsCount = 1;
-            }
-
-            if (savedPartsCount < 5) {
-                // Teile zufällig zerstören (simpel gehalten: Wir leeren den Hangar teilweise)
-                const partKeys = ["battery", "frame", "props", "camera", "fc"];
-                // Mische die Keys, um zufällige Teile zu retten
-                partKeys.sort(() => 0.5 - Math.random()); 
-                
-                let destroyedCount = 0;
-                for (let i = savedPartsCount; i < 5; i++) {
-                    const keyToDestroy = partKeys[i];
-                    if (state.newWorld.hangar[keyToDestroy]) {
-                        // Lösche das Item auch aus dem Inventar!
-                        const invId = state.newWorld.hangar[keyToDestroy].id;
-                        state.newWorld.inventory = state.newWorld.inventory.filter(item => item.id !== invId);
-                        state.newWorld.hangar[keyToDestroy] = null;
-                        destroyedCount++;
-                    }
-                }
-                log(`CRASH! Drone destroyed. ${destroyedCount} parts lost in the wasteland.`, "bad");
-
-                // Insurance Fraud Exot (Gibt massiv CP und VG bei Zerstörung)
-                if (fc.special?.type === "insurance_fraud") {
-                    state.coins += 1000e12; 
-                    state.newWorld.vg += 50;
-                    log("INSURANCE FRAUD: Received massive payout for destroyed parts!", "ok");
-                }
-            }
-
-            // Blackbox Exot (Rettet N-RP trotz Crash)
-            if (fc.special?.type === "blackbox") {
-                const recoveredNrp = Math.floor(10 * props.nrpMult * fc.special.value);
-                state.newWorld.nrp += recoveredNrp;
-                log(`Blackbox recovered ${recoveredNrp} N-RP from the wreckage.`, "ok");
-            }
-
-            state.newWorld.mission = null;
-            saveToServer();
-            renderNewWorld();
-            return; // Mission endet hier nach dem Crash!
-        }
+        log("SIGNAL LOST: Drone hit an anomaly and crashed!", "bad");
+    } else {
+        log("MISSION COMPLETE: Drone returned to communication range.", "ok");
     }
 
-    // --- 3. ERFOLGREICHE MISSION (RESSOURCEN ERNTEN) ---
-    // Basis-Werte (Später skalierbar, aktuell fix für den Test)
-    let basePo = Math.floor(Math.random() * 50) + 10; 
-    let baseNrp = Math.floor(Math.random() * 5) + 1;
-
-    let totalPo = basePo * props.poMult;
-    let totalNrp = baseNrp * props.nrpMult;
-
-    // FC Overclock & Props Exoten
-    if (fc.special?.type === "overclock_po") totalPo *= (1 + fc.special.value);
-    if (props.special?.type === "double_po") totalPo *= 2;
-    if (bat.special?.type === "double_loot") { totalPo *= 2; totalNrp *= 2; luck *= 2; }
-    
-    // Neural-Overload Exot (Konvertiert alles PO in N-RP)
-    if (props.special?.type === "po_to_nrp") {
-        totalNrp += totalPo;
-        totalPo = 0;
-    }
-
-    state.newWorld.po += totalPo;
-    state.newWorld.nrp += totalNrp;
-
-    // Void Gems würfeln
-    let vgFound = 0;
-    if (Math.random() < vgChance) {
-        vgFound = 1;
-        if (props.special?.type === "double_vg") vgFound *= 2;
-        state.newWorld.vg += vgFound;
-    }
-
-    // --- 4. LOOT DROP (ANOMALIEN) ---
-    let lootMessage = `Mission Success! +${fmt(totalPo)} PO | +${fmt(totalNrp)} N-RP`;
-    if (vgFound > 0) lootMessage += ` | +${vgFound} VOID GEMS!`;
-
-    // Simpler RNG für Drops: Je mehr Luck, desto höher die Chance auf einen Drop überhaupt.
-    // Bei Luck 100 ist ein Drop quasi garantiert.
-    const dropChance = Math.min(1.0, 0.05 * luck); 
-    
-    if (Math.random() < dropChance && cam.special?.type !== "no_parts") {
-        // Wir filtern alle verfügbaren Drop-Exclusives aus dem Tech-Tree
-        const dropNodes = Object.keys(TECH_TREE).filter(key => TECH_TREE[key].dropOnly);
-        
-        // 2% Basis-Chance für ein ultra-seltenes Drop-Exclusive (modifiziert durch Luck)
-        const exclusiveChance = Math.min(0.02, 0.0001 * luck); 
-
-        if (dropNodes.length > 0 && Math.random() < exclusiveChance) {
-            // JACKPOT! Ein Drop-Exclusive wurde gefunden.
-            const randomDropId = dropNodes[Math.floor(Math.random() * dropNodes.length)];
-            
-            // Wenn wir es noch nicht hatten, schalten wir es im Tech-Tree frei!
-            if (!state.newWorld.unlockedNodes.includes(randomDropId)) {
-                state.newWorld.unlockedNodes.push(randomDropId);
-                log(`ANOMALY DISCOVERED! You unlocked a new Blueprint Signal!`, "ok");
-            }
-            
-            // Ins Inventar legen
-            const part = PART_CATALOG[TECH_TREE[randomDropId].partId];
-            state.newWorld.inventory.push({ 
-                id: "drop_" + Date.now(), 
-                catalogId: TECH_TREE[randomDropId].partId, type: part.type, name: part.name, rarity: part.rarity 
-            });
-            lootMessage += `\n>> ACQUIRED EXOTIC PART: ${part.name} <<`;
-        } else {
-            // Normaler Schrott-Drop (Common/Rare) für den Hangar
-            // Hier könnten wir später eine Liste mit normalen Teilen generieren, für jetzt geben wir einfach Extra-Ressourcen:
-            state.newWorld.po += 500e12;
-            lootMessage += " (Found Scrap Metal: +500T PO)";
-        }
-    }
-
-    log(lootMessage, "ok");
-    state.newWorld.mission = null;
     saveToServer();
     renderNewWorld();
 }
 
 function claimMissionResult() {
-    if (!state.newWorld.mission || now() < state.newWorld.mission.endTime) return;
     const m = state.newWorld.mission;
-    if (m.crashed) {
-        log(`CRITICAL FAILURE! Drone crashed. All equipped parts LOST.`, "bad");
-        state.newWorld.hangar = { frame: null, props: null, battery: null, fc: null, camera: null };
+    if (!m || m.status !== "WAITING_FOR_CLAIM") return;
+
+    if (m.result.crashed) {
+        // Teile zerstören
+        const keys = ["battery", "frame", "props", "camera", "fc"];
+        keys.forEach(k => {
+            if (state.newWorld.hangar[k]) {
+                const invId = state.newWorld.hangar[k].id;
+                state.newWorld.inventory = state.newWorld.inventory.filter(item => item.id !== invId);
+                state.newWorld.hangar[k] = null;
+            }
+        });
+        log("Wreckage recovered. Equipped parts were destroyed.", "bad");
     } else {
-        state.newWorld.po = (state.newWorld.po || 0) + m.poGained;
-        state.newWorld.nrp = (state.newWorld.nrp || 0) + m.nrpGained; 
-        m.drops.forEach(d => state.newWorld.inventory.push(d));
-        log(`MISSION SUCCESS! Extracted +${m.poGained} PO & +${m.nrpGained} N-RP.`, "ok");
-        m.drops.forEach(d => log(`LOOT DROP: ${d.name} (${d.rarity})`, "ok"));
+        // Ressourcen gutschreiben
+        state.newWorld.po += m.result.poGained;
+        state.newWorld.nrp += m.result.nrpGained;
+        log(`RESOURCES SECURED: +${fmt(m.result.poGained)} PO | +${m.result.nrpGained} N-RP`, "ok");
     }
-    state.newWorld.mission = null;
-    saveToServer(); renderNewWorld();
-}
 
-function unlockNode(nodeId) {
-    const node = TECH_TREE[nodeId];
-    if(!node) return;
-    
-    const reqRp = node.unlockCost.rp || 0;
-    const reqNrp = node.unlockCost.nrp || 0;
-    const reqVg = node.unlockCost.vg || 0;
-
-    if (state.rp < reqRp || (state.newWorld.nrp || 0) < reqNrp || (state.newWorld.vg || 0) < reqVg) {
-        log("Not enough resources to research this blueprint!", "bad"); return;
-    }
-    
-    state.rp -= reqRp; 
-    state.newWorld.nrp -= reqNrp;
-    state.newWorld.vg -= reqVg;
-
-    if(!state.newWorld.unlockedNodes) state.newWorld.unlockedNodes = [];
-    state.newWorld.unlockedNodes.push(nodeId);
-    
-    log(`BLUEPRINT RESEARCHED: ${PART_CATALOG[node.partId].name}`, "ok");
-    saveToServer(); 
-    
-    renderNewWorld(); 
-    if (document.getElementById("tech-wrap").style.display === "block") {
-        renderTechTreeCanvas(); 
-        selectTechNode(nodeId); 
-    }
+    state.newWorld.mission = null; // Mission beendet
+    saveToServer();
+    renderNewWorld();
 }
 
 function buyCraftedPart(nodeId) {
@@ -480,39 +341,24 @@ function tick(){
       document.getElementById("nrp-display").textContent = Math.floor(state.newWorld.nrp || 0);
       document.getElementById("legacy-cp").textContent = fmt(state.coins);
 
-      const m = state.newWorld.mission;
-      if (m) {
-          const now = Date.now();
-          const elapsed = now - m.startTime;
-          let progress = elapsed / m.duration;
-          
-          if (progress >= 1) {
-              // Mission ist fertig!
-              document.getElementById("mission-progress").style.width = "100%";
-              document.getElementById("mission-time").textContent = "RETURNED";
-              
-              if (!m.completed) {
-                  m.completed = true; // Verhindert doppeltes Auslösen
-                  resolveMission();   // Löst Crash, Loot und Specials aus!
-              }
-          } else {
-              // Mission läuft noch
-              document.getElementById("mission-progress").style.width = (progress * 100) + "%";
-              const leftSec = Math.ceil((m.duration - elapsed) / 1000);
-              document.getElementById("mission-time").textContent = leftSec + "s";
-          }
-      } else {
-          // Keine aktive Mission
-          document.getElementById("mission-progress").style.width = "0%";
-          document.getElementById("mission-time").textContent = "STANDBY";
-      }
-  }
-  // NEU: Live-Update für die Tech-Tree Kopfzeile
-    if (state.newWorld && document.getElementById("tech-wrap").style.display === "block") {
-        const ttCp = document.getElementById("tt-cp"); if(ttCp) ttCp.textContent = fmt(state.coins);
-        const ttRp = document.getElementById("tt-rp"); if(ttRp) ttRp.textContent = fmt(state.rp);
-        const ttPo = document.getElementById("tt-po"); if(ttPo) ttPo.textContent = Math.floor(state.newWorld.po || 0);
-        const ttNrp = document.getElementById("tt-nrp"); if(ttNrp) ttNrp.textContent = Math.floor(state.newWorld.nrp || 0);
-        const ttVg = document.getElementById("tt-vg"); if(ttVg) ttVg.textContent = Math.floor(state.newWorld.vg || 0);
+      if (state.newWorld && state.newWorld.mission) {
+        const m = state.newWorld.mission;
+        const progBar = document.getElementById("mission-progress");
+        const timeText = document.getElementById("mission-time");
+
+        if (m.status === "IN_PROGRESS") {
+            const elapsed = Date.now() - m.startTime;
+            const progress = Math.min(1, elapsed / m.duration);
+            
+            if (progBar) progBar.style.width = (progress * 100) + "%";
+            if (timeText) timeText.textContent = Math.ceil(Math.max(0, m.duration - elapsed) / 1000) + "s";
+
+            if (progress >= 1) {
+                resolveMission(); // Schaltet auf WAITING_FOR_CLAIM um
+            }
+        } else if (m.status === "WAITING_FOR_CLAIM") {
+            if (progBar) progBar.style.width = "100%";
+            if (timeText) timeText.textContent = m.result.crashed ? "CRASHED" : "SUCCESS";
+        }
     }
 }
