@@ -492,6 +492,43 @@ function renderTechTreeCanvas() {
     nodesContainer.innerHTML = "";
     svgContainer.innerHTML = "";
 
+    // --- TIER TRENNLINIEN ZEICHNEN ---
+    // Definiert, auf welcher Y-Höhe (%) die Tiers wechseln
+    const tierLines = [
+        { y: 23.5, color: "#00ff88", label: "TIER 2 (RARE)" },
+        { y: 44.5, color: "#66d9ff", label: "TIER 3 (SUPER RARE)" },
+        { y: 57.5, color: "#ffd700", label: "TIER 4 (LEGENDARY)" },
+        { y: 71.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
+    ];
+
+    tierLines.forEach(tier => {
+        // Die gestrichelte Linie
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1', '0%');
+        line.setAttribute('y1', `${tier.y}%`);
+        line.setAttribute('x2', '100%');
+        line.setAttribute('y2', `${tier.y}%`);
+        line.setAttribute('stroke', tier.color);
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('stroke-dasharray', '12, 12'); // Gestrichelt
+        line.setAttribute('opacity', '0.2'); // Sehr dezent im Hintergrund
+        svgContainer.appendChild(line);
+
+        // Der Text darüber
+        const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+        text.setAttribute('x', '50%'); // In der Mitte
+        text.setAttribute('y', `${tier.y - 0.5}%`); // Leicht über der Linie
+        text.setAttribute('fill', tier.color);
+        text.setAttribute('opacity', '0.4');
+        text.setAttribute('font-size', '28px');
+        text.setAttribute('font-family', 'monospace');
+        text.setAttribute('font-weight', 'bold');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('letter-spacing', '6px');
+        text.textContent = tier.label;
+        svgContainer.appendChild(text);
+    });
+
     const unlocked = state.newWorld.unlockedNodes || [];
 
     Object.keys(TECH_TREE).forEach(nodeId => {
@@ -502,6 +539,7 @@ function renderTechTreeCanvas() {
         const isUnlocked = unlocked.includes(nodeId);
         const isReachable = node.req.length === 0 || node.req.some(reqId => unlocked.includes(reqId));
         
+        // Linien zwischen den Nodes
         node.req.forEach(reqId => {
             const parentNode = TECH_TREE[reqId];
             if(parentNode) {
@@ -516,6 +554,7 @@ function renderTechTreeCanvas() {
             }
         });
 
+        // Nodes (Boxen) zeichnen
         const el = document.createElement("div");
         el.className = `tree-node ${isUnlocked ? 'unlocked' : (isReachable ? 'reachable' : 'locked')}`;
         el.style.left = `${node.x}%`;
