@@ -629,7 +629,7 @@ function renderTechTreeCanvas() {
 }
 
 function selectTechNode(nodeId) {
-  if (!state || !state.newWorld) return;
+    if (!state || !state.newWorld) return;
     const node = TECH_TREE[nodeId];
     if(!node) return;
     
@@ -638,78 +638,81 @@ function selectTechNode(nodeId) {
     const isUnlocked = unlocked.includes(nodeId);
 
     let color = RARITIES[part.rarity].color;
+    let panelHTML = "";
 
-    // --- NEU: Verstecke Info, wenn es ein unentdecktes Drop-Exclusive ist ---
+    // --- DROP-EXCLUSIVE VERSTECKEN ---
     if (node.dropOnly && !isUnlocked) {
-        document.getElementById("tt-detail-title").textContent = "UNKNOWN SIGNAL";
-        document.getElementById("tt-detail-title").style.color = "#555";
-        document.getElementById("tt-detail-rarity").textContent = "???";
-        document.getElementById("tt-detail-rarity").style.color = "#555";
-        document.getElementById("tt-detail-stats").innerHTML = "Verschlüsselte Daten...<br>Finde diese Anomalie in einer Mission.";
-        
-        document.getElementById("tt-detail-btn").innerHTML = `
-            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Source: Unknown</div>
-            <button disabled style="border-color: #333; color: #333; width: 100%;">UNDISCOVERED</button>
-        `;
-        return; // Bricht hier ab, zeigt keine echten Stats an!
-    }
-
-    // Normale Titel & Rarity setzen
-    document.getElementById("tt-detail-title").textContent = part.name;
-    document.getElementById("tt-detail-title").style.color = color;
-    document.getElementById("tt-detail-rarity").textContent = part.rarity;
-    document.getElementById("tt-detail-rarity").style.color = color;
-
-    // Dynamische Stats generieren
-    let statsText = "";
-    if (part.type === "battery") statsText = `Missionszeit: ${Math.round(part.timeMult * 100)}%`;
-    if (part.type === "props") statsText = `Ertrag: PO x${part.poMult} | N-RP x${part.nrpMult}`;
-    if (part.type === "camera") {
-        const vgText = part.vgChance > 0 ? ` <br><span style="color:#b300ff">VG-Chance: ${Math.round(part.vgChance * 100)}%</span>` : "";
-        statsText = `Loot-Glück: x${part.luckBonus}${vgText}`;
-    }
-    if (part.type === "frame") statsText = `Absturzrisiko: ${(part.breakChance * 100).toFixed(1)}%`;
-    if (part.type === "fc") statsText = `System: ${part.safety > 0 ? 'Stabilisierung aktiv' : 'Pure Software-Logik'}`;
-
-    if (part.special) {
-        statsText += `<br><br><span style="color: #00ff88; font-size: 0.9em;">[ Special: ${part.special.type.toUpperCase()} ]</span>`;
-    }
-    
-    document.getElementById("tt-detail-stats").innerHTML = statsText;
-
-    // Dynamische Kosten generieren
-    let btnHTML = "";
-    
-    if (node.dropOnly) {
-        // Drop-Only Item das bereits gefunden wurde
-        btnHTML = `
-            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Source: Anomaly Drop</div>
-            <button disabled style="border-color: #ff2da6; color: #ff2da6; width: 100%;">ACQUIRED</button>
+        panelHTML = `
+            <div style="flex: 1;">
+                <h3 style="margin: 0 0 5px; color: #555;">[ ? ] UNKNOWN SIGNAL</h3>
+                <div style="font-size: 11px; color: #555; margin-bottom: 10px;">Rarity: ???</div>
+                <div style="font-size: 12px; color: var(--muted);">Verschlüsselte Daten...<br>Finde diese Anomalie in einer Mission.</div>
+            </div>
+            <div style="width: 200px; text-align: right;">
+                <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Source: Unknown</div>
+                <button disabled style="border-color: #333; color: #333; width: 100%;">UNDISCOVERED</button>
+            </div>
         `;
     } else {
-        // Normales Crafting/Research Item
-        let craftCost = [];
-        if(node.buyCost.cp > 0) craftCost.push(`${fmt(node.buyCost.cp)} CP`);
-        if(node.buyCost.po > 0) craftCost.push(`${fmt(node.buyCost.po)} PO`);
-        if(node.buyCost.vg > 0) craftCost.push(`${fmt(node.buyCost.vg)} VG`);
+        // --- NORMALE STATS GENERIEREN ---
+        let statsText = "";
+        if (part.type === "battery") statsText = `Missionszeit: ${Math.round(part.timeMult * 100)}%`;
+        if (part.type === "props") statsText = `Ertrag: PO x${part.poMult} | N-RP x${part.nrpMult}`;
+        if (part.type === "camera") {
+            const vgText = part.vgChance > 0 ? ` <br><span style="color:#b300ff">VG-Chance: ${Math.round(part.vgChance * 100)}%</span>` : "";
+            statsText = `Loot-Glück: x${part.luckBonus}${vgText}`;
+        }
+        if (part.type === "frame") statsText = `Absturzrisiko: ${(part.breakChance * 100).toFixed(1)}%`;
+        if (part.type === "fc") statsText = `System: ${part.safety > 0 ? 'Stabilisierung aktiv' : 'Pure Software-Logik'}`;
 
-        let resCost = [];
-        if(node.unlockCost.rp > 0) resCost.push(`${fmt(node.unlockCost.rp)} RP`);
-        if(node.unlockCost.nrp > 0) resCost.push(`${fmt(node.unlockCost.nrp)} N-RP`);
-        if(node.unlockCost.vg > 0) resCost.push(`${fmt(node.unlockCost.vg)} VG`);
+        if (part.special) {
+            statsText += `<br><br><span style="color: #00ff88; font-size: 0.9em;">[ Special: ${part.special.type.toUpperCase()} ]</span>`;
+        }
 
-        if (isUnlocked) {
+        // --- BUTTONS GENERIEREN ---
+        let btnHTML = "";
+        if (node.dropOnly) {
             btnHTML = `
-                <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Crafting: ${craftCost.join(' | ')}</div>
-                <button onclick="buyCraftedPart('${nodeId}')" style="border-color: ${color}; color: ${color}; width: 100%;">CRAFT PART</button>
+                <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Source: Anomaly Drop</div>
+                <button disabled style="border-color: #ff2da6; color: #ff2da6; width: 100%;">ACQUIRED</button>
             `;
         } else {
-            btnHTML = `
-                <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Research: ${resCost.join(' | ')}</div>
-                <button onclick="unlockNode('${nodeId}')" style="width: 100%;">RESEARCH BLUEPRINT</button>
-            `;
+            let craftCost = [];
+            if(node.buyCost.cp > 0) craftCost.push(`${fmt(node.buyCost.cp)} CP`);
+            if(node.buyCost.po > 0) craftCost.push(`${fmt(node.buyCost.po)} PO`);
+            if(node.buyCost.vg > 0) craftCost.push(`${fmt(node.buyCost.vg)} VG`);
+
+            let resCost = [];
+            if(node.unlockCost.rp > 0) resCost.push(`${fmt(node.unlockCost.rp)} RP`);
+            if(node.unlockCost.nrp > 0) resCost.push(`${fmt(node.unlockCost.nrp)} N-RP`);
+            if(node.unlockCost.vg > 0) resCost.push(`${fmt(node.unlockCost.vg)} VG`);
+
+            if (isUnlocked) {
+                btnHTML = `
+                    <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Crafting: ${craftCost.join(' | ')}</div>
+                    <button onclick="buyCraftedPart('${nodeId}')" style="border-color: ${color}; color: ${color}; width: 100%; cursor: pointer;">CRAFT PART</button>
+                `;
+            } else {
+                btnHTML = `
+                    <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Research: ${resCost.join(' | ')}</div>
+                    <button onclick="unlockNode('${nodeId}')" style="width: 100%; cursor: pointer;">RESEARCH BLUEPRINT</button>
+                `;
+            }
         }
+
+        // HTML zusammenbauen
+        panelHTML = `
+            <div style="flex: 1;">
+                <h3 style="margin: 0 0 5px; color: ${color};">${part.name}</h3>
+                <div style="font-size: 11px; color: ${color}; margin-bottom: 10px;">Rarity: ${part.rarity}</div>
+                <div style="font-size: 12px;">${statsText}</div>
+            </div>
+            <div style="width: 200px; text-align: right;">
+                ${btnHTML}
+            </div>
+        `;
     }
-    
-    document.getElementById("tt-detail-btn").innerHTML = btnHTML;
+
+    // Ab ins DOM damit
+    document.getElementById("tech-detail-panel").innerHTML = panelHTML;
 }
