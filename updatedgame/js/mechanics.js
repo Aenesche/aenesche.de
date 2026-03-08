@@ -241,25 +241,28 @@ function unlockNode(nodeId) {
     const node = TECH_TREE[nodeId];
     if(!node) return;
     
-    // Prüfe Währungen
-    if (state.rp < node.unlockCost.rp || (state.newWorld.nrp || 0) < node.unlockCost.nrp) {
+    const reqRp = node.unlockCost.rp || 0;
+    const reqNrp = node.unlockCost.nrp || 0;
+    const reqVg = node.unlockCost.vg || 0;
+
+    if (state.rp < reqRp || (state.newWorld.nrp || 0) < reqNrp || (state.newWorld.vg || 0) < reqVg) {
         log("Not enough resources to research this blueprint!", "bad"); return;
     }
     
-    // Abziehen & Freischalten
-    state.rp -= node.unlockCost.rp; 
-    state.newWorld.nrp -= node.unlockCost.nrp;
+    state.rp -= reqRp; 
+    state.newWorld.nrp -= reqNrp;
+    state.newWorld.vg -= reqVg;
+
     if(!state.newWorld.unlockedNodes) state.newWorld.unlockedNodes = [];
     state.newWorld.unlockedNodes.push(nodeId);
     
     log(`BLUEPRINT RESEARCHED: ${PART_CATALOG[node.partId].name}`, "ok");
     saveToServer(); 
     
-    // UI UPDATES: Aktualisiere sowohl das Inventar als auch den 2D-Baum
     renderNewWorld(); 
     if (document.getElementById("tech-wrap").style.display === "block") {
-        renderTechTreeCanvas(); // Zeichnet die grünen Linien neu
-        selectTechNode(nodeId); // Ändert den Button im Panel von "Research" auf "Craft"
+        renderTechTreeCanvas(); 
+        selectTechNode(nodeId); 
     }
 }
 
@@ -267,35 +270,30 @@ function buyCraftedPart(nodeId) {
     const node = TECH_TREE[nodeId];
     if(!node) return;
     
-    // Prüfe Währungen
-    if (state.coins < node.buyCost.cp || (state.newWorld.po || 0) < node.buyCost.po) {
+    const reqCp = node.buyCost.cp || 0;
+    const reqPo = node.buyCost.po || 0;
+    const reqVg = node.buyCost.vg || 0;
+
+    if (state.coins < reqCp || (state.newWorld.po || 0) < reqPo || (state.newWorld.vg || 0) < reqVg) {
         log("Not enough materials to craft this part!", "bad"); return;
     }
     
-    // Abziehen & Herstellen
-    state.coins -= node.buyCost.cp; 
-    state.newWorld.po -= node.buyCost.po;
+    state.coins -= reqCp; 
+    state.newWorld.po -= reqPo;
+    state.newWorld.vg -= reqVg;
     
     const baseItem = PART_CATALOG[node.partId];
     state.newWorld.inventory.push({ 
         id: "craft_" + Date.now() + "_" + Math.floor(Math.random()*1000), 
-        catalogId: node.partId, 
-        type: baseItem.type, 
-        name: baseItem.name, 
-        rarity: baseItem.rarity 
+        catalogId: node.partId, type: baseItem.type, name: baseItem.name, rarity: baseItem.rarity 
     });
     
     log(`PRODUCED: ${baseItem.name}`, "ok");
     saveToServer(); 
     
-    // UI UPDATES
     renderNewWorld(); 
-    if (document.getElementById("tech-wrap").style.display === "block") {
-        // Wir rufen hier selectTechNode nochmal auf, falls sich die Ressourcen geändert haben
-        selectTechNode(nodeId); 
-    }
+    if (document.getElementById("tech-wrap").style.display === "block") selectTechNode(nodeId); 
 }
-
 function buyEmergencyKit() {
     const cost = 10000000000000; 
     if (state.coins < cost) { log(`Not enough CP! Need ${fmt(cost)} CP for an Emergency Kit.`, "bad"); return; }
