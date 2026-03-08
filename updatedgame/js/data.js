@@ -317,7 +317,7 @@ const TECH_TREE = {
     "n_pro_013b": { treeType: "props", partId: "pro_013b", req: ["n_pro_011b"], x: 65, y: 47, unlockCost: { rp: 0, nrp: 200, vg: 1 }, buyCost: { cp: 0, po: 500, vg: 0 } },
     "n_pro_014b": { treeType: "props", partId: "pro_014b", req: ["n_pro_013b"], x: 65, y: 52, unlockCost: { rp: 0, nrp: 350, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
     "n_pro_015b": { treeType: "props", partId: "pro_015b", req: ["n_pro_014b"], x: 65, y: 57, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1200, vg: 2 } },
-    "n_pro_201":  { treeType: "props", partId: "pro_201",  req: ["n_pro_014b"], x: 85, y: 52, unlockCost: { rp: 0, nrp: 700, vg: 8 }, buyCost: { cp: 0, po: 1800, vg: 3 } }, // Exot
+    "n_pro_201":  { treeType: "props", partId: "pro_201",  req: ["n_pro_014b"], x: 75, y: 52, unlockCost: { rp: 0, nrp: 700, vg: 8 }, buyCost: { cp: 0, po: 1800, vg: 3 } }, // Exot
 
     // TIER 4 (Strang B endet hier!)
     "n_pro_016a": { treeType: "props", partId: "pro_016a", req: ["n_pro_015a"], x: 25, y: 64, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 2500, vg: 5 } },
@@ -327,7 +327,7 @@ const TECH_TREE = {
     "n_pro_017m": { treeType: "props", partId: "pro_017m", req: ["n_pro_016m"], x: 50, y: 69, unlockCost: { rp: 0, nrp: 2200, vg: 18 }, buyCost: { cp: 0, po: 5000, vg: 10 } },
 
     "n_pro_016b": { treeType: "props", partId: "pro_016b", req: ["n_pro_015b"], x: 65, y: 64, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 2500, vg: 5 } },
-    "n_pro_202":  { treeType: "props", partId: "pro_202",  req: ["n_pro_016b"], x: 85, y: 69, unlockCost: { rp: 0, nrp: 5000, vg: 40 }, buyCost: { cp: 0, po: 10000, vg: 20 } }, // Exot (Ende B)
+    "n_pro_202":  { treeType: "props", partId: "pro_202",  req: ["n_pro_016b"], x: 80, y: 69, unlockCost: { rp: 0, nrp: 5000, vg: 40 }, buyCost: { cp: 0, po: 10000, vg: 20 } }, // Exot (Ende B)
 
     // TIER 5 (Asymmetrisch, verschiebt sich nach rechts)
     "n_pro_018a": { treeType: "props", partId: "pro_018a", req: ["n_pro_017a"], x: 35, y: 77, unlockCost: { rp: 0, nrp: 8000, vg: 60 }, buyCost: { cp: 0, po: 20000, vg: 35 } },
