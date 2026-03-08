@@ -459,18 +459,6 @@ function buyCraftedPart(nodeId) {
     renderNewWorld(); 
     if (document.getElementById("tech-wrap").style.display === "block") selectTechNode(nodeId); 
 }
-function buyEmergencyKit() {
-    const cost = 10000000000000; 
-    if (state.coins < cost) { log(`Not enough CP! Need ${fmt(cost)} CP for an Emergency Kit.`, "bad"); return; }
-    state.coins -= cost;
-    const starterParts = ["fr_com_1", "pr_com_1", "ba_com_1", "ca_com_1", "fc_com_1"];
-    starterParts.forEach(catalogId => {
-        const baseItem = PART_CATALOG[catalogId];
-        state.newWorld.inventory.push({ id: "inst_" + Date.now() + "_" + Math.floor(Math.random()*1000), catalogId: catalogId, type: baseItem.type, name: baseItem.name, rarity: baseItem.rarity });
-    });
-    log("EMERGENCY KIT acquired! (+5 Common Parts)", "warn");
-    saveToServer(); renderNewWorld();
-}
 
 function tick(){
   const t = now();
