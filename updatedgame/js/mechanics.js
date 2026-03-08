@@ -326,6 +326,13 @@ function unlockNode(nodeId) {
         renderTechTreeCanvas(); 
         selectTechNode(nodeId); 
     }
+  // Dieses Snippet ganz am Ende von unlockNode() und buyCraftedPart() einfügen (direkt über der letzten } Klammer):
+    const panel = document.getElementById("tech-detail-panel");
+    if (panel) {
+        panel.classList.remove("flash-buy");
+        void panel.offsetWidth; // Zwingt den Browser, die Animation neu zu starten
+        panel.classList.add("flash-buy");
+    }
 }
 
 function buyCraftedPart(nodeId) {
@@ -355,6 +362,14 @@ function buyCraftedPart(nodeId) {
     
     renderNewWorld(); 
     if (document.getElementById("tech-wrap").style.display === "block") selectTechNode(nodeId); 
+
+  // Dieses Snippet ganz am Ende von unlockNode() und buyCraftedPart() einfügen (direkt über der letzten } Klammer):
+    const panel = document.getElementById("tech-detail-panel");
+    if (panel) {
+        panel.classList.remove("flash-buy");
+        void panel.offsetWidth; // Zwingt den Browser, die Animation neu zu starten
+        panel.classList.add("flash-buy");
+    }
 }
 
 function tick(){
