@@ -505,47 +505,52 @@ const TECH_TREE = {
   //############################################################################################################################################################################################
   //############################################################################################################################################################################################
       
-// --- DER NEUE 2D TECH TREE (FRAMES - DAS SCHILD) ---
-    // TIER 1 (Die Spitze des Schildes)
-    "n_fra_001": { treeType: "frame", partId: "fra_001", req: [], x: 50, y: 5, unlockCost: { rp: 500, nrp: 0, vg: 0 }, buyCost: { cp: 1e12, po: 0, vg: 0 } },
-    "n_fra_002": { treeType: "frame", partId: "fra_002", req: ["n_fra_001"], x: 50, y: 10, unlockCost: { rp: 1500, nrp: 0, vg: 0 }, buyCost: { cp: 5e12, po: 0, vg: 0 } },
-    "n_fra_003": { treeType: "frame", partId: "fra_003", req: ["n_fra_002"], x: 50, y: 15, unlockCost: { rp: 8000, nrp: 2, vg: 0 }, buyCost: { cp: 25e12, po: 5, vg: 0 } },
-    "n_fra_004": { treeType: "frame", partId: "fra_004", req: ["n_fra_003"], x: 50, y: 20, unlockCost: { rp: 25000, nrp: 8, vg: 0 }, buyCost: { cp: 100e12, po: 20, vg: 0 } },
-
-    // TIER 2 (Das Schild wird massiv und breit)
-    "n_fra_005a": { treeType: "frame", partId: "fra_005a", req: ["n_fra_004"], x: 30, y: 28, unlockCost: { rp: 0, nrp: 30, vg: 0 }, buyCost: { cp: 0, po: 80, vg: 0 } },
-    "n_fra_006a": { treeType: "frame", partId: "fra_006a", req: ["n_fra_005a"], x: 20, y: 36, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 200, vg: 0 } },
-
-    "n_fra_005b": { treeType: "frame", partId: "fra_005b", req: ["n_fra_004"], x: 70, y: 28, unlockCost: { rp: 0, nrp: 30, vg: 0 }, buyCost: { cp: 0, po: 80, vg: 0 } },
-    "n_fra_006b": { treeType: "frame", partId: "fra_006b", req: ["n_fra_005b"], x: 80, y: 36, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 200, vg: 0 } },
-
-    // TIER 3 (Die breite Rüstungs-Mauer - Void Gems!)
-    "n_fra_007a": { treeType: "frame", partId: "fra_007a", req: ["n_fra_006a"], x: 15, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 2 }, buyCost: { cp: 0, po: 600, vg: 1 } },
-    "n_fra_008a": { treeType: "frame", partId: "fra_008a", req: ["n_fra_007a"], x: 15, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
-
-    "n_fra_007m": { treeType: "frame", partId: "fra_007m", req: ["n_fra_006a", "n_fra_006b"], x: 50, y: 48, unlockCost: { rp: 0, nrp: 300, vg: 2 }, buyCost: { cp: 0, po: 800, vg: 1 } },
-    "n_fra_008m": { treeType: "frame", partId: "fra_008m", req: ["n_fra_007m"], x: 50, y: 56, unlockCost: { rp: 0, nrp: 600, vg: 6 }, buyCost: { cp: 0, po: 2000, vg: 4 } },
-
-    "n_fra_007b": { treeType: "frame", partId: "fra_007b", req: ["n_fra_006b"], x: 85, y: 48, unlockCost: { rp: 0, nrp: 250, vg: 2 }, buyCost: { cp: 0, po: 600, vg: 1 } },
-    "n_fra_008b": { treeType: "frame", partId: "fra_008b", req: ["n_fra_007b"], x: 85, y: 56, unlockCost: { rp: 0, nrp: 500, vg: 5 }, buyCost: { cp: 0, po: 1500, vg: 3 } },
-    "n_fra_201":  { treeType: "frame", partId: "fra_201",  req: ["n_fra_007b"], x: 98, y: 48, unlockCost: { rp: 0, nrp: 1000, vg: 10 }, buyCost: { cp: 0, po: 3000, vg: 5 } }, // Exot Loot-Bunker
-
-    // TIER 4 (Das Schild verjüngt sich nach unten)
-    "n_fra_009a": { treeType: "frame", partId: "fra_009a", req: ["n_fra_008a"], x: 25, y: 68, unlockCost: { rp: 0, nrp: 1500, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
-    "n_fra_010a": { treeType: "frame", partId: "fra_010a", req: ["n_fra_009a"], x: 35, y: 76, unlockCost: { rp: 0, nrp: 3500, vg: 30 }, buyCost: { cp: 0, po: 8000, vg: 15 } },
-
-    "n_fra_009m": { treeType: "frame", partId: "fra_009m", req: ["n_fra_008m"], x: 50, y: 68, unlockCost: { rp: 0, nrp: 2000, vg: 20 }, buyCost: { cp: 0, po: 5000, vg: 12 } },
-    "n_fra_010m": { treeType: "frame", partId: "fra_010m", req: ["n_fra_009m"], x: 50, y: 76, unlockCost: { rp: 0, nrp: 4500, vg: 40 }, buyCost: { cp: 0, po: 10000, vg: 25 } },
-    "n_fra_202":  { treeType: "frame", partId: "fra_202",  req: ["n_fra_009m"], x: 65, y: 68, unlockCost: { rp: 0, nrp: 6000, vg: 80 }, buyCost: { cp: 0, po: 15000, vg: 40 } }, // Exot Phoenix
-
-    "n_fra_009b": { treeType: "frame", partId: "fra_009b", req: ["n_fra_008b"], x: 75, y: 68, unlockCost: { rp: 0, nrp: 1500, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
-    "n_fra_010b": { treeType: "frame", partId: "fra_010b", req: ["n_fra_009b"], x: 65, y: 76, unlockCost: { rp: 0, nrp: 3500, vg: 30 }, buyCost: { cp: 0, po: 8000, vg: 15 } },
-
-    // TIER 5 (Der massive 0% Block in der Mitte)
-    "n_fra_011": { treeType: "frame", partId: "fra_011", req: ["n_fra_010a", "n_fra_010m", "n_fra_010b"], x: 50, y: 88, unlockCost: { rp: 0, nrp: 15000, vg: 120 }, buyCost: { cp: 0, po: 40000, vg: 60 } },
-    "n_fra_012": { treeType: "frame", partId: "fra_012", req: ["n_fra_011"], x: 50, y: 96, unlockCost: { rp: 0, nrp: 40000, vg: 300 }, buyCost: { cp: 0, po: 150000, vg: 200 } }, // 0% Crash!
+// -// --- DER NEUE 2D TECH TREE (FRAMES - ORGANISCHER SKILL TREE) ---
+    // Startet leicht versetzt
+    "n_fra_001": { treeType: "frame", partId: "fra_001", req: [], x: 45, y: 4, unlockCost: { rp: 500, nrp: 0, vg: 0 }, buyCost: { cp: 1e12, po: 0, vg: 0 } },
     
-    "n_fra_203": { treeType: "frame", partId: "fra_203", req: ["n_fra_011"], x: 30, y: 88, unlockCost: { rp: 0, nrp: 20000, vg: 150 }, buyCost: { cp: 0, po: 60000, vg: 80 } }, // Exot Juggernaut
-    "n_fra_204": { treeType: "frame", partId: "fra_204", req: ["n_fra_012"], x: 70, y: 96, unlockCost: { rp: 0, nrp: 60000, vg: 450 }, buyCost: { cp: 0, po: 250000, vg: 300 } }  // Exot Void Aegis
+    // Asymmetrischer Split in Holz (links) und Plastik (rechts)
+    "n_fra_002": { treeType: "frame", partId: "fra_002", req: ["n_fra_001"], x: 25, y: 11, unlockCost: { rp: 1500, nrp: 0, vg: 0 }, buyCost: { cp: 5e12, po: 0, vg: 0 } },
+    "n_fra_003": { treeType: "frame", partId: "fra_003", req: ["n_fra_001"], x: 75, y: 9, unlockCost: { rp: 3000, nrp: 0, vg: 0 }, buyCost: { cp: 10e12, po: 0, vg: 0 } },
+    
+    // Kreuzverbindung in der Mitte (ABS Frame)
+    "n_fra_004": { treeType: "frame", partId: "fra_004", req: ["n_fra_002", "n_fra_003"], x: 55, y: 18, unlockCost: { rp: 12000, nrp: 5, vg: 0 }, buyCost: { cp: 40e12, po: 10, vg: 0 } },
 
+    // TIER 2 wuchert in alle Richtungen
+    "n_fra_005a": { treeType: "frame", partId: "fra_005a", req: ["n_fra_002"], x: 12, y: 22, unlockCost: { rp: 0, nrp: 25, vg: 0 }, buyCost: { cp: 0, po: 70, vg: 0 } },
+    "n_fra_006a": { treeType: "frame", partId: "fra_006a", req: ["n_fra_005a"], x: 16, y: 33, unlockCost: { rp: 0, nrp: 60, vg: 0 }, buyCost: { cp: 0, po: 150, vg: 0 } },
+
+    "n_fra_005b": { treeType: "frame", partId: "fra_005b", req: ["n_fra_003"], x: 88, y: 20, unlockCost: { rp: 0, nrp: 35, vg: 0 }, buyCost: { cp: 0, po: 90, vg: 0 } },
+    "n_fra_006b": { treeType: "frame", partId: "fra_006b", req: ["n_fra_005b"], x: 82, y: 31, unlockCost: { rp: 0, nrp: 70, vg: 0 }, buyCost: { cp: 0, po: 180, vg: 0 } },
+
+    // Der Mittelstrang entwickelt sich aus dem ABS
+    "n_fra_007m": { treeType: "frame", partId: "fra_007m", req: ["n_fra_004"], x: 45, y: 29, unlockCost: { rp: 0, nrp: 150, vg: 1 }, buyCost: { cp: 0, po: 400, vg: 0 } },
+    "n_fra_008m": { treeType: "frame", partId: "fra_008m", req: ["n_fra_007m"], x: 50, y: 41, unlockCost: { rp: 0, nrp: 350, vg: 3 }, buyCost: { cp: 0, po: 900, vg: 1 } },
+
+    // TIER 3 (Void Gems) - Die Enden der äußeren Stränge spalten sich wild auf
+    "n_fra_007a": { treeType: "frame", partId: "fra_007a", req: ["n_fra_006a"], x: 8, y: 46, unlockCost: { rp: 0, nrp: 250, vg: 2 }, buyCost: { cp: 0, po: 600, vg: 1 } },
+    "n_fra_008a": { treeType: "frame", partId: "fra_008a", req: ["n_fra_006a"], x: 26, y: 44, unlockCost: { rp: 0, nrp: 400, vg: 4 }, buyCost: { cp: 0, po: 1000, vg: 2 } },
+    "n_fra_202":  { treeType: "frame", partId: "fra_202",  req: ["n_fra_007a"], x: 10, y: 58, unlockCost: { rp: 0, nrp: 2500, vg: 25 }, buyCost: { cp: 0, po: 8000, vg: 10 } }, // Exot Phoenix hängt ganz links außen!
+
+    "n_fra_007b": { treeType: "frame", partId: "fra_007b", req: ["n_fra_006b"], x: 94, y: 43, unlockCost: { rp: 0, nrp: 300, vg: 2 }, buyCost: { cp: 0, po: 700, vg: 1 } },
+    "n_fra_008b": { treeType: "frame", partId: "fra_008b", req: ["n_fra_006b"], x: 74, y: 45, unlockCost: { rp: 0, nrp: 450, vg: 5 }, buyCost: { cp: 0, po: 1200, vg: 3 } },
+    "n_fra_201":  { treeType: "frame", partId: "fra_201",  req: ["n_fra_007b"], x: 92, y: 55, unlockCost: { rp: 0, nrp: 2000, vg: 20 }, buyCost: { cp: 0, po: 6000, vg: 8 } }, // Exot Loot Bunker hängt ganz rechts außen!
+
+    // TIER 4 - Das Netzwerk verknüpft sich wieder extrem kreuz und quer
+    "n_fra_009a": { treeType: "frame", partId: "fra_009a", req: ["n_fra_008a", "n_fra_008m"], x: 38, y: 55, unlockCost: { rp: 0, nrp: 1500, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
+    "n_fra_010a": { treeType: "frame", partId: "fra_010a", req: ["n_fra_009a", "n_fra_007a"], x: 18, y: 68, unlockCost: { rp: 0, nrp: 3500, vg: 30 }, buyCost: { cp: 0, po: 8000, vg: 15 } },
+
+    "n_fra_009m": { treeType: "frame", partId: "fra_009m", req: ["n_fra_008m"], x: 55, y: 60, unlockCost: { rp: 0, nrp: 1800, vg: 18 }, buyCost: { cp: 0, po: 4500, vg: 10 } },
+    "n_fra_010m": { treeType: "frame", partId: "fra_010m", req: ["n_fra_009m"], x: 45, y: 72, unlockCost: { rp: 0, nrp: 4000, vg: 35 }, buyCost: { cp: 0, po: 9000, vg: 20 } },
+
+    "n_fra_009b": { treeType: "frame", partId: "fra_009b", req: ["n_fra_008b"], x: 80, y: 58, unlockCost: { rp: 0, nrp: 1500, vg: 15 }, buyCost: { cp: 0, po: 4000, vg: 8 } },
+    "n_fra_010b": { treeType: "frame", partId: "fra_010b", req: ["n_fra_009b", "n_fra_009m"], x: 70, y: 70, unlockCost: { rp: 0, nrp: 3500, vg: 30 }, buyCost: { cp: 0, po: 8000, vg: 15 } },
+
+    // TIER 5 - Endet in zwei völlig dezentralen Schwerpunkten
+    "n_fra_012": { treeType: "frame", partId: "fra_012", req: ["n_fra_010a", "n_fra_010m"], x: 28, y: 85, unlockCost: { rp: 0, nrp: 20000, vg: 150 }, buyCost: { cp: 0, po: 60000, vg: 80 } }, // 0% Crash (Monolith) linksbündig!
+    "n_fra_011": { treeType: "frame", partId: "fra_011", req: ["n_fra_010b", "n_fra_010m"], x: 68, y: 83, unlockCost: { rp: 0, nrp: 15000, vg: 120 }, buyCost: { cp: 0, po: 40000, vg: 60 } }, // 1% Crash (Aegis) rechtsbündig!
+    
+    // Die ultimativen Exoten wachsen aus den End-Knoten in den Boden
+    "n_fra_203": { treeType: "frame", partId: "fra_203", req: ["n_fra_012"], x: 20, y: 96, unlockCost: { rp: 0, nrp: 50000, vg: 300 }, buyCost: { cp: 0, po: 150000, vg: 200 } }, // Exot Juggernaut
+    "n_fra_204": { treeType: "frame", partId: "fra_204", req: ["n_fra_011"], x: 78, y: 94, unlockCost: { rp: 0, nrp: 40000, vg: 250 }, buyCost: { cp: 0, po: 120000, vg: 180 } }  // Exot Void Aegis
 };
