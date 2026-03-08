@@ -609,7 +609,7 @@ const TECH_TREE = {
     // TIER 2 (90-Grad Abzweigungen)
     "n_fc_004m": { treeType: "fc", partId: "fc_004m", req: ["n_fc_003"], x: 50, y: 30, unlockCost: { rp: 0, nrp: 50, vg: 0 }, buyCost: { cp: 0, po: 150, vg: 0 } },
     // A (Links) und B (Rechts) zweigen EXAKT horizontal ab (gleiches Y wie 004m)
-    "n_fc_004a": { treeType: "fc", partId: "fc_004a", req: ["n_fc_004m"], x: 30, y: 30, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 250, vg: 0 } },
+    "n_fc_004a": { treeType: "fc", partId: "fc_004a", req: ["n_fc_004m"], x: 30, y: 33, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 250, vg: 0 } },
     "n_fc_004b": { treeType: "fc", partId: "fc_004b", req: ["n_fc_004m"], x: 70, y: 33, unlockCost: { rp: 0, nrp: 80, vg: 0 }, buyCost: { cp: 0, po: 250, vg: 0 } },
 
     // TIER 3 (Void Gems! Linien gehen schnurgerade nach unten)
@@ -623,6 +623,6 @@ const TECH_TREE = {
     "n_fc_006b": { treeType: "fc", partId: "fc_006b", req: ["n_fc_005b"], x: 70, y: 67, unlockCost: { rp: 0, nrp: 3500, vg: 35 }, buyCost: { cp: 0, po: 9000, vg: 18 } },
 
     // TIER 5 (Endgame-Prozessor in der Mitte, Exot rechts außen)
-    "n_fc_007": { treeType: "fc", partId: "fc_007", req: ["n_fc_006m"], x: 50, y: 86, unlockCost: { rp: 0, nrp: 18000, vg: 150 }, buyCost: { cp: 0, po: 50000, vg: 80 } },
-    "n_fc_201": { treeType: "fc", partId: "fc_201", req: ["n_fc_006b"], x: 70, y: 91, unlockCost: { rp: 0, nrp: 25000, vg: 200 }, buyCost: { cp: 0, po: 75000, vg: 100 } } // Exot Versicherungsbetrug
+    "n_fc_007": { treeType: "fc", partId: "fc_007", req: ["n_fc_006m"], x: 40, y: 86, unlockCost: { rp: 0, nrp: 18000, vg: 150 }, buyCost: { cp: 0, po: 50000, vg: 80 } },
+    "n_fc_201": { treeType: "fc", partId: "fc_201", req: ["n_fc_006b"], x: 60, y: 86, unlockCost: { rp: 0, nrp: 25000, vg: 200 }, buyCost: { cp: 0, po: 75000, vg: 100 } } // Exot Versicherungsbetrug
 };
