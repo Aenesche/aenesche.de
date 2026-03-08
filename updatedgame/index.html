@@ -262,12 +262,17 @@
           
           <button id="startMissionBtn" onclick="startMission()" disabled style="border-color: var(--warn); color: var(--warn); width: 100%;">START MISSION (REQ. 5 PARTS)</button>
           
-          <div id="mission-progress-container" style="display: none; margin-top: 15px;">
-              <div style="font-size: 11px; margin-bottom: 5px; color: var(--warn);" id="mission-timer-text">MISSION IN PROGRESS...</div>
-              <div class="bar" style="width: 100%; border-color: var(--warn);">
-                  <div id="mission-progress-fill" style="background: var(--warn); width: 0%;"></div>
-              </div>
-          </div>
+          <div style="margin-top: 15px; width: 100%;">
+    <div style="background: #111; border: 1px solid var(--line); height: 24px; position: relative; border-radius: 3px; overflow: hidden;">
+        
+        <div id="mission-progress" style="background: #00ff88; width: 0%; height: 100%; transition: width 0.1s linear;"></div>
+        
+        <div id="mission-time" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; line-height: 24px; font-size: 12px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; pointer-events: none;">
+            STANDBY
+        </div>
+        
+    </div>
+</div>
           
           <button id="claimMissionBtn" onclick="claimMissionResult()" style="display: none; border-color: #00ff88; color: #00ff88; width: 100%; animation: popIn 0.5s forwards;">CLAIM LOOT</button>
         </div>
