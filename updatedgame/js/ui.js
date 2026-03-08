@@ -160,6 +160,10 @@ function dragLeaveSlot(ev, slotEl) { slotEl.classList.remove("drag-over"); }
 function renderNewWorld() {
     document.getElementById("po-display").textContent = state.newWorld.po || 0;
     document.getElementById("legacy-cp").textContent = fmt(state.coins);
+    
+    // NRP Anzeige (neu positioniert)
+    const nrpDisplay = document.getElementById("nrp-display");
+    if(nrpDisplay) nrpDisplay.textContent = state.newWorld.nrp || 0;
 
     const filterVal = document.getElementById("inv-filter").value;
     let displayItems = [...(state.newWorld.inventory || [])];
@@ -183,40 +187,6 @@ function renderNewWorld() {
         div.innerHTML = `<b style="color: ${color};">${part.rarity}</b><br><span style="color: var(--muted);">${part.type.toUpperCase()}</span><br>${part.name}`;
         invList.appendChild(div);
     });
-
-    document.getElementById("po-display").textContent = state.newWorld.po || 0;
-    document.getElementById("nrp-display").textContent = state.newWorld.nrp || 0; 
-    document.getElementById("legacy-cp").textContent = fmt(state.coins);
-
-    const techList = document.getElementById("nw-tech-list");
-    if(techList) {
-        techList.innerHTML = "";
-        const unlocked = state.newWorld.unlockedNodes || [];
-        Object.keys(TECH_TREE).forEach(nodeId => {
-            const node = TECH_TREE[nodeId];
-            const part = PART_CATALOG[node.partId];
-            if (node.req === null || unlocked.includes(node.req)) {
-                const div = document.createElement("div");
-                div.className = "item";
-                const isUnlocked = unlocked.includes(nodeId);
-                const color = RARITIES[part.rarity].color;
-                let costText = ""; let btnHTML = "";
-                if (isUnlocked) {
-                    costText = `Craft Cost: ${fmt(node.buyCost.cp)} CP | ${node.buyCost.po} PO`;
-                    btnHTML = `<button class="mini" onclick="buyCraftedPart('${nodeId}')" style="border-color: ${color}; color: ${color};">CRAFT PART</button>`;
-                } else {
-                    costText = `Research Cost: ${fmt(node.unlockCost.rp)} RP | ${node.unlockCost.nrp} N-RP`;
-                    btnHTML = `<button class="mini" onclick="unlockNode('${nodeId}')">RESEARCH</button>`;
-                }
-                div.innerHTML = `
-                    <div class="itemTop"><div class="itemName" style="color: ${color};">${part.name}</div><div class="itemMeta">${isUnlocked ? "UNLOCKED" : "LOCKED"}</div></div>
-                    <div class="itemMeta" style="margin-top:6px;">${costText}</div>
-                    <div class="itemBtns">${btnHTML}</div>
-                `;
-                techList.appendChild(div);
-            }
-        });
-    }
 
     const types = ["props", "battery", "frame", "fc", "camera"];
     let partsEquipped = 0;
@@ -299,210 +269,6 @@ function renderNewWorld() {
     }
 }
 
-// --- TECH TREE KAMERA VARIABLEN ---
-let currentTechTab = "battery";
-let selectedTechNode = null;
-let treeScale = 1;
-let treePanX = 0;
-let treePanY = 0;
-let isTreeDragging = false;
-let startDragX, startDragY;
-
-function openTechTree() {
-    document.getElementById("nw-wrap").style.display = "none";
-    document.getElementById("tech-wrap").style.display = "block";
-    
-    // Auto-Zoom out für Handys beim Öffnen
-    treeScale = window.innerWidth < 768 ? 0.6 : 1; 
-    treePanX = 0; treePanY = 0;
-    
-    switchTechTab('battery');
-    setTimeout(initTreePanZoom, 50); // Aktiviert Steuerung nachdem das UI gerendert ist
-}
-
-function exitTechTree() {
-    document.getElementById("tech-wrap").style.display = "none";
-    document.getElementById("nw-wrap").style.display = "block";
-    renderNewWorld();
-}
-
-// --- DIE NEUE PAN & ZOOM ENGINE ---
-function initTreePanZoom() {
-    const container = document.getElementById("tree-container");
-    const scrollArea = document.querySelector(".tree-scroll-area");
-    if(!container || !scrollArea) return;
-
-    function applyTransform() {
-        scrollArea.style.transform = `translate(${treePanX}px, ${treePanY}px) scale(${treeScale})`;
-    }
-
-    // 1. Zoom mit Mausrad
-    container.onwheel = (e) => {
-        e.preventDefault();
-        const zoomIntensity = 0.1;
-        const wheel = e.deltaY < 0 ? 1 : -1;
-        const zoomFactor = Math.exp(wheel * zoomIntensity);
-
-        const rect = container.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-
-        // Zoom zentriert auf den Mauszeiger!
-        treePanX = mouseX - (mouseX - treePanX) * zoomFactor;
-        treePanY = mouseY - (mouseY - treePanY) * zoomFactor;
-        treeScale *= zoomFactor;
-        treeScale = Math.min(Math.max(0.3, treeScale), 3); // Max-Zoom: 3x, Min-Zoom: 0.3x
-
-        applyTransform();
-    };
-
-    // 2. Schieben mit der Maus (Pan)
-    container.onmousedown = (e) => {
-        isTreeDragging = true;
-        startDragX = e.clientX - treePanX;
-        startDragY = e.clientY - treePanY;
-    };
-    window.onmousemove = (e) => {
-        if (!isTreeDragging) return;
-        treePanX = e.clientX - startDragX;
-        treePanY = e.clientY - startDragY;
-        applyTransform();
-    };
-    window.onmouseup = () => isTreeDragging = false;
-
-    // 3. Touch-Support für Handy/iPad
-    container.ontouchstart = (e) => {
-        if(e.touches.length === 1) {
-            isTreeDragging = true;
-            startDragX = e.touches[0].clientX - treePanX;
-            startDragY = e.touches[0].clientY - treePanY;
-        }
-    };
-    container.ontouchmove = (e) => {
-        if(!isTreeDragging || e.touches.length !== 1) return;
-        e.preventDefault(); // Verhindert das Scrollen der ganzen Webseite
-        treePanX = e.touches[0].clientX - startDragX;
-        treePanY = e.touches[0].clientY - startDragY;
-        applyTransform();
-    };
-    container.ontouchend = () => isTreeDragging = false;
-
-    applyTransform(); // Initial ausführen
-}
-// -------------------------------------------------------------------
-// ACHTUNG: Die Funktionen switchTechTab, renderTechTreeCanvas, selectTechNode etc. 
-// bleiben exakt so erhalten, wie du sie schon in der ui.js stehen hast!
-
-function exitTechTree() {
-    document.getElementById("tech-wrap").style.display = "none";
-    document.getElementById("nw-wrap").style.display = "block";
-    renderNewWorld();
-}
-
-function switchTechTab(type) {
-    currentTechTab = type;
-    selectedTechNode = null;
-    document.getElementById("tech-detail-panel").innerHTML = `<div style="color: var(--muted);">Wähle einen Knotenpunkt im Tech-Tree aus, um Details zu sehen.</div>`;
-    
-    // Button Highlighting
-    document.querySelectorAll(".tech-nav button").forEach(b => b.classList.remove("active"));
-    document.getElementById("tab-" + type).classList.add("active");
-    
-    renderTechTreeCanvas();
-}
-
-function renderTechTreeCanvas() {
-    const nodesContainer = document.getElementById("tree-nodes");
-    const svgContainer = document.getElementById("tree-lines");
-    nodesContainer.innerHTML = "";
-    svgContainer.innerHTML = "";
-
-    const unlocked = state.newWorld.unlockedNodes || [];
-
-    Object.keys(TECH_TREE).forEach(nodeId => {
-        const node = TECH_TREE[nodeId];
-        if (node.treeType !== currentTechTab) return;
-
-        const part = PART_CATALOG[node.partId];
-        const isUnlocked = unlocked.includes(nodeId);
-        const isReachable = node.req.length === 0 || node.req.some(reqId => unlocked.includes(reqId));
-        
-        node.req.forEach(reqId => {
-            const parentNode = TECH_TREE[reqId];
-            if(parentNode) {
-                const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-                line.setAttribute('x1', `${parentNode.x}%`);
-                line.setAttribute('y1', `${parentNode.y}%`);
-                line.setAttribute('x2', `${node.x}%`);
-                line.setAttribute('y2', `${node.y}%`);
-                line.setAttribute('stroke', isUnlocked ? '#00ff88' : '#333');
-                line.setAttribute('stroke-width', '3');
-                svgContainer.appendChild(line);
-            }
-        });
-
-        const el = document.createElement("div");
-        el.className = `tree-node ${isUnlocked ? 'unlocked' : (isReachable ? 'reachable' : 'locked')}`;
-        el.style.left = `${node.x}%`;
-        el.style.top = `${node.y}%`;
-        
-        el.style.color = RARITIES[part.rarity].color;
-        
-        // HIER IST DIE ÄNDERUNG: Wir schreiben den vollen Namen in die Box!
-        el.innerHTML = `<span>${part.name}</span>`; 
-        
-        el.onclick = () => selectTechNode(nodeId);
-        nodesContainer.appendChild(el);
-    });
-}
-
-function selectTechNode(nodeId) {
-    selectedTechNode = nodeId;
-    const node = TECH_TREE[nodeId];
-    const part = PART_CATALOG[node.partId];
-    const unlocked = state.newWorld.unlockedNodes || [];
-    const isUnlocked = unlocked.includes(nodeId);
-    const color = RARITIES[part.rarity].color;
-
-    const panel = document.getElementById("tech-detail-panel");
-    
-    // STATS GENERIEREN: Je nach Bauteil-Typ den passenden Wert anzeigen
-    let statsText = "";
-    if (part.type === "battery") statsText = `Missionszeit: ${Math.round(part.timeMult * 100)}%`;
-    if (part.type === "frame") statsText = `Absturzrisiko: ${Math.round(part.breakChance * 100)}%`;
-    if (part.type === "fc") statsText = `Sicherheit: +${Math.round(part.safety * 100)}%`;
-    if (part.type === "props") statsText = `PO Ertrag: x${part.poMult}`;
-    if (part.type === "camera") statsText = `Loot-Glück: x${part.luckBonus}`;
-
-    let specialText = part.special ? `<br><span style="color:var(--warn)">★ Special: ${part.special.type.toUpperCase()} (${part.special.value})</span>` : "";
-    
-    let btnHTML = "";
-    if (isUnlocked) {
-        btnHTML = `
-            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Crafting Cost: ${fmt(node.buyCost.cp)} CP | ${node.buyCost.po} PO</div>
-            <button onclick="buyCraftedPart('${nodeId}')" style="border-color: ${color}; color: ${color}; width: 100%;">CRAFT PART</button>
-        `;
-    } else {
-        btnHTML = `
-            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Research Cost: ${fmt(node.unlockCost.rp)} RP | ${node.unlockCost.nrp} N-RP</div>
-            <button onclick="unlockNode('${nodeId}')" style="width: 100%;">RESEARCH BLUEPRINT</button>
-        `;
-    }
-
-    panel.innerHTML = `
-        <div style="flex: 1;">
-            <div style="font-size: 14px; color: ${color}; font-weight: bold;">${part.name}</div>
-            <div style="font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.4;">
-                Type: ${part.type.toUpperCase()} | Rarity: ${part.rarity}
-                <br><span style="color: #eaeaea;">Stats: ${statsText}</span>
-                ${specialText}
-            </div>
-        </div>
-        <div style="text-align: right; width: 250px;">
-            ${btnHTML}
-        </div>
-    `;
-}
 function render(){
   const cps = coinsPerSecond(); const rps = rpPerSecond(); const cp = clickPower();
   el.coins.textContent = fmt(state.coins); el.cps.textContent = cps.toFixed(cps<10?2:1);
@@ -570,4 +336,185 @@ function render(){
   
   const btnNewWorld = document.getElementById("btnNewWorld");
   if(btnNewWorld) btnNewWorld.style.display = state.flags.newWorldUnlocked ? "inline-block" : "none";
+}
+
+// ---------- TECH TREE PAN & ZOOM LOGIK ----------
+let currentTechTab = "battery";
+let selectedTechNode = null;
+let treeScale = 1;
+let treePanX = 0;
+let treePanY = 0;
+let isTreeDragging = false;
+let startDragX, startDragY;
+
+function openTechTree() {
+    document.getElementById("nw-wrap").style.display = "none";
+    document.getElementById("tech-wrap").style.display = "block";
+    treeScale = window.innerWidth < 768 ? 0.6 : 1; 
+    treePanX = 0; treePanY = 0;
+    switchTechTab('battery');
+    setTimeout(initTreePanZoom, 50); 
+}
+
+function exitTechTree() {
+    document.getElementById("tech-wrap").style.display = "none";
+    document.getElementById("nw-wrap").style.display = "block";
+    renderNewWorld();
+}
+
+function initTreePanZoom() {
+    const container = document.getElementById("tree-container");
+    const scrollArea = document.querySelector(".tree-scroll-area");
+    if(!container || !scrollArea) return;
+
+    function applyTransform() {
+        scrollArea.style.transform = `translate(${treePanX}px, ${treePanY}px) scale(${treeScale})`;
+    }
+
+    container.onwheel = (e) => {
+        e.preventDefault();
+        const zoomIntensity = 0.1;
+        const wheel = e.deltaY < 0 ? 1 : -1;
+        const zoomFactor = Math.exp(wheel * zoomIntensity);
+
+        const rect = container.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        treePanX = mouseX - (mouseX - treePanX) * zoomFactor;
+        treePanY = mouseY - (mouseY - treePanY) * zoomFactor;
+        treeScale *= zoomFactor;
+        treeScale = Math.min(Math.max(0.3, treeScale), 3); 
+        applyTransform();
+    };
+
+    container.onmousedown = (e) => {
+        isTreeDragging = true;
+        startDragX = e.clientX - treePanX;
+        startDragY = e.clientY - treePanY;
+    };
+    window.onmousemove = (e) => {
+        if (!isTreeDragging) return;
+        treePanX = e.clientX - startDragX;
+        treePanY = e.clientY - startDragY;
+        applyTransform();
+    };
+    window.onmouseup = () => isTreeDragging = false;
+
+    container.ontouchstart = (e) => {
+        if(e.touches.length === 1) {
+            isTreeDragging = true;
+            startDragX = e.touches[0].clientX - treePanX;
+            startDragY = e.touches[0].clientY - treePanY;
+        }
+    };
+    container.ontouchmove = (e) => {
+        if(!isTreeDragging || e.touches.length !== 1) return;
+        e.preventDefault(); 
+        treePanX = e.touches[0].clientX - startDragX;
+        treePanY = e.touches[0].clientY - startDragY;
+        applyTransform();
+    };
+    container.ontouchend = () => isTreeDragging = false;
+
+    applyTransform(); 
+}
+
+function switchTechTab(type) {
+    currentTechTab = type;
+    selectedTechNode = null;
+    document.getElementById("tech-detail-panel").innerHTML = `<div style="color: var(--muted);">Wähle einen Knotenpunkt im Tech-Tree aus, um Details zu sehen.</div>`;
+    document.querySelectorAll(".tech-nav button").forEach(b => b.classList.remove("active"));
+    document.getElementById("tab-" + type).classList.add("active");
+    renderTechTreeCanvas();
+}
+
+function renderTechTreeCanvas() {
+    const nodesContainer = document.getElementById("tree-nodes");
+    const svgContainer = document.getElementById("tree-lines");
+    nodesContainer.innerHTML = "";
+    svgContainer.innerHTML = "";
+
+    const unlocked = state.newWorld.unlockedNodes || [];
+
+    Object.keys(TECH_TREE).forEach(nodeId => {
+        const node = TECH_TREE[nodeId];
+        if (node.treeType !== currentTechTab) return;
+
+        const part = PART_CATALOG[node.partId];
+        const isUnlocked = unlocked.includes(nodeId);
+        const isReachable = node.req.length === 0 || node.req.some(reqId => unlocked.includes(reqId));
+        
+        node.req.forEach(reqId => {
+            const parentNode = TECH_TREE[reqId];
+            if(parentNode) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+                line.setAttribute('x1', `${parentNode.x}%`);
+                line.setAttribute('y1', `${parentNode.y}%`);
+                line.setAttribute('x2', `${node.x}%`);
+                line.setAttribute('y2', `${node.y}%`);
+                line.setAttribute('stroke', isUnlocked ? '#00ff88' : '#333');
+                line.setAttribute('stroke-width', '3');
+                svgContainer.appendChild(line);
+            }
+        });
+
+        const el = document.createElement("div");
+        el.className = `tree-node ${isUnlocked ? 'unlocked' : (isReachable ? 'reachable' : 'locked')}`;
+        el.style.left = `${node.x}%`;
+        el.style.top = `${node.y}%`;
+        
+        el.style.color = RARITIES[part.rarity].color;
+        el.innerHTML = `<span>${part.name}</span>`; 
+        
+        el.onclick = () => selectTechNode(nodeId);
+        nodesContainer.appendChild(el);
+    });
+}
+
+function selectTechNode(nodeId) {
+    selectedTechNode = nodeId;
+    const node = TECH_TREE[nodeId];
+    const part = PART_CATALOG[node.partId];
+    const unlocked = state.newWorld.unlockedNodes || [];
+    const isUnlocked = unlocked.includes(nodeId);
+    const color = RARITIES[part.rarity].color;
+
+    const panel = document.getElementById("tech-detail-panel");
+    
+    let statsText = "";
+    if (part.type === "battery") statsText = `Missionszeit: ${Math.round(part.timeMult * 100)}%`;
+    if (part.type === "frame") statsText = `Absturzrisiko: ${Math.round(part.breakChance * 100)}%`;
+    if (part.type === "fc") statsText = `Sicherheit: +${Math.round(part.safety * 100)}%`;
+    if (part.type === "props") statsText = `PO Ertrag: x${part.poMult}`;
+    if (part.type === "camera") statsText = `Loot-Glück: x${part.luckBonus}`;
+
+    let specialText = part.special ? `<br><span style="color:var(--warn)">★ Special: ${part.special.type.toUpperCase()} (${part.special.value})</span>` : "";
+    
+    let btnHTML = "";
+    if (isUnlocked) {
+        btnHTML = `
+            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Crafting Cost: ${fmt(node.buyCost.cp)} CP | ${node.buyCost.po} PO</div>
+            <button onclick="buyCraftedPart('${nodeId}')" style="border-color: ${color}; color: ${color}; width: 100%;">CRAFT PART</button>
+        `;
+    } else {
+        btnHTML = `
+            <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Research Cost: ${fmt(node.unlockCost.rp)} RP | ${node.unlockCost.nrp} N-RP</div>
+            <button onclick="unlockNode('${nodeId}')" style="width: 100%;">RESEARCH BLUEPRINT</button>
+        `;
+    }
+
+    panel.innerHTML = `
+        <div style="flex: 1;">
+            <div style="font-size: 14px; color: ${color}; font-weight: bold;">${part.name}</div>
+            <div style="font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.4;">
+                Type: ${part.type.toUpperCase()} | Rarity: ${part.rarity}
+                <br><span style="color: #eaeaea;">Stats: ${statsText}</span>
+                ${specialText}
+            </div>
+        </div>
+        <div style="text-align: right; width: 250px;">
+            ${btnHTML}
+        </div>
+    `;
 }
