@@ -326,10 +326,16 @@ function resolveMission() {
             totalPo = 0;
         }
 
-        // Void Gems würfeln
+        // Void Gems würfeln (Skalierendes Cluster)
         let vgFound = 0;
         if (Math.random() < vgChance) {
-            vgFound = 1;
+            // Finde ein Cluster von 3 bis 10 Void Gems
+            let baseVg = Math.floor(Math.random() * 8) + 3; 
+            
+            // Luck bestimmt, wie viel wir aus dem Cluster abbauen können
+            vgFound = Math.floor(baseVg * luck);
+            
+            // Der Propeller-Exot verdoppelt die Ausbeute
             if (props.special?.type === "double_vg") vgFound *= 2;
         }
 
