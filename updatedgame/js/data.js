@@ -624,5 +624,21 @@ const TECH_TREE = {
 
     // TIER 5 (Endgame-Prozessor in der Mitte, Exot rechts außen)
     "n_fc_007": { treeType: "fc", partId: "fc_007", req: ["n_fc_006m"], x: 40, y: 86, unlockCost: { rp: 0, nrp: 18000, vg: 150 }, buyCost: { cp: 0, po: 50000, vg: 80 } },
-    "n_fc_201": { treeType: "fc", partId: "fc_201", req: ["n_fc_006b"], x: 60, y: 86, unlockCost: { rp: 0, nrp: 25000, vg: 200 }, buyCost: { cp: 0, po: 75000, vg: 100 } } // Exot Versicherungsbetrug
+    "n_fc_201": { treeType: "fc", partId: "fc_201", req: ["n_fc_006b"], x: 60, y: 86, unlockCost: { rp: 0, nrp: 25000, vg: 200 }, buyCost: { cp: 0, po: 75000, vg: 100 } }, // Exot Versicherungsbetrug
+
+  // ==========================================
+    // 🌌 DROP-EXCLUSIVES (SCHWEBENDE NODES IM CANVAS)
+    // ==========================================
+    "n_bat_d01": { treeType: "battery", partId: "bat_d01", req: [], x: 10, y: 30, dropOnly: true, unlockCost: {}, buyCost: {} },
+    "n_bat_d02": { treeType: "battery", partId: "bat_d02", req: [], x: 85, y: 70, dropOnly: true, unlockCost: {}, buyCost: {} },
+    
+    "n_pro_d01": { treeType: "props", partId: "pro_d01", req: [], x: 37, y: 67, dropOnly: true, unlockCost: {}, buyCost: {} },
+    
+    "n_cam_d01": { treeType: "camera", partId: "cam_d01", req: [], x: 85, y: 25, dropOnly: true, unlockCost: {}, buyCost: {} },
+    
+    "n_fra_d01": { treeType: "frame", partId: "fra_d01", req: [], x: 15, y: 20, dropOnly: true, unlockCost: {}, buyCost: {} },
+
+    // Dummy (muss am Ende bleiben!)
+    "dummy_fra": { treeType: "frame", partId: "fra_001", req: [], x: 50, y: 10, unlockCost: { rp: 0, nrp: 0, vg: 0 }, buyCost: { cp: 0, po: 0, vg: 0 } }
+};
 };
