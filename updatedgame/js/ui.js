@@ -339,6 +339,7 @@ function render(){
 }
 
 // ---------- TECH TREE PAN & ZOOM LOGIK ----------
+// ---------- TECH TREE PAN & ZOOM LOGIK ----------
 let currentTechTab = "battery";
 let selectedTechNode = null;
 let treeScale = 1;
@@ -346,14 +347,30 @@ let treePanX = 0;
 let treePanY = 0;
 let isTreeDragging = false;
 let startDragX, startDragY;
+let isPanZoomInitialized = false; // Verhindert doppelte Events
 
 function openTechTree() {
     document.getElementById("nw-wrap").style.display = "none";
     document.getElementById("tech-wrap").style.display = "block";
-    treeScale = window.innerWidth < 768 ? 0.6 : 1; 
-    treePanX = 0; treePanY = 0;
+    
+    const container = document.getElementById("tree-container");
+    const cWidth = container ? container.clientWidth : window.innerWidth;
+    
+    // 1. Sanfterer Start-Zoom (Tablet/Handy vs PC)
+    treeScale = window.innerWidth < 768 ? 0.45 : 0.75; 
+    
+    // 2. Kamera exakt auf die Mitte setzen (1500px ist die Mitte der 3000px Canvas)
+    treePanX = (cWidth / 2) - (1500 * treeScale);
+    treePanY = 40; // Leicht nach unten gerückt
+    
     switchTechTab('battery');
-    setTimeout(initTreePanZoom, 50); 
+    
+    setTimeout(() => {
+        initTreePanZoom();
+        // Erzwingt die korrekte Position direkt beim Öffnen
+        const scrollArea = document.querySelector(".tree-scroll-area");
+        if(scrollArea) scrollArea.style.transform = `translate(${treePanX}px, ${treePanY}px) scale(${treeScale})`;
+    }, 50); 
 }
 
 function exitTechTree() {
@@ -363,6 +380,9 @@ function exitTechTree() {
 }
 
 function initTreePanZoom() {
+    if(isPanZoomInitialized) return;
+    isPanZoomInitialized = true;
+
     const container = document.getElementById("tree-container");
     const scrollArea = document.querySelector(".tree-scroll-area");
     if(!container || !scrollArea) return;
@@ -371,53 +391,90 @@ function initTreePanZoom() {
         scrollArea.style.transform = `translate(${treePanX}px, ${treePanY}px) scale(${treeScale})`;
     }
 
-    container.onwheel = (e) => {
+    // --- MAUS LOGIK (PC) ---
+    container.addEventListener('wheel', (e) => {
         e.preventDefault();
-        const zoomIntensity = 0.05;
-        const wheel = e.deltaY < 0 ? 1 : -1;
-        const zoomFactor = Math.exp(wheel * zoomIntensity);
+        const zoomFactor = Math.exp((e.deltaY < 0 ? 1 : -1) * 0.1);
+        
+        // ZOOM ZUR BILDSCHIRMMITTE (Hält den Baum zentriert!)
+        const centerX = container.clientWidth / 2;
+        const centerY = container.clientHeight / 2;
+        
+        const contentX = (centerX - treePanX) / treeScale;
+        const contentY = (centerY - treePanY) / treeScale;
 
-        const rect = container.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-
-        treePanX = mouseX - (mouseX - treePanX) * zoomFactor;
-        treePanY = mouseY - (mouseY - treePanY) * zoomFactor;
         treeScale *= zoomFactor;
-        treeScale = Math.min(Math.max(0.6, treeScale), 1.8); 
-        applyTransform();
-    };
+        treeScale = Math.min(Math.max(0.35, treeScale), 1.6); // Min 35%, Max 160%
 
-    container.onmousedown = (e) => {
+        treePanX = centerX - (contentX * treeScale);
+        treePanY = centerY - (contentY * treeScale);
+        applyTransform();
+    }, { passive: false });
+
+    container.addEventListener('mousedown', (e) => {
         isTreeDragging = true;
         startDragX = e.clientX - treePanX;
         startDragY = e.clientY - treePanY;
-    };
-    window.onmousemove = (e) => {
+    });
+    window.addEventListener('mousemove', (e) => {
         if (!isTreeDragging) return;
         treePanX = e.clientX - startDragX;
         treePanY = e.clientY - startDragY;
         applyTransform();
-    };
-    window.onmouseup = () => isTreeDragging = false;
+    });
+    window.addEventListener('mouseup', () => isTreeDragging = false);
 
-    container.ontouchstart = (e) => {
-        if(e.touches.length === 1) {
+    // --- TOUCH LOGIK (iPad / Smartphone) ---
+    let initialPinchDistance = null;
+    let initialPinchScale = 1;
+
+    container.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) { // 1 Finger: Schieben
             isTreeDragging = true;
             startDragX = e.touches[0].clientX - treePanX;
             startDragY = e.touches[0].clientY - treePanY;
+        } else if (e.touches.length === 2) { // 2 Finger: Pinch-to-Zoom
+            isTreeDragging = false;
+            initialPinchDistance = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            initialPinchScale = treeScale;
         }
-    };
-    container.ontouchmove = (e) => {
-        if(!isTreeDragging || e.touches.length !== 1) return;
-        e.preventDefault(); 
-        treePanX = e.touches[0].clientX - startDragX;
-        treePanY = e.touches[0].clientY - startDragY;
-        applyTransform();
-    };
-    container.ontouchend = () => isTreeDragging = false;
+    }, { passive: false });
 
-    applyTransform(); 
+    container.addEventListener('touchmove', (e) => {
+        e.preventDefault(); // ZWINGEND NÖTIG FÜR iPAD (blockiert Seiten-Scrollen)
+        
+        if (isTreeDragging && e.touches.length === 1) {
+            treePanX = e.touches[0].clientX - startDragX;
+            treePanY = e.touches[0].clientY - startDragY;
+            applyTransform();
+        } else if (e.touches.length === 2 && initialPinchDistance) {
+            const currentDist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            const zoomFactor = currentDist / initialPinchDistance;
+
+            const centerX = container.clientWidth / 2;
+            const centerY = container.clientHeight / 2;
+            const contentX = (centerX - treePanX) / treeScale;
+            const contentY = (centerY - treePanY) / treeScale;
+
+            treeScale = initialPinchScale * zoomFactor;
+            treeScale = Math.min(Math.max(0.35, treeScale), 1.6);
+
+            treePanX = centerX - (contentX * treeScale);
+            treePanY = centerY - (contentY * treeScale);
+            applyTransform();
+        }
+    }, { passive: false });
+
+    container.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) initialPinchDistance = null;
+        if (e.touches.length === 0) isTreeDragging = false;
+    });
 }
 
 function switchTechTab(type) {
