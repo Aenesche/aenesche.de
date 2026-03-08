@@ -60,54 +60,54 @@ const RARITIES = {
 };
 
 // --- BAUTEILE KATALOG (NEUES SLOT-SYSTEM 1-50, 200+) ---
+// --- BAUTEILE KATALOG (DAS MASTER TEMPLATE) ---
 const PART_CATALOG = {
-    // BATTERIEN (001 - 050: Standard Progression)
+    // 🪫 BATTERIEN (001-099 = Standard | 200+ = Exoten)
+    // Primärer Stat: 'timeMult' (reduziert die Basis-Zeit von 30s)
     "bat_001": { type: "battery", rarity: "Common", name: "NiMH Block", timeMult: 0.95, special: null },
-    "bat_002": { type: "battery", rarity: "Common", name: "Li-Ion 2S", timeMult: 0.85, special: null },
-    "bat_003": { type: "battery", rarity: "Rare", name: "LiPo 4S", timeMult: 0.70, special: { type: "po_boost", value: 1.5 } }, // 50% mehr PO
-    
-    // BATTERIEN (200+: Super Rare / Special)
-    "bat_200": { type: "battery", rarity: "Legendary", name: "Dark Matter Core", timeMult: 0.30, special: { type: "void_find", value: 0.05 } }, // Findet extrem seltene Void Gems
+    "bat_002": { type: "battery", rarity: "Rare", name: "Li-Ion 2S", timeMult: 0.85, special: null },
+    "bat_200": { type: "battery", rarity: "Legendary", name: "Dark Matter Core", timeMult: 0.30, special: { type: "void_find", value: 0.05 } }, // Findet 5% Void Gems
+    "bat_201": { type: "battery", rarity: "Ultra Rare", name: "Overclocked Cell", timeMult: 0.15, special: { type: "burnout_risk", value: 0.10 } }, // Sehr schnell, erhöht aber Absturzrisiko
 
-    // FRAMES
+    // ⬛ FRAMES (001-099 = Standard | 200+ = Exoten)
+    // Primärer Stat: 'breakChance' (Basis-Absturzrisiko, z.B. 0.40 = 40%)
     "fra_001": { type: "frame", rarity: "Common", name: "Cardboard Frame", breakChance: 0.40, special: null },
-    "fra_002": { type: "frame", rarity: "Rare", name: "Carbon X", breakChance: 0.20, special: null }
+    "fra_002": { type: "frame", rarity: "Rare", name: "Carbon Fiber X", breakChance: 0.20, special: null },
+    "fra_200": { type: "frame", rarity: "Legendary", name: "Titanium Monocoque", breakChance: 0.02, special: { type: "save_parts", value: 1 } }, // Rettet beim Absturz 1 anderes Teil
+
+    // 🎛️ FLIGHT CONTROLLER (001-099 = Standard | 200+ = Exoten)
+    // Primärer Stat: 'safety' (wird vom breakChance des Frames abgezogen)
+    "fc_001": { type: "fc", rarity: "Common", name: "Basic Gyro", safety: 0.05, special: null },
+    "fc_002": { type: "fc", rarity: "Super Rare", name: "A.I. Guardian", safety: 0.18, special: null },
+    "fc_200": { type: "fc", rarity: "Ultra Rare", name: "Quantum Brain", safety: 0.25, special: { type: "double_loot", value: 0.20 } }, // 20% Chance auf doppelte Drops
+
+    // 🚁 PROPELLER (001-099 = Standard | 200+ = Exoten)
+    // Primärer Stat: 'poMult' (Multiplikator für Plutonium-Ausbeute)
+    "pro_001": { type: "props", rarity: "Common", name: "Plastic 2-Blade", poMult: 1.0, special: null },
+    "pro_002": { type: "props", rarity: "Rare", name: "Nylon 3-Blade", poMult: 1.5, special: null },
+    "pro_200": { type: "props", rarity: "Super Rare", name: "Aero-Magnetic Props", poMult: 4.5, special: { type: "speed_boost", value: 0.10 } }, // Nebenbei 10% schneller
+
+    // 📷 KAMERAS (001-099 = Standard | 200+ = Exoten)
+    // Primärer Stat: 'luckBonus' (Multiplikator für Drop-Chancen)
+    "cam_001": { type: "camera", rarity: "Common", name: "VGA Cam", luckBonus: 1.0, special: null },
+    "cam_002": { type: "camera", rarity: "Rare", name: "4K Sensor", luckBonus: 1.5, special: null },
+    "cam_200": { type: "camera", rarity: "Ultra Rare", name: "Void-Eye Lens", luckBonus: 5.0, special: { type: "guarantee_rare", value: 1 } } // Garantiert 1 Rare Drop
 };
 
-// --- DER NEUE 2D TECH TREE ---
-// x und y sind Prozentwerte (0 bis 100) auf dem Canvas!
+// --- DER TECH TREE ---
+// Koordinaten: x und y sind Prozentwerte (0% - 100%) auf dem riesigen 3000x3000px Raster.
+// Das gibt dir extrem viel Platz in alle Richtungen.
 const TECH_TREE = {
-    // --- BATTERY TREE ---
-    "node_bat_001": { 
-        treeType: "battery", partId: "bat_001", req: [], 
-        x: 50, y: 10, // Startet oben in der Mitte
-        unlockCost: { rp: 1000, nrp: 0 }, buyCost: { cp: 5e12, po: 0 } 
-    },
-    "node_bat_002": { 
-        treeType: "battery", partId: "bat_002", req: ["node_bat_001"], 
-        x: 50, y: 30, // Geht gerade nach unten
-        unlockCost: { rp: 5000, nrp: 5 }, buyCost: { cp: 20e12, po: 5 } 
-    },
-    "node_bat_003": { 
-        treeType: "battery", partId: "bat_003", req: ["node_bat_002"], 
-        x: 30, y: 55, // Geht diagonal nach links unten!
-        unlockCost: { rp: 25000, nrp: 20 }, buyCost: { cp: 100e12, po: 25 } 
-    },
-    "node_bat_200": { 
-        treeType: "battery", partId: "bat_200", req: ["node_bat_002"], 
-        x: 70, y: 55, // Geht diagonal nach rechts unten! (Spaltung)
-        unlockCost: { rp: 500000, nrp: 150 }, buyCost: { cp: 900e12, po: 500 } 
-    },
+    // --- BATTERIEN ---
+    "node_bat_001": { treeType: "battery", partId: "bat_001", req: [], x: 50, y: 5, unlockCost: { rp: 1000, nrp: 0 }, buyCost: { cp: 5e12, po: 0 } },
+    "node_bat_002": { treeType: "battery", partId: "bat_002", req: ["node_bat_001"], x: 50, y: 15, unlockCost: { rp: 5000, nrp: 5 }, buyCost: { cp: 20e12, po: 5 } },
+    "node_bat_200": { treeType: "battery", partId: "bat_200", req: ["node_bat_002"], x: 70, y: 25, unlockCost: { rp: 500000, nrp: 150 }, buyCost: { cp: 900e12, po: 500 } },
+    "node_bat_201": { treeType: "battery", partId: "bat_201", req: ["node_bat_002"], x: 30, y: 25, unlockCost: { rp: 600000, nrp: 200 }, buyCost: { cp: 1200e12, po: 600 } },
 
-    // --- FRAME TREE ---
-    "node_fra_001": { 
-        treeType: "frame", partId: "fra_001", req: [], 
-        x: 50, y: 10, 
-        unlockCost: { rp: 1000, nrp: 0 }, buyCost: { cp: 5e12, po: 0 } 
-    },
-    "node_fra_002": { 
-        treeType: "frame", partId: "fra_002", req: ["node_fra_001"], 
-        x: 50, y: 40, 
-        unlockCost: { rp: 10000, nrp: 10 }, buyCost: { cp: 50e12, po: 10 } 
-    }
+    // --- FRAMES ---
+    "node_fra_001": { treeType: "frame", partId: "fra_001", req: [], x: 50, y: 5, unlockCost: { rp: 1000, nrp: 0 }, buyCost: { cp: 5e12, po: 0 } },
+    "node_fra_002": { treeType: "frame", partId: "fra_002", req: ["node_fra_001"], x: 50, y: 15, unlockCost: { rp: 10000, nrp: 10 }, buyCost: { cp: 50e12, po: 10 } },
+    "node_fra_200": { treeType: "frame", partId: "fra_200", req: ["node_fra_002"], x: 50, y: 30, unlockCost: { rp: 750000, nrp: 300 }, buyCost: { cp: 2000e12, po: 1000 } },
+    
+    // (Weitere Bäume kannst du jetzt exakt nach diesem Muster fortsetzen...)
 };
