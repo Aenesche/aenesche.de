@@ -611,7 +611,7 @@ function selectTechNode(nodeId) {
     let statsText = "";
     if (part.type === "battery") statsText = `Missionszeit: ${Math.round(part.timeMult * 100)}%`;
     if (part.type === "frame") statsText = `Absturzrisiko: ${(part.breakChance * 100).toFixed(1)}%`;
-    if (part.type === "fc") statsText = `Sicherheit: +${Math.round(part.safety * 100)}%`;
+    if (part.type === "fc") statsText = `System-Architektur: ${part.safety > 0 ? 'Flugstabilisierung aktiv' : 'Pure Software-Logik'}`;
     if (part.type === "props") statsText = `Ertrag: PO x${part.poMult} | N-RP x${part.nrpMult}`;    
     if (part.type === "camera") {
         const vgText = part.vgChance > 0 ? `<span style="color:#b300ff"> | VG-Chance: ${Math.round(part.vgChance * 100)}%</span>` : "";
