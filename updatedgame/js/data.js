@@ -291,7 +291,7 @@ const TECH_TREE = {
 
     // TIER 2 (Extremer Split)
     "n_pro_007": { treeType: "props", partId: "pro_007", req: ["n_pro_005"], x: 50, y: 25, unlockCost: { rp: 20000, nrp: 15, vg: 0 }, buyCost: { cp: 100e12, po: 30, vg: 0 } },
-    "n_pro_008": { treeType: "props", partId: "pro_008", req: ["n_pro_007"], x: 50, y: 29, unlockCost: { rp: 0, nrp: 30, vg: 0 }, buyCost: { cp: 0, po: 60, vg: 0 } },
+    "n_pro_008": { treeType: "props", partId: "pro_008", req: ["n_pro_007"], x: 58, y: 29, unlockCost: { rp: 0, nrp: 30, vg: 0 }, buyCost: { cp: 0, po: 60, vg: 0 } },
     
     // Weit nach Links (PO)
     "n_pro_009a": { treeType: "props", partId: "pro_009a", req: ["n_pro_008"], x: 45, y: 34, unlockCost: { rp: 0, nrp: 50, vg: 0 }, buyCost: { cp: 0, po: 100, vg: 0 } },
