@@ -492,14 +492,24 @@ function renderTechTreeCanvas() {
     nodesContainer.innerHTML = "";
     svgContainer.innerHTML = "";
 
-    // --- TIER TRENNLINIEN ZEICHNEN ---
-    // Definiert, auf welcher Y-Höhe (%) die Tiers wechseln
-    const tierLines = [
-        { y: 23.5, color: "#00ff88", label: "TIER 2 (RARE)" },
-        { y: 44.5, color: "#66d9ff", label: "TIER 3 (SUPER RARE)" },
-        { y: 57.5, color: "#ffd700", label: "TIER 4 (LEGENDARY)" },
-        { y: 71.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
-    ];
+    // --- DYNAMISCHE TIER TRENNLINIEN (Pro Tree anpassbar!) ---
+    const TIER_LINES_CONFIG = {
+        battery: [
+            { y: 23.5, color: "#00ff88", label: "TIER 2 (RARE)" },
+            { y: 44.5, color: "#66d9ff", label: "TIER 3 (SUPER RARE)" },
+            { y: 57.5, color: "#ffd700", label: "TIER 4 (LEGENDARY)" },
+            { y: 71.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
+        ],
+        props: [
+            { y: 22.5, color: "#00ff88", label: "TIER 2 (RARE)" },
+            { y: 44.0, color: "#66d9ff", label: "TIER 3 (SUPER RARE)" },
+            { y: 61.0, color: "#ffd700", label: "TIER 4 (LEGENDARY)" },
+            { y: 74.0, color: "#ff2da6", label: "TIER 5 (ULTRA RARE)" }
+        ]
+        // Frames, FC und Kameras kommen später hier rein!
+    };
+
+    const tierLines = TIER_LINES_CONFIG[currentTechTab] || [];
 
     tierLines.forEach(tier => {
         // Die gestrichelte Linie
