@@ -735,3 +735,97 @@ function selectTechNode(nodeId) {
     
     document.getElementById("tech-detail-panel").innerHTML = panelHTML;
 }
+// ==========================================
+// 🧊 3D HOLOGRAM ENGINE (THREE.JS)
+// ==========================================
+let holoScene, holoCamera, holoRenderer, droneGroup;
+let droneMeshes = {}; 
+let rgbHue = 0; // Für die RGB Animation
+
+function initHologram() {
+    const container = document.getElementById('holo-container');
+    if (!container || holoScene) return;
+
+    holoScene = new THREE.Scene();
+    holoCamera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+    holoCamera.position.set(3, 3, 4);
+    holoCamera.lookAt(0, 0, 0);
+
+    holoRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    holoRenderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(holoRenderer.domElement);
+
+    droneGroup = new THREE.Group();
+    holoScene.add(droneGroup);
+
+    // Standard Wireframe Material (Grau)
+    const baseMat = () => new THREE.MeshBasicMaterial({ color: 0x333333, wireframe: true });
+
+    // 1. FRAME (Das X in der Mitte)
+    const frameGeo = new THREE.BoxGeometry(2.5, 0.1, 2.5);
+    droneMeshes.frame = new THREE.Mesh(frameGeo, baseMat());
+    droneGroup.add(droneMeshes.frame);
+
+    // 2. FC (Flight Controller in der Mitte)
+    const fcGeo = new THREE.BoxGeometry(0.8, 0.3, 0.8);
+    droneMeshes.fc = new THREE.Mesh(fcGeo, baseMat());
+    droneMeshes.fc.position.y = 0.2;
+    droneGroup.add(droneMeshes.fc);
+
+    // 3. BATTERY (Oben drauf)
+    const battGeo = new THREE.BoxGeometry(0.6, 0.4, 1.2);
+    droneMeshes.battery = new THREE.Mesh(battGeo, baseMat());
+    droneMeshes.battery.position.y = 0.6;
+    droneGroup.add(droneMeshes.battery);
+
+    // 4. CAMERA (Vorne dran)
+    const camGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+    droneMeshes.camera = new THREE.Mesh(camGeo, baseMat());
+    droneMeshes.camera.position.set(0, 0.2, 1.4);
+    droneGroup.add(droneMeshes.camera);
+
+    // 5. PROPS (4 Zylinder an den Ecken)
+    droneMeshes.props = new THREE.Group();
+    const propGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.05, 8);
+    const positions = [[1.2, 1.2], [-1.2, 1.2], [1.2, -1.2], [-1.2, -1.2]];
+    
+    positions.forEach(pos => {
+        const p = new THREE.Mesh(propGeo, baseMat());
+        p.position.set(pos[0], 0.1, pos[1]);
+        droneMeshes.props.add(p);
+    });
+    droneGroup.add(droneMeshes.props);
+
+    animateHologram();
+}
+
+function animateHologram() {
+    requestAnimationFrame(animateHologram);
+    
+    // Die ganze Drohne dreht sich langsam
+    droneGroup.rotation.y += 0.005;
+    
+    // Die Propeller drehen sich schnell
+    droneMeshes.props.children.forEach(p => p.rotation.y -= 0.1);
+
+    // RGB Animation Logic
+    rgbHue += 0.01;
+    if (rgbHue > 1) rgbHue = 0;
+    
+    // Checke alle Meshes, ob sie das "isRGB" Flag haben
+    Object.keys(droneMeshes).forEach(key => {
+        const mesh = droneMeshes[key];
+        if (mesh.isRGB) {
+            const color = new THREE.Color();
+            color.setHSL(rgbHue, 1, 0.5); // Regenbogen!
+            
+            if (key === 'props') {
+                mesh.children.forEach(c => c.material.color = color);
+            } else {
+                mesh.material.color = color;
+            }
+        }
+    });
+
+    holoRenderer.render(holoScene, holoCamera);
+}
