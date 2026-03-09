@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI DRONE LAB · Databank & Wiki</title>
+  <style>
+    :root{
+      --bg:#0a0a0a; --panel:#0f0f0f; --text:#eaeaea; --muted:#7a7a7a;
+      --line:#1f1f1f; --accent:#bdbdbd; --warn:#ff4444;
+      --po:#ffaa00; --nrp:#00ff88; --rp:#66d9ff; --vg:#b300ff;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--mono); letter-spacing:.2px; line-height: 1.5; }
+    a{ color:var(--accent); text-decoration:none; } a:hover{ text-decoration:underline; }
+    .wrap{ max-width: 1000px; margin:0 auto; padding: 30px 20px 80px; }
+    
+    .topbar{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid var(--line); padding-bottom:15px; margin-bottom:30px; }
+    .title{ font-size:22px; color: var(--accent); } 
+    .tag{ display:inline-block; border:1px solid var(--line); padding:3px 6px; font-size:11px; color:var(--muted); vertical-align: middle; margin-left: 10px;}
+    
+    .panel{ background:var(--panel); border:1px solid var(--line); padding:20px; margin-bottom: 20px; }
+    .panel h2{ margin:0 0 15px; font-size:16px; color:var(--rp); font-weight:600; letter-spacing:1px; border-bottom: 1px dashed var(--line); padding-bottom: 10px;}
+    .panel h3{ margin: 20px 0 10px; font-size:14px; color:var(--text); }
+    
+    .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+    @media (max-width: 768px){ .grid-2{ grid-template-columns: 1fr; } }
+    
+    .monoBox{ border:1px solid var(--line); background:#050505; padding:15px; font-size:13px; color: var(--muted); }
+    .monoBox strong { color: var(--text); }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+    th, td { border: 1px solid var(--line); padding: 10px; text-align: left; }
+    th { background: #111; color: var(--muted); font-weight: normal; }
+    td strong { color: var(--accent); }
+    
+    /* Rarity Colors */
+    .c-com { color: #aaaaaa; } .c-rar { color: #00ff88; } .c-sra { color: #66d9ff; }
+    .c-leg { color: #ffd700; } .c-ult { color: #ff2da6; }
+    
+    .special-badge { background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; color: #00ff88; padding: 2px 6px; font-size: 11px; border-radius: 3px; display: inline-block; margin-bottom: 5px;}
+    .exotic-badge { background: rgba(255, 45, 166, 0.1); border: 1px solid #ff2da6; color: #ff2da6; padding: 2px 6px; font-size: 11px; border-radius: 3px; display: inline-block; margin-bottom: 5px;}
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        AI DRONE LAB <span class="tag">DATABANK & WIKI</span>
+      </div>
+      <div>
+        <a href="../index.html" style="color: var(--rp);">< RETURN TO LAB</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>1. SYSTEM OVERVIEW & WÄHRUNGEN</h2>
+      <div class="grid-2">
+        <div class="monoBox">
+          <strong>Base Game (Cookie Clicker)</strong><br><br>
+          Baue Drohnen, um <span style="color: var(--accent)">Legacy Coins (CP)</span> zu generieren. Erforsche Tech-Upgrades mit <span style="color: var(--rp)">Research Points (RP)</span>, um deine CPS (Coins per Second) exponentiell zu steigern. Ab einem bestimmten Tech-Level schaltest du das C.H.E.E.T.A. Protokoll frei und betrittst die <strong>New World</strong>.
+        </div>
+        <div class="monoBox">
+          <strong>New World (Extraction & Crafting)</strong><br><br>
+          Hier baust du individuelle Drohnen aus 5 Komponenten zusammen und schickst sie auf Missionen. Überleben sie, bringen sie seltene Materialien zurück:<br>
+          <span style="color: var(--warn)">PO (Plutonium Ore)</span> - Fürs Crafting.<br>
+          <span style="color: var(--nrp)">N-RP (Neural RP)</span> - Für Tech-Tree Unlocks.<br>
+          <span style="color: var(--vg)">VG (Void Gems)</span> - Endgame Währung.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>2. MISSION CONTROL (THE GAME LOOP)</h2>
+      <div class="monoBox">
+        Jede Mission hat eine Basis-Dauer von <strong>30 Sekunden</strong>. Wenn du auf "START MISSION" klickst, wird das Risiko berechnet.
+        <br><br>
+        <strong>1. Der Crash-Würfel:</strong> Dein Frame bestimmt das Absturzrisiko (z.B. 15%). Fällt der RNG-Würfel gegen dich, stürzt die Drohne ab. Standardmäßig werden dabei <strong>alle ausgerüsteten Teile zerstört</strong> und aus deinem Inventar gelöscht.
+        <br><br>
+        <strong>2. Loot Extraktion:</strong> Überlebt die Drohne, farmt sie Plutonium und Neural-RP. Die Menge basiert auf Zufall, wird aber massiv durch deine Propeller multipliziert.
+        <br><br>
+        <strong>3. Anomalien (Drops):</strong> Deine Kamera bestimmt dein "Luck". Je mehr Luck, desto höher die Chance, am Ende der Mission neue Bauteile oder sogar bisher unentdeckte Blueprints für den Tech-Tree zu finden (Maximal 2% Chance pro Run für Drop-Exclusives).
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>3. DRONE ENGINEERING (DIE 5 BAUTEILE)</h2>
+      <table>
+        <tr>
+          <th width="15%">Kategorie</th>
+          <th width="35%">Haupt-Funktion</th>
+          <th width="50%">Erklärung</th>
+        </tr>
+        <tr>
+          <td><strong>BATTERY</strong></td>
+          <td>Missionsdauer (Time Multiplier)</td>
+          <td>Ein Multiplikator (z.B. 1.2). Macht die Missionen länger oder kürzer. Kürzere Missionen bedeuten mehr Loot pro Stunde.</td>
+        </tr>
+        <tr>
+          <td><strong>PROPS</strong></td>
+          <td>Ertrag (PO & N-RP Multiplier)</td>
+          <td>Multipliziert den Basis-Loot. Entscheide, ob du den Fokus auf Crafting-Material (PO) oder Forschungs-Daten (N-RP) legst.</td>
+        </tr>
+        <tr>
+          <td><strong>FRAME</strong></td>
+          <td>Absturzrisiko (Break Chance)</td>
+          <td>Das absolute Fundament. Ein hohes Risiko führt zum Totalverlust. Bessere Frames drücken das Risiko in Richtung 0%.</td>
+        </tr>
+        <tr>
+          <td><strong>CAMERA</strong></td>
+          <td>Loot Glück (Luck & VG Chance)</td>
+          <td>Luck multipliziert die Chance, Anomalien (Drops) zu finden. VG Chance bestimmt, ob ein Void-Gem-Cluster gefunden wird.</td>
+        </tr>
+        <tr>
+          <td><strong>FLIGHT CTRL</strong></td>
+          <td>Reine Software (Specials)</td>
+          <td>Flight Controller (FC) haben keine Basis-Werte. Sie definieren sich zu 100% über ihre Special-Fähigkeiten (z.B. Return-to-Home).</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2 style="color: var(--warn);">4. CLASSIFIED PROTOCOLS (SPECIALS & EXOTICS)</h2>
+      <p style="font-size: 13px; color: var(--muted);">Viele Bauteile besitzen versteckte Sub-Routinen. Hier ist die offizielle R&D Dokumentation aller bekannten Specials.</p>
+      
+      <h3>RISIKO & RETTUNGSSYSTEME</h3>
+      <table>
+        <tr><td width="25%"><span class="special-badge">burnout_risk</span> / <br><span class="special-badge">break_risk</span></td><td>Erhöht das generelle Absturzrisiko der Drohne. Oft ein Trade-off für extrem starke andere Werte (z.B. bei übertakteten Akkus oder schweren Propellern).</td></tr>
+        <tr><td><span class="special-badge">auto_level</span></td><td>Zieht einen festen Wert (z.B. 5%) vom Absturzrisiko des Frames ab. Perfekt, um instabile Frames sicher zu machen.</td></tr>
+        <tr><td><span class="special-badge">rth_v1 / rth_v2</span></td><td><strong>Return to Home.</strong> Wenn die Drohne abstürzt, rettet der FC 1 (v1) oder 3 (v2) zufällige Bauteile vor der Zerstörung.</td></tr>
+        <tr><td><span class="exotic-badge">rth_flawless</span> / <br><span class="exotic-badge">save_parts</span></td><td>Ultimative Absicherung. Selbst bei einem fatalen Crash fungiert dieses Teil als Bunker und <strong>alle 5 Bauteile</strong> werden gerettet.</td></tr>
+        <tr><td><span class="exotic-badge">rebirth</span></td><td><strong>Phoenix Alloy.</strong> Fällt der Crash-Würfel gegen dich, gibt es eine prozentuale Chance, den Crash einfach zu ignorieren. Die Drohne fliegt sicher mit Loot nach Hause.</td></tr>
+        <tr><td><span class="exotic-badge">insurance_fraud</span></td><td><strong>Versicherungsbetrug.</strong> Wenn die Drohne abstürzt und Teile zerstört werden, zahlt dir eine Schattenfirma eine gigantische Summe (1 Trillion CP und 10 VG) als Entschädigung.</td></tr>
+        <tr><td><span class="special-badge">blackbox</span></td><td>Rettet bei einem Crash einen gewissen Prozentsatz der gesammelten N-RP Daten aus den Trümmern.</td></tr>
+      </table>
+
+      <h3>LOOT & ZEIT-MODIFIKATIONEN</h3>
+      <table>
+        <tr><td width="25%"><span class="special-badge">double_po</span> / <br><span class="special-badge">double_vg</span></td><td>Verdoppelt am Ende einer erfolgreichen Mission garantiert allen gefundenen Plutonium-Ore (PO) oder alle gefundenen Void Gems.</td></tr>
+        <tr><td><span class="exotic-badge">double_loot</span></td><td>Gibt eine prozentuale Chance, dass bei Abschluss PO, N-RP und das Kamera-Luck <strong>komplett verdoppelt</strong> werden.</td></tr>
+        <tr><td><span class="exotic-badge">po_to_nrp</span></td><td><strong>Neural Overload.</strong> Jegliches gefundenes Plutonium wird auf 0 gesetzt und stattdessen 1:1 in wertvolle N-RP umgewandelt.</td></tr>
+        <tr><td><span class="special-badge">void_find</span></td><td>Addiert eine feste Basis-Wahrscheinlichkeit (z.B. +5%) zur Chance, ein Void-Gem-Cluster zu finden.</td></tr>
+        <tr><td><span class="special-badge">luck_boost</span></td><td>Addiert einen festen Wert zum Luck-Multiplikator der Kamera. Erhöht Drop-Chancen massiv.</td></tr>
+        <tr><td><span class="exotic-badge">no_parts</span></td><td><strong>Void-Magnet.</strong> Blockiert das Finden von Blueprints und Ersatzteilen komplett (0% Drop-Chance). Dafür ist die Void-Gem Chance meist absurd hoch.</td></tr>
+        <tr><td><span class="special-badge">agility_boost</span></td><td>Macht die Drohne agiler. Verkürzt die berechnete Missionsdauer pauschal um 5%.</td></tr>
+        <tr><td><span class="exotic-badge">heavyweight</span></td><td><strong>Juggernaut.</strong> Macht die Drohne so schwer gepanzert, dass das Crash-Risiko auf 0% sinkt. Als Trade-off verlängert sich die Missionsdauer um 50%.</td></tr>
+        <tr><td><span class="exotic-badge">instant_mission</span></td><td><strong>Chrono-Stutter.</strong> Gibt eine geringe Chance, dass die Zeit gekrümmt wird. Der 30-Sekunden Timer springt auf 0 und die Mission ist sofort beendet.</td></tr>
+      </table>
+
+      <h3>SYNERGIEN (SET-BONI)</h3>
+      <table>
+        <tr>
+          <td width="25%">
+            <span class="special-badge">synergy_ready</span><br>
+            <span class="special-badge">set_bonus_...</span>
+          </td>
+          <td>Einige Kameras (z.B. DJI O3) haben den Status <code>synergy_ready: "o3"</code>. Das bringt alleine gar nichts. Wenn du aber einen Flight Controller ausrüstest, der den <code>set_bonus_o3</code> besitzt, verbinden sich die Systeme. Dies multipliziert den Luck-Wert der Drohne enorm und ist der beste Weg, um legendäre Anomalien zu farmen.</td>
+        </tr>
+      </table>
+    </div>
+
+  </div>
+
+</body>
+</html>
