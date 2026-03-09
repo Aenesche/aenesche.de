@@ -351,8 +351,8 @@ function resolveMission() {
 
         // Blueprint Drops
         if (cam.special?.type !== "no_parts") {
-            const dropChance = Math.min(1.0, 0.05 * luck); 
-            const exclusiveChance = Math.min(0.02, 0.01 * luck);
+            const dropChance = Math.min(1.0, 0.005 * luck); 
+            const exclusiveChance = Math.min(0.02, 0.0001 * luck);
 
             let guaranteeDrop = false;
             let guaranteeRare = false;
