@@ -125,6 +125,7 @@ function renderHangar(){
 function enterNewWorld() {
   document.getElementById("game-wrap").style.display = "none";
   document.getElementById("nw-wrap").style.display = "block";
+  initHologram(); // <--- NEU: Startet die 3D Engine
   renderNewWorld();
 }
 
