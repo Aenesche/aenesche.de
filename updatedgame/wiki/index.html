@@ -16,16 +16,17 @@
     body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--mono); letter-spacing:.2px; line-height: 1.5; overflow-x: hidden; }
     a{ color:var(--accent); text-decoration:none; } a:hover{ text-decoration:underline; }
     
-    /* Der 3D Hintergrund Container */
+    /* Der 3D Hintergrund Container (DVD Bounce) */
     #wiki-holo {
-      position: absolute;
-      top: -50px;
-      right: -50px;
-      width: 400px;
-      height: 400px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 250px;
       z-index: -1;
-      opacity: 0.4;
+      opacity: 0.5;
       pointer-events: none;
+      /* transform wird per JS gesteuert */
     }
 
     .wrap{ max-width: 1000px; margin:0 auto; padding: 30px 20px 80px; position: relative; z-index: 10; }
@@ -159,31 +160,28 @@
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(400, 400);
+    // Setzt das Canvas exakt auf die Größe unseres herumfliegenden Containers
+    renderer.setSize(250, 250);
     container.appendChild(renderer.domElement);
 
     const droneGroup = new THREE.Group();
     scene.add(droneGroup);
 
-    // Grün/Blaues Wireframe für das Wiki
-    const mat = new THREE.MeshBasicMaterial({ color: 0x00ff88, wireframe: true, transparent: true, opacity: 0.6 });
+    // Basis-Material (Startfarbe Neon-Grün)
+    const mat = new THREE.MeshBasicMaterial({ color: 0x00ff88, wireframe: true, transparent: true, opacity: 0.7 });
 
-    // Frame
+    // Drohnen-Komponenten bauen
     droneGroup.add(new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.1, 2.5), mat));
-    // FC
     const fc = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.3, 0.8), mat);
     fc.position.y = 0.2;
     droneGroup.add(fc);
-    // Battery
     const bat = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 1.2), mat);
     bat.position.y = 0.6;
     droneGroup.add(bat);
-    // Camera
     const cam = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), mat);
     cam.position.set(0, 0.2, 1.4);
     droneGroup.add(cam);
 
-    // Props
     const propGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.05, 8);
     const propsGroup = new THREE.Group();
     [[1.2, 1.2], [-1.2, 1.2], [1.2, -1.2], [-1.2, -1.2]].forEach(pos => {
@@ -193,11 +191,60 @@
     });
     droneGroup.add(propsGroup);
 
+    // ==========================================
+    // 📀 DVD-LOGO BOUNCE LOGIK
+    // ==========================================
+    const size = 250; // Größe des Containers
+    let posX = Math.random() * (window.innerWidth - size);
+    let posY = Math.random() * (window.innerHeight - size);
+    
+    // Geschwindigkeit (Pixel pro Frame) - Erhöhen für mehr Speed
+    let velX = 1.5; 
+    let velY = 1.5; 
+
+    // Die Farbpalette für den Bounce (Orientiert an deinen Item-Rarities)
+    const colors = [0x00ff88, 0x66d9ff, 0xff2da6, 0xffd700, 0xb300ff, 0xffaa00, 0xff4444, 0xbdbdbd];
+
     function animate() {
         requestAnimationFrame(animate);
-        droneGroup.rotation.y -= 0.003; // Langsame Rotation
-        droneGroup.rotation.z = Math.sin(Date.now() * 0.001) * 0.1; // Leichtes Schweben
-        propsGroup.children.forEach(p => p.rotation.y += 0.05); // Rotoren drehen
+
+        // --- 1. Die Flug-Logik (Bounce) ---
+        const maxX = window.innerWidth - size;
+        const maxY = window.innerHeight - size;
+
+        posX += velX;
+        posY += velY;
+
+        let bounced = false;
+
+        // Check Wandkollision (X-Achse)
+        if (posX <= 0 || posX >= maxX) {
+            velX *= -1; // Richtung umkehren
+            posX = Math.max(0, Math.min(posX, maxX)); // Verhindert, dass es außerhalb stecken bleibt
+            bounced = true;
+        }
+        
+        // Check Wandkollision (Y-Achse)
+        if (posY <= 0 || posY >= maxY) {
+            velY *= -1;
+            posY = Math.max(0, Math.min(posY, maxY));
+            bounced = true;
+        }
+
+        // Farbwechsel beim Bounce
+        if (bounced) {
+            const newColor = colors[Math.floor(Math.random() * colors.length)];
+            mat.color.setHex(newColor);
+        }
+
+        // Bewegt den echten HTML-Container über den Bildschirm
+        container.style.transform = `translate(${posX}px, ${posY}px)`;
+
+        // --- 2. Die 3D-Rotations-Logik ---
+        droneGroup.rotation.y -= 0.005; 
+        droneGroup.rotation.z = Math.sin(Date.now() * 0.002) * 0.15; // Leichtes "Wippen"
+        propsGroup.children.forEach(p => p.rotation.y -= 0.1); // Propeller drehen
+
         renderer.render(scene, camera);
     }
     animate();
