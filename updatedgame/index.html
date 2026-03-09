@@ -252,18 +252,27 @@
 
       <div class="panel" style="margin-top: 15px;">
         <h2>DRONE ASSEMBLY</h2>
-        <div style="border: 1px solid var(--line); background: #050505; height: 120px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; text-align: center;">
+        
+        <div style="border: 1px solid var(--line); background: #050505; height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; text-align: center;">
             <div id="drone-render-field" style="color: var(--accent); font-size: 14px; letter-spacing: 2px;">
                 [ SYSTEM OFFLINE ]<br><small>Warte auf Assembly...</small>
             </div>
         </div>
         
-        <div class="drone-grid">
-          <div class="part-slot slot-props" id="slot-props">PROPS<br><small>empty</small></div>
-          <div class="part-slot slot-batt" id="slot-battery">BATTERY<br><small>empty</small></div>
-          <div class="part-slot slot-frame" id="slot-frame">FRAME<br><small>empty</small></div>
-          <div class="part-slot slot-fc" id="slot-fc">FC<br><small>empty</small></div>
-          <div class="part-slot slot-cam" id="slot-camera">CAMERA<br><small>empty</small></div>
+        <div style="display: flex; gap: 20px; align-items: center; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
+            
+            <div id="holo-container" style="width: 220px; height: 220px; border: 1px solid var(--line); background: #020202; position: relative;">
+                <div style="position: absolute; top: 5px; left: 5px; font-size: 10px; color: var(--muted); pointer-events: none;">3D_WIRE_VIEW</div>
+            </div>
+
+            <div class="drone-grid" style="margin: 0;">
+              <div class="part-slot slot-props" id="slot-props">PROPS<br><small>empty</small></div>
+              <div class="part-slot slot-batt" id="slot-battery">BATTERY<br><small>empty</small></div>
+              <div class="part-slot slot-frame" id="slot-frame">FRAME<br><small>empty</small></div>
+              <div class="part-slot slot-fc" id="slot-fc">FC<br><small>empty</small></div>
+              <div class="part-slot slot-cam" id="slot-camera">CAMERA<br><small>empty</small></div>
+            </div>
+
         </div>
         <div class="hint" style="text-align: center;">Baue 5 Teile zusammen, um eine Mission zu starten.</div>
         
