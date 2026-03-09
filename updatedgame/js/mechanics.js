@@ -491,12 +491,14 @@ function buyCraftedPart(nodeId) {
     const node = TECH_TREE[nodeId];
     if(!node) return;
     
-    const reqCp = node.buyCost.cp || 0;
-    const reqPo = node.buyCost.po || 0;
-    const reqVg = node.buyCost.vg || 0;
+    // Checke Kosten: Entweder aus data.js oder die Hardcode-Werte für Exoten
+    const reqCp = node.buyCost?.cp || (node.dropOnly ? 200000000000000 : 0); // 200T
+    const reqPo = node.buyCost?.po || (node.dropOnly ? 500000 : 0);          // 500k
+    const reqVg = node.buyCost?.vg || (node.dropOnly ? 100 : 0);             // 100
 
     if (state.coins < reqCp || (state.newWorld.po || 0) < reqPo || (state.newWorld.vg || 0) < reqVg) {
-        log("Not enough materials to craft this part!", "bad"); return;
+        log(node.dropOnly ? "Not enough resources to replicate Exotic!" : "Not enough materials to craft this part!", "bad"); 
+        return;
     }
     
     state.coins -= reqCp; 
@@ -509,18 +511,26 @@ function buyCraftedPart(nodeId) {
         catalogId: node.partId, type: baseItem.type, name: baseItem.name, rarity: baseItem.rarity 
     });
     
-    log(`PRODUCED: ${baseItem.name}`, "ok");
+    // Coole Log-Nachricht für Exoten
+    if (node.dropOnly) {
+        log(`EXOTIC REPLICATED: ${baseItem.name} successfully reconstructed.`, "ok");
+    } else {
+        log(`PRODUCED: ${baseItem.name}`, "ok");
+    }
+    
     saveToServer(); 
     
     renderNewWorld(); 
-    if (document.getElementById("tech-wrap").style.display === "block") selectTechNode(nodeId); 
-
-  // Dieses Snippet ganz am Ende von unlockNode() und buyCraftedPart() einfügen (direkt über der letzten } Klammer):
-    const panel = document.getElementById("tech-detail-panel");
-    if (panel) {
-        panel.classList.remove("flash-buy");
-        void panel.offsetWidth; // Zwingt den Browser, die Animation neu zu starten
-        panel.classList.add("flash-buy");
+    if (document.getElementById("tech-wrap").style.display === "block") {
+        selectTechNode(nodeId); 
+        
+        // Grüner/Pinker Flash
+        const panel = document.getElementById("tech-detail-panel");
+        if (panel) {
+            panel.classList.remove("flash-buy");
+            void panel.offsetWidth; 
+            panel.classList.add("flash-buy");
+        }
     }
 }
 
