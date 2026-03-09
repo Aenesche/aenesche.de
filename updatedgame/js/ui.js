@@ -295,7 +295,7 @@ function renderNewWorld() {
         if (m.result && m.result.crashed) {
             renderField.innerHTML = "!!! CRITICAL CRASH !!!<br><small>Signal verloren. Drohne zerstört.</small>";
             renderField.style.color = "var(--warn)";
-            claimBtn.textContent = "BERGE TRÜMMER (LOSE PARTS)";
+            claimBtn.textContent = "GO CRY ABOUT IT";
             claimBtn.style.borderColor = "var(--warn)";
             claimBtn.style.color = "var(--warn)";
         } else {
