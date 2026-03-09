@@ -399,7 +399,11 @@ function renderNewWorld() {
             claimBtn.style.color = "#00ff88";
         }
     }
+    
+    // NEU: Live Telemetrie updaten!
+    updateDroneTelemetry();
 }
+
 function render(){
   const cps = coinsPerSecond(); const rps = rpPerSecond(); const cp = clickPower();
   el.coins.textContent = fmt(state.coins); el.cps.textContent = cps.toFixed(cps<10?2:1);
