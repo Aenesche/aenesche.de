@@ -258,14 +258,14 @@ function renderNewWorld() {
     const nwRpEl = document.getElementById("nw-rp-display");
     if (nwRpEl) nwRpEl.textContent = fmt(state.rp || 0);
     
-    document.getElementById("po-display").textContent = state.newWorld.po || 0;
+    document.getElementById("po-display").textContent = Math.floor(state.newWorld.po || 0);
     document.getElementById("legacy-cp").textContent = fmt(state.coins);
     
     const nrpDisplay = document.getElementById("nrp-display");
-    if(nrpDisplay) nrpDisplay.textContent = state.newWorld.nrp || 0;
+    if(nrpDisplay) nrpDisplay.textContent = Math.floor(state.newWorld.nrp || 0);
 
     const vgDisplay = document.getElementById("vg-display");
-    if(vgDisplay) vgDisplay.textContent = state.newWorld.vg || 0;
+    if(vgDisplay) vgDisplay.textContent = Math.floor(state.newWorld.vg || 0);
 
     // --- INVENTAR FILTERN & ANZEIGEN ---
     const filterVal = document.getElementById("inv-filter") ? document.getElementById("inv-filter").value : "sort_rarity";
@@ -282,14 +282,16 @@ function renderNewWorld() {
     if (invList) {
         invList.innerHTML = "";
         displayItems.forEach(part => {
-            const color = RARITIES[part.rarity].color;
+            const data = PART_CATALOG[part.catalogId];
+            if (!data) return;
+            const color = RARITIES[data.rarity].color;
             const div = document.createElement("div");
             
-            // --- NEU: Exoten-Erkennung (NUR echte Drop-Only Items wie _d01) ---
+            // Exoten-Erkennung (NUR echte Drop-Only Items wie _d01)
             const isExotic = part.catalogId && part.catalogId.includes("_d");
             
             if (isExotic) {
-                div.className = "inv-item anim-pop exotic-rgb"; // RGB Klasse hinzufügen
+                div.className = "inv-item anim-pop exotic-rgb";
             } else {
                 div.className = "inv-item anim-pop";
             }
@@ -297,10 +299,11 @@ function renderNewWorld() {
             div.draggable = true;
             div.ondragstart = (ev) => dragStart(ev, part.id);
             div.onclick = () => equipPart(part.id); 
-            div.innerHTML = `<b style="color: ${color};">${part.rarity}</b><br><span style="color: var(--muted);">${part.type.toUpperCase()}</span><br>${part.name}`;
+            div.innerHTML = `<b style="color: ${color};">${data.rarity}</b><br><span style="color: var(--muted);">${data.type.toUpperCase()}</span><br>${data.name}`;
             invList.appendChild(div);
         });
     }
+
     // --- SLOTS & 3D HOLOGRAMM ---
     const types = ["props", "battery", "frame", "fc", "camera"];
     let partsEquipped = 0;
@@ -310,6 +313,8 @@ function renderNewWorld() {
 
     types.forEach(type => {
         const slot = document.getElementById("slot-" + type);
+        if(!slot) return;
+
         const equipped = state.newWorld.hangar[type];
         
         slot.style.pointerEvents = isMissionActive ? 'none' : 'auto';
@@ -321,16 +326,17 @@ function renderNewWorld() {
         slot.ondrop = (ev) => dropToSlot(ev, type);
         
         if (equipped) {
-            const color = RARITIES[equipped.rarity].color;
+            const data = PART_CATALOG[equipped.catalogId];
+            if(!data) return;
+            const color = RARITIES[data.rarity].color;
             slot.classList.add("filled", "anim-pop");
             slot.draggable = !isMissionActive; 
             slot.ondragstart = (ev) => dragStartEquipped(ev, type);
-            slot.innerHTML = `<b style="color: var(--muted);">${type.toUpperCase()}</b><br><span style="color: ${color}">${equipped.name}</span>`;
+            slot.innerHTML = `<b style="color: var(--muted);">${type.toUpperCase()}</b><br><span style="color: ${color}">${data.name}</span>`;
             slot.onclick = isMissionActive ? null : () => unequipPart(type);
             partsEquipped++;
 
-            // --- 3D UPDATE: Farbe anwenden ---
-            // Prüfen, ob das Teil im Tech-Tree "dropOnly" ist (für den RGB-Effekt)
+            // 3D UPDATE
             let isRGB = false;
             const nodeId = Object.keys(TECH_TREE).find(k => TECH_TREE[k].partId === equipped.catalogId);
             if (nodeId && TECH_TREE[nodeId].dropOnly) isRGB = true;
@@ -346,7 +352,7 @@ function renderNewWorld() {
             slot.innerHTML = `${type.toUpperCase()}<br><small>empty</small>`;
             slot.onclick = null;
 
-            // --- 3D UPDATE: Teil ausgrauen, weil der Slot leer ist ---
+            // 3D UPDATE
             if (typeof holoScene !== 'undefined' && holoScene) {
                 updateHoloPart(type, "#333333", false);
             }
@@ -368,45 +374,46 @@ function renderNewWorld() {
     }
 
     if (!isMissionActive) {
-        progContainer.style.display = "none";
-        claimBtn.style.display = "none";
-        startBtn.style.display = "block";
+        if(progContainer) progContainer.style.display = "none";
+        if(claimBtn) claimBtn.style.display = "none";
+        if(startBtn) startBtn.style.display = "block";
         
-        // Button nur aktivieren, wenn alle 5 Teile da sind
         if (partsEquipped === 5) {
-            startBtn.disabled = false;
+            if(startBtn) startBtn.disabled = false;
         } else {
-            startBtn.disabled = true;
+            if(startBtn) startBtn.disabled = true;
         }
     } 
     else if (m.status === "IN_PROGRESS") {
-        startBtn.style.display = "none";
-        claimBtn.style.display = "none";
-        progContainer.style.display = "block";
+        if(startBtn) startBtn.style.display = "none";
+        if(claimBtn) claimBtn.style.display = "none";
+        if(progContainer) progContainer.style.display = "block";
     } 
     else if (isWaitingForClaim) {
-        startBtn.style.display = "none";
-        progContainer.style.display = "none";
-        claimBtn.style.display = "block";
+        if(startBtn) startBtn.style.display = "none";
+        if(progContainer) progContainer.style.display = "none";
+        if(claimBtn) claimBtn.style.display = "block";
 
-        // Button-Design anpassen, je nachdem ob Crash oder Erfolg
         if (m.result && m.result.crashed) {
-            claimBtn.textContent = "BERGE TRÜMMER (LOSE PARTS)";
-            claimBtn.style.borderColor = "var(--warn)";
-            claimBtn.style.color = "var(--warn)";
+            if(claimBtn) {
+                claimBtn.textContent = "BERGE TRÜMMER (LOSE PARTS)";
+                claimBtn.style.borderColor = "var(--warn)";
+                claimBtn.style.color = "var(--warn)";
+            }
         } else {
-            claimBtn.textContent = "CLAIM LOOT";
-            claimBtn.style.borderColor = "#00ff88";
-            claimBtn.style.color = "#00ff88";
+            if(claimBtn) {
+                claimBtn.textContent = "CLAIM LOOT";
+                claimBtn.style.borderColor = "#00ff88";
+                claimBtn.style.color = "#00ff88";
+            }
         }
     }
 
-    // NEU: Live Telemetrie updaten!
+    // Live Telemetrie updaten!
     if (typeof updateDroneTelemetry === "function") {
         updateDroneTelemetry();
     }
 }
-
 function render(){
   const cps = coinsPerSecond(); const rps = rpPerSecond(); const cp = clickPower();
   el.coins.textContent = fmt(state.coins); el.cps.textContent = cps.toFixed(cps<10?2:1);
