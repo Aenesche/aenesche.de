@@ -202,8 +202,35 @@
     let velX = 1.5; 
     let velY = 1.5; 
 
-    // Die Farbpalette für den Bounce (Orientiert an deinen Item-Rarities)
-    const colors = [0x00ff88, 0x66d9ff, 0xff2da6, 0xffd700, 0xb300ff, 0xffaa00, 0xff4444, 0xbdbdbd];
+    const colors = [
+    // Deine Game-Farben
+    0x00ff88, 0x66d9ff, 0xff2da6, 0xffd700, 0xb300ff, 0xffaa00, 0xff4444, 0xbdbdbd,
+    
+    // Knalliges Neon & Cyberpunk
+    0x00ffff, // Cyan
+    0xff00ff, // Magenta
+    0xccff00, // Lime/Neon-Gelb
+    0xff6600, // Electric Orange
+    0x00bfff, // Deep Sky Blue
+    0x8a2be2, // Blue Violet
+    0xff1493, // Deep Pink
+    
+    // Intensive Natur & Edelsteine
+    0x00fa9a, // Medium Spring Green
+    0xdc143c, // Crimson Red
+    0x7fff00, // Chartreuse
+    0xff8c00, // Dark Orange
+    0x1e90ff, // Dodger Blue
+    0xffb6c1, // Light Pink
+    0xadff2f, // Green Yellow
+    
+    // Helle Pastell-Töne (Leuchten gut auf Schwarz)
+    0xffdac1, // Peach
+    0xe2f0cb, // Mint
+    0xb5ead7, // Seafoam
+    0xc7ceea, // Periwinkle
+    0xffb7b2  // Melon
+];
 
     function animate() {
         requestAnimationFrame(animate);
