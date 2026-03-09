@@ -442,7 +442,7 @@ function initTreePanZoom() {
         const contentY = (centerY - treePanY) / treeScale;
 
         treeScale *= zoomFactor;
-        treeScale = Math.min(Math.max(0.35, treeScale), 2); // Min 35%, Max 160%
+        treeScale = Math.min(Math.max(0.35, treeScale), 3.0); // Min 35%, Max 300%
 
         treePanX = centerX - (contentX * treeScale);
         treePanY = centerY - (contentY * treeScale);
