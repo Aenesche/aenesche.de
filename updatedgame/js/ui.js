@@ -268,7 +268,6 @@ function renderNewWorld() {
     if(vgDisplay) vgDisplay.textContent = state.newWorld.vg || 0;
 
     // --- INVENTAR FILTERN & ANZEIGEN ---
-    // --- INVENTAR FILTERN & ANZEIGEN ---
     const filterVal = document.getElementById("inv-filter") ? document.getElementById("inv-filter").value : "sort_rarity";
     let displayItems = [...(state.newWorld.inventory || [])];
 
@@ -355,7 +354,6 @@ function renderNewWorld() {
     });
 
     // --- UI STATUS LOGIK (Buttons & Ladebalken) ---
-    const renderField = document.getElementById("drone-render-field");
     const startBtn = document.getElementById("startMissionBtn");
     const progContainer = document.getElementById("mission-progress-container");
     const claimBtn = document.getElementById("claimMissionBtn");
@@ -374,13 +372,10 @@ function renderNewWorld() {
         claimBtn.style.display = "none";
         startBtn.style.display = "block";
         
+        // Button nur aktivieren, wenn alle 5 Teile da sind
         if (partsEquipped === 5) {
-            renderField.innerHTML = "▀▄▀▄▀ [ DROHNE BEREIT ] ▀▄▀▄▀<br><small>Wartet auf Freigabe.</small>";
-            renderField.style.color = "#00ff88";
             startBtn.disabled = false;
         } else {
-            renderField.innerHTML = "[ SYSTEM OFFLINE ]<br><small>Teile fehlen (" + partsEquipped + "/5)</small>";
-            renderField.style.color = "var(--warn)";
             startBtn.disabled = true;
         }
     } 
@@ -388,31 +383,28 @@ function renderNewWorld() {
         startBtn.style.display = "none";
         claimBtn.style.display = "none";
         progContainer.style.display = "block";
-        renderField.innerHTML = ">>> MISSION IN PROGRESS <<< <br><small>Drohne in Sektor 7...</small>";
-        renderField.style.color = "var(--warn)";
     } 
     else if (isWaitingForClaim) {
         startBtn.style.display = "none";
         progContainer.style.display = "none";
         claimBtn.style.display = "block";
 
+        // Button-Design anpassen, je nachdem ob Crash oder Erfolg
         if (m.result && m.result.crashed) {
-            renderField.innerHTML = "!!! CRITICAL CRASH !!!<br><small>Signal verloren. Drohne zerstört.</small>";
-            renderField.style.color = "var(--warn)";
-            claimBtn.textContent = "GO CRY ABOUT IT";
+            claimBtn.textContent = "BERGE TRÜMMER (LOSE PARTS)";
             claimBtn.style.borderColor = "var(--warn)";
             claimBtn.style.color = "var(--warn)";
         } else {
-            renderField.innerHTML = "[ MISSION COMPLETE ]<br><small>Loot abholbereit.</small>";
-            renderField.style.color = "#00ff88";
             claimBtn.textContent = "CLAIM LOOT";
             claimBtn.style.borderColor = "#00ff88";
             claimBtn.style.color = "#00ff88";
         }
     }
-    
+
     // NEU: Live Telemetrie updaten!
-    updateDroneTelemetry();
+    if (typeof updateDroneTelemetry === "function") {
+        updateDroneTelemetry();
+    }
 }
 
 function render(){
