@@ -159,136 +159,153 @@ function dragEnterSlot(ev, slotEl) { ev.preventDefault(); slotEl.classList.add("
 function dragLeaveSlot(ev, slotEl) { slotEl.classList.remove("drag-over"); }
 
 function renderNewWorld() {
-  if (!state || !state.newWorld) return;
+    if (!state || !state.newWorld) return;
 
-  const nwRpEl = document.getElementById("nw-rp-display");
-  if (nwRpEl) nwRpEl.textContent = fmt(state.rp || 0);
-  
-  document.getElementById("po-display").textContent = state.newWorld.po || 0;
+    // --- RESSOURCEN ANZEIGEN (Inklusive VG) ---
+    const nwRpEl = document.getElementById("nw-rp-display");
+    if (nwRpEl) nwRpEl.textContent = fmt(state.rp || 0);
+    
+    document.getElementById("po-display").textContent = state.newWorld.po || 0;
     document.getElementById("legacy-cp").textContent = fmt(state.coins);
     
     const nrpDisplay = document.getElementById("nrp-display");
     if(nrpDisplay) nrpDisplay.textContent = state.newWorld.nrp || 0;
 
-    // NEU: VG Display
     const vgDisplay = document.getElementById("vg-display");
     if(vgDisplay) vgDisplay.textContent = state.newWorld.vg || 0;
 
-  const filterVal = document.getElementById("inv-filter").value;
-  let displayItems = [...(state.newWorld.inventory || [])];
+    // --- INVENTAR FILTERN & ANZEIGEN ---
+    const filterVal = document.getElementById("inv-filter").value;
+    let displayItems = [...(state.newWorld.inventory || [])];
 
-  if (filterVal === "sort_rarity") {
-      displayItems.sort((a, b) => RARITIES[b.rarity].weight - RARITIES[a.rarity].weight);
-  } else if (filterVal.startsWith("type_")) {
-      const t = filterVal.split("_")[1];
-      displayItems = displayItems.filter(p => p.type === t);
-  }
+    if (filterVal === "sort_rarity") {
+        displayItems.sort((a, b) => RARITIES[b.rarity].weight - RARITIES[a.rarity].weight);
+    } else if (filterVal.startsWith("type_")) {
+        const t = filterVal.split("_")[1];
+        displayItems = displayItems.filter(p => p.type === t);
+    }
 
-  const invList = document.getElementById("inventory-list");
-  invList.innerHTML = "";
-  displayItems.forEach(part => {
-      const color = RARITIES[part.rarity].color;
-      const div = document.createElement("div");
-      div.className = "inv-item anim-pop";
-      div.draggable = true;
-      div.ondragstart = (ev) => dragStart(ev, part.id);
-      div.onclick = () => equipPart(part.id); 
-      div.innerHTML = `<b style="color: ${color};">${part.rarity}</b><br><span style="color: var(--muted);">${part.type.toUpperCase()}</span><br>${part.name}`;
-      invList.appendChild(div);
-  });
+    const invList = document.getElementById("inventory-list");
+    invList.innerHTML = "";
+    displayItems.forEach(part => {
+        const color = RARITIES[part.rarity].color;
+        const div = document.createElement("div");
+        div.className = "inv-item anim-pop";
+        div.draggable = true;
+        div.ondragstart = (ev) => dragStart(ev, part.id);
+        div.onclick = () => equipPart(part.id); 
+        div.innerHTML = `<b style="color: ${color};">${part.rarity}</b><br><span style="color: var(--muted);">${part.type.toUpperCase()}</span><br>${part.name}`;
+        invList.appendChild(div);
+    });
 
-  const types = ["props", "battery", "frame", "fc", "camera"];
-  let partsEquipped = 0;
-  
-  // HIER IST DIE KORREKTUR: Wir definieren m und isMissionActive nur EINMAL ganz oben!
-  const m = state.newWorld.mission;
-  const isMissionActive = !!m;
+    // --- SLOTS & 3D HOLOGRAMM ---
+    const types = ["props", "battery", "frame", "fc", "camera"];
+    let partsEquipped = 0;
+    
+    const m = state.newWorld.mission;
+    const isMissionActive = !!m;
 
-  types.forEach(type => {
-      const slot = document.getElementById("slot-" + type);
-      const equipped = state.newWorld.hangar[type];
-      
-      slot.style.pointerEvents = isMissionActive ? 'none' : 'auto';
-      slot.style.opacity = isMissionActive ? '0.5' : '1';
-      
-      slot.ondragover = (ev) => allowDrop(ev);
-      slot.ondragenter = (ev) => dragEnterSlot(ev, slot);
-      slot.ondragleave = (ev) => dragLeaveSlot(ev, slot);
-      slot.ondrop = (ev) => dropToSlot(ev, type);
-      
-      if(equipped) {
-          const color = RARITIES[equipped.rarity].color;
-          slot.classList.add("filled", "anim-pop");
-          slot.draggable = !isMissionActive; 
-          slot.ondragstart = (ev) => dragStartEquipped(ev, type);
-          slot.innerHTML = `<b style="color: var(--muted);">${type.toUpperCase()}</b><br><span style="color: ${color}">${equipped.name}</span>`;
-          slot.onclick = isMissionActive ? null : () => unequipPart(type);
-          partsEquipped++;
-      } else {
-          slot.classList.remove("filled", "anim-pop");
-          slot.draggable = false;
-          slot.ondragstart = null;
-          slot.innerHTML = `${type.toUpperCase()}<br><small>empty</small>`;
-          slot.onclick = null;
-      }
-  });
+    types.forEach(type => {
+        const slot = document.getElementById("slot-" + type);
+        const equipped = state.newWorld.hangar[type];
+        
+        slot.style.pointerEvents = isMissionActive ? 'none' : 'auto';
+        slot.style.opacity = isMissionActive ? '0.5' : '1';
+        
+        slot.ondragover = (ev) => allowDrop(ev);
+        slot.ondragenter = (ev) => dragEnterSlot(ev, slot);
+        slot.ondragleave = (ev) => dragLeaveSlot(ev, slot);
+        slot.ondrop = (ev) => dropToSlot(ev, type);
+        
+        if (equipped) {
+            const color = RARITIES[equipped.rarity].color;
+            slot.classList.add("filled", "anim-pop");
+            slot.draggable = !isMissionActive; 
+            slot.ondragstart = (ev) => dragStartEquipped(ev, type);
+            slot.innerHTML = `<b style="color: var(--muted);">${type.toUpperCase()}</b><br><span style="color: ${color}">${equipped.name}</span>`;
+            slot.onclick = isMissionActive ? null : () => unequipPart(type);
+            partsEquipped++;
 
-  const renderField = document.getElementById("drone-render-field");
-  const startBtn = document.getElementById("startMissionBtn");
-  const progContainer = document.getElementById("mission-progress-container");
-  const claimBtn = document.getElementById("claimMissionBtn");
-  
-  // --- UI STATUS LOGIK ---
-  const isWaitingForClaim = isMissionActive && m.status === "WAITING_FOR_CLAIM";
+            // --- 3D UPDATE: Farbe anwenden ---
+            // Prüfen, ob das Teil im Tech-Tree "dropOnly" ist (für den RGB-Effekt)
+            let isRGB = false;
+            const nodeId = Object.keys(TECH_TREE).find(k => TECH_TREE[k].partId === equipped.catalogId);
+            if (nodeId && TECH_TREE[nodeId].dropOnly) isRGB = true;
 
-  if (isMissionActive) {
-      document.querySelectorAll('.inv-item, .part-slot').forEach(elem => {
-          elem.style.pointerEvents = 'none';
-          if (elem.classList.contains('inv-item')) elem.style.opacity = '0.4';
-      });
-  }
+            if (typeof holoScene !== 'undefined' && holoScene) {
+                updateHoloPart(type, color, isRGB);
+            }
 
-  if (!isMissionActive) {
-      progContainer.style.display = "none";
-      claimBtn.style.display = "none";
-      startBtn.style.display = "block";
-      
-      if (partsEquipped === 5) {
-          renderField.innerHTML = "▀▄▀▄▀ [ DROHNE BEREIT ] ▀▄▀▄▀<br><small>Wartet auf Freigabe.</small>";
-          renderField.style.color = "#00ff88";
-          startBtn.disabled = false;
-      } else {
-          renderField.innerHTML = "[ SYSTEM OFFLINE ]<br><small>Teile fehlen (" + partsEquipped + "/5)</small>";
-          renderField.style.color = "var(--warn)";
-          startBtn.disabled = true;
-      }
-  } 
-  else if (m.status === "IN_PROGRESS") {
-      startBtn.style.display = "none";
-      claimBtn.style.display = "none";
-      progContainer.style.display = "block";
-      renderField.innerHTML = ">>> MISSION IN PROGRESS <<< <br><small>Drohne in Sektor 7...</small>";
-      renderField.style.color = "var(--warn)";
-  } 
-  else if (isWaitingForClaim) {
-      startBtn.style.display = "none";
-      progContainer.style.display = "none";
-      claimBtn.style.display = "block";
+        } else {
+            slot.classList.remove("filled", "anim-pop");
+            slot.draggable = false;
+            slot.ondragstart = null;
+            slot.innerHTML = `${type.toUpperCase()}<br><small>empty</small>`;
+            slot.onclick = null;
 
-      if (m.result && m.result.crashed) {
-          renderField.innerHTML = "!!! CRITICAL CRASH !!!<br><small>Signal verloren. Drohne zerstört.</small>";
-          renderField.style.color = "var(--warn)";
-          claimBtn.textContent = "BERGE TRÜMMER (LOSE PARTS)";
-          claimBtn.style.borderColor = "var(--warn)";
-          claimBtn.style.color = "var(--warn)";
-      } else {
-          renderField.innerHTML = "[ MISSION COMPLETE ]<br><small>Loot abholbereit.</small>";
-          renderField.style.color = "#00ff88";
-          claimBtn.textContent = "CLAIM LOOT";
-          claimBtn.style.borderColor = "#00ff88";
-          claimBtn.style.color = "#00ff88";
-      }
-  }
+            // --- 3D UPDATE: Teil ausgrauen, weil der Slot leer ist ---
+            if (typeof holoScene !== 'undefined' && holoScene) {
+                updateHoloPart(type, "#333333", false);
+            }
+        }
+    });
+
+    // --- UI STATUS LOGIK (Buttons & Ladebalken) ---
+    const renderField = document.getElementById("drone-render-field");
+    const startBtn = document.getElementById("startMissionBtn");
+    const progContainer = document.getElementById("mission-progress-container");
+    const claimBtn = document.getElementById("claimMissionBtn");
+    
+    const isWaitingForClaim = isMissionActive && m.status === "WAITING_FOR_CLAIM";
+
+    if (isMissionActive) {
+        document.querySelectorAll('.inv-item, .part-slot').forEach(elem => {
+            elem.style.pointerEvents = 'none';
+            if (elem.classList.contains('inv-item')) elem.style.opacity = '0.4';
+        });
+    }
+
+    if (!isMissionActive) {
+        progContainer.style.display = "none";
+        claimBtn.style.display = "none";
+        startBtn.style.display = "block";
+        
+        if (partsEquipped === 5) {
+            renderField.innerHTML = "▀▄▀▄▀ [ DROHNE BEREIT ] ▀▄▀▄▀<br><small>Wartet auf Freigabe.</small>";
+            renderField.style.color = "#00ff88";
+            startBtn.disabled = false;
+        } else {
+            renderField.innerHTML = "[ SYSTEM OFFLINE ]<br><small>Teile fehlen (" + partsEquipped + "/5)</small>";
+            renderField.style.color = "var(--warn)";
+            startBtn.disabled = true;
+        }
+    } 
+    else if (m.status === "IN_PROGRESS") {
+        startBtn.style.display = "none";
+        claimBtn.style.display = "none";
+        progContainer.style.display = "block";
+        renderField.innerHTML = ">>> MISSION IN PROGRESS <<< <br><small>Drohne in Sektor 7...</small>";
+        renderField.style.color = "var(--warn)";
+    } 
+    else if (isWaitingForClaim) {
+        startBtn.style.display = "none";
+        progContainer.style.display = "none";
+        claimBtn.style.display = "block";
+
+        if (m.result && m.result.crashed) {
+            renderField.innerHTML = "!!! CRITICAL CRASH !!!<br><small>Signal verloren. Drohne zerstört.</small>";
+            renderField.style.color = "var(--warn)";
+            claimBtn.textContent = "BERGE TRÜMMER (LOSE PARTS)";
+            claimBtn.style.borderColor = "var(--warn)";
+            claimBtn.style.color = "var(--warn)";
+        } else {
+            renderField.innerHTML = "[ MISSION COMPLETE ]<br><small>Loot abholbereit.</small>";
+            renderField.style.color = "#00ff88";
+            claimBtn.textContent = "CLAIM LOOT";
+            claimBtn.style.borderColor = "#00ff88";
+            claimBtn.style.color = "#00ff88";
+        }
+    }
 }
 function render(){
   const cps = coinsPerSecond(); const rps = rpPerSecond(); const cp = clickPower();
@@ -829,4 +846,19 @@ function animateHologram() {
     });
 
     holoRenderer.render(holoScene, holoCamera);
+}
+function updateHoloPart(type, hexColor, isRGB) {
+    if (!droneMeshes || !droneMeshes[type]) return;
+    
+    const target = droneMeshes[type];
+    target.isRGB = isRGB; // Setzt das Flag für den Regenbogen-Effekt
+
+    if (!isRGB) {
+        const c = new THREE.Color(hexColor);
+        if (type === 'props') {
+            target.children.forEach(child => child.material.color = c);
+        } else {
+            target.material.color = c;
+        }
+    }
 }
