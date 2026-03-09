@@ -198,8 +198,8 @@ function updateDroneTelemetry() {
     if (batS.type === "double_loot") luck *= 1; // Double Loot wirkt erst am Ende, aber Luck-Wert bleibt base in Anzeige
     
     // Drop Chancen (Nur aktiv, wenn Drohne komplett ist und kein Void-Magnet an ist)
-    let dropChance = equippedCount === 5 && camS.type !== "no_parts" ? Math.min(1.0, 0.05 * luck) : 0;
-    let exoChance = equippedCount === 5 && camS.type !== "no_parts" ? Math.min(0.02, 0.01 * luck) : 0;
+    let dropChance = equippedCount === 5 && camS.type !== "no_parts" ? Math.min(1.0, 0.005 * luck) : 0;
+    let exoChance = equippedCount === 5 && camS.type !== "no_parts" ? Math.min(0.02, 0.0001 * luck) : 0;
 
     // 3. VG Chance Berechnung
     let vgC = cam.vgChance || 0;
