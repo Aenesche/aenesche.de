@@ -542,44 +542,65 @@ function tick(){
   const cps = coinsPerSecond(); if(cps > 0) addCoins(cps * dt);
   const rps = rpPerSecond(); if(rps > 0) state.rp += rps * dt;
 
+  // --- NEU: PASSIVES EINKOMMEN AUS DER NEW WORLD ---
+  if (state.newWorld && state.newWorld.hangar && state.newWorld.hangar.battery) {
+      const batId = state.newWorld.hangar.battery.catalogId;
+      const batData = PART_CATALOG[batId];
+      
+      // Prüfen, ob die Batterie passiv PO generiert (z.B. bat_201)
+      if (batData && batData.special && batData.special.type === "passive_income") {
+          const passiveGain = batData.special.value * dt; // value (z.B. 10) * verstrichene Sekunden
+          state.newWorld.po = (state.newWorld.po || 0) + passiveGain;
+      }
+  }
+
+  // --- UI UPDATE ---
   el.coins.textContent = fmt(state.coins);
   el.cps.textContent = cps.toFixed(cps<10?2:1);
   el.rp.textContent = fmt(state.rp);
 
   const nwRpDisplay = document.getElementById("nw-rp-display");
-      if (nwRpDisplay) nwRpDisplay.textContent = fmt(state.rp || 0);
+  if (nwRpDisplay) nwRpDisplay.textContent = fmt(state.rp || 0);
 
   if (state.newWorld && document.getElementById("nw-wrap").style.display === "block") {
       document.getElementById("po-display").textContent = Math.floor(state.newWorld.po || 0);
       document.getElementById("nrp-display").textContent = Math.floor(state.newWorld.nrp || 0);
       document.getElementById("legacy-cp").textContent = fmt(state.coins);
+      const vgDisplay = document.getElementById("vg-display");
+      if(vgDisplay) vgDisplay.textContent = state.newWorld.vg || 0;
 
-      if (state.newWorld && state.newWorld.mission) {
-        const m = state.newWorld.mission;
-        const progBar = document.getElementById("mission-progress");
-        const timeText = document.getElementById("mission-time");
+      const m = state.newWorld.mission;
+      if (m) {
+          const progBar = document.getElementById("mission-progress");
+          const timeText = document.getElementById("mission-time");
 
-        if (m.status === "IN_PROGRESS") {
-            const elapsed = Date.now() - m.startTime;
-            const progress = Math.min(1, elapsed / m.duration);
-            
-            if (progBar) progBar.style.width = (progress * 100) + "%";
-            if (timeText) timeText.textContent = Math.ceil(Math.max(0, m.duration - elapsed) / 1000) + "s";
+          if (m.status === "IN_PROGRESS") {
+              const elapsed = Date.now() - m.startTime;
+              const progress = Math.min(1, elapsed / m.duration);
+              
+              if (progBar) progBar.style.width = (progress * 100) + "%";
+              if (timeText) timeText.textContent = Math.ceil(Math.max(0, m.duration - elapsed) / 1000) + "s";
 
-            if (progress >= 1) {
-                resolveMission(); // Schaltet auf WAITING_FOR_CLAIM um
-            }
-        } else if (m.status === "WAITING_FOR_CLAIM") {
-            if (progBar) progBar.style.width = "100%";
-            if (timeText) timeText.textContent = m.result.crashed ? "CRASHED" : "SUCCESS";
-        }
-    }
-}
+              if (progress >= 1) {
+                  resolveMission(); 
+              }
+          } else if (m.status === "WAITING_FOR_CLAIM") {
+              if (progBar) progBar.style.width = "100%";
+              if (timeText) timeText.textContent = m.result.crashed ? "CRASHED" : "SUCCESS";
+          }
+      } else {
+          const progBar = document.getElementById("mission-progress");
+          const timeText = document.getElementById("mission-time");
+          if(progBar) progBar.style.width = "0%";
+          if(timeText) timeText.textContent = "STANDBY";
+      }
+  }
+
   if (state.newWorld && document.getElementById("tech-wrap").style.display === "block") {
-        const ttCp = document.getElementById("tt-cp"); if(ttCp) ttCp.textContent = fmt(state.coins);
-        const ttRp = document.getElementById("tt-rp"); if(ttRp) ttRp.textContent = fmt(state.rp);
-        const ttPo = document.getElementById("tt-po"); if(ttPo) ttPo.textContent = Math.floor(state.newWorld.po || 0);
-        const ttNrp = document.getElementById("tt-nrp"); if(ttNrp) ttNrp.textContent = Math.floor(state.newWorld.nrp || 0);
-        const ttVg = document.getElementById("tt-vg"); if(ttVg) ttVg.textContent = Math.floor(state.newWorld.vg || 0);
-    }
+      const ttCp = document.getElementById("tt-cp"); if(ttCp) ttCp.textContent = fmt(state.coins);
+      const ttRp = document.getElementById("tt-rp"); if(ttRp) ttRp.textContent = fmt(state.rp);
+      const ttPo = document.getElementById("tt-po"); if(ttPo) ttPo.textContent = Math.floor(state.newWorld.po || 0);
+      const ttNrp = document.getElementById("tt-nrp"); if(ttNrp) ttNrp.textContent = Math.floor(state.newWorld.nrp || 0);
+      const ttVg = document.getElementById("tt-vg"); if(ttVg) ttVg.textContent = Math.floor(state.newWorld.vg || 0);
+  }
 }
