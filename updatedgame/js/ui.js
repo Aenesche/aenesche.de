@@ -654,12 +654,12 @@ function selectTechNode(nodeId) {
     if (!state || !state.newWorld) return;
     const node = TECH_TREE[nodeId];
     if(!node) return;
-    
+
     const part = PART_CATALOG[node.partId];
     const unlocked = state.newWorld.unlockedNodes || [];
     const isUnlocked = unlocked.includes(nodeId);
-    
-    // NEU: Ist dieser Knoten überhaupt schon erreichbar?
+
+    // Ist dieser Knoten überhaupt schon erreichbar?
     const isReachable = node.dropOnly ? false : (node.req.length === 0 || node.req.some(reqId => unlocked.includes(reqId)));
 
     let color = RARITIES[part.rarity].color;
@@ -710,14 +710,7 @@ function selectTechNode(nodeId) {
         }
 
         let btnHTML = "";
-        if (node.dropOnly) {
-            btnHTML = `
-                <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Source: Anomaly Drop</div>
-                <button disabled style="border-color: #ff2da6; color: #ff2da6; width: 100%;">ACQUIRED</button>
-            `;
-        } else {
-            let btnHTML = "";
-        
+
         // --- PREIS BERECHNUNG MIT EXOTEN-FALLBACK ---
         let craftCostCp = node.buyCost?.cp || (node.dropOnly ? 200000000000000 : 0); // 200T
         let craftCostPo = node.buyCost?.po || (node.dropOnly ? 500000 : 0);          // 500k
