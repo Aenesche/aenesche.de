@@ -277,11 +277,19 @@ function resolveMission() {
         log("PHOENIX ALLOY ACTIVATED! Lethal crash averted.", "ok");
     }
 
-    // --- 4. LOOT BERECHNUNG (Wird auch für Blackbox gebraucht) ---
+    // --- 4. LOOT BERECHNUNG ---
     let basePo = Math.floor(Math.random() * 50) + 10;
     let baseNrp = Math.floor(Math.random() * 5) + 1;
     let totalPo = basePo * poMult;
     let totalNrp = baseNrp * nrpMult;
+
+    // Kamera Flat Boni
+    if (cam.special?.type === "flat_po" && Math.random() < cam.special.chance) {
+        totalPo += cam.special.value;
+    }
+    if (cam.special?.type === "flat_nrp" && Math.random() < cam.special.chance) {
+        totalNrp += cam.special.value;
+    }
 
     // Result Container vorbereiten
     m.result = {
@@ -292,7 +300,7 @@ function resolveMission() {
         poGained: 0,
         nrpGained: 0,
         vgGained: 0,
-        drops: [] // Speichert IDs der gefundenen Blueprints
+        drops: [] 
     };
 
     if (isCrash) {
@@ -308,6 +316,13 @@ function resolveMission() {
         if (fc.special?.type === "insurance_fraud") m.result.insuranceFraud = true;
         if (fc.special?.type === "blackbox") m.result.blackboxNrp = Math.floor(totalNrp * fc.special.value);
 
+        // Loot Bunker Frame Mechanik
+        if (frame.special?.type === "loot_armor") {
+            m.result.poGained = Math.floor(totalPo * frame.special.value);
+            m.result.nrpGained = Math.floor(totalNrp * frame.special.value);
+            log(`LOOT BUNKER ACTIVE: Rettete ${m.result.poGained} PO aus den Trümmern!`, "warn");
+        }
+
         log("SIGNAL LOST: Drone encountered a fatal error!", "bad");
     } else {
         // --- 5B. SUCCESS HANDLING ---
@@ -322,35 +337,40 @@ function resolveMission() {
 
         // Neural Overload (PO -> N-RP)
         if (props.special?.type === "po_to_nrp") {
-            totalNrp += totalPo; // 1:1 Konvertierung
+            totalNrp += totalPo; 
             totalPo = 0;
         }
 
         // Void Gems würfeln (Skalierendes Cluster)
         let vgFound = 0;
         if (Math.random() < vgChance) {
-            // Finde ein Cluster von 3 bis 10 Void Gems
-            let baseVg = Math.floor(Math.random() * 8) + 3; 
-            
-            // Luck bestimmt, wie viel wir aus dem Cluster abbauen können
-            vgFound = Math.floor(baseVg * luck);
-            
-            // Der Propeller-Exot verdoppelt die Ausbeute
+            let baseVg = Math.floor(Math.random() * 8) + 3; // Findet 3 bis 10 Steine
+            vgFound = Math.floor(baseVg * luck); // Multipliziert mit Luck
             if (props.special?.type === "double_vg") vgFound *= 2;
         }
 
         // Blueprint Drops
         if (cam.special?.type !== "no_parts") {
             const dropChance = Math.min(1.0, 0.05 * luck); 
-            const exclusiveChance = Math.min(0.02, 0.01 * luck); // Max 2%
+            const exclusiveChance = Math.min(0.02, 0.01 * luck);
 
-            if (Math.random() < dropChance) {
+            let guaranteeDrop = false;
+            let guaranteeRare = false;
+
+            // Prüfen, ob Exoten-Specials greifen
+            if (cam.special?.type === "blueprint_drop" && Math.random() < cam.special.chance) guaranteeDrop = true;
+            if (props.special?.type === "free_blueprint" && Math.random() < props.special.value) guaranteeDrop = true;
+            if (cam.special?.type === "guarantee_rare") guaranteeRare = true;
+
+            if (Math.random() < dropChance || guaranteeDrop) {
                 const dropNodes = Object.keys(TECH_TREE).filter(key => TECH_TREE[key].dropOnly);
-                if (dropNodes.length > 0 && Math.random() < exclusiveChance) {
+                
+                if (dropNodes.length > 0 && (Math.random() < exclusiveChance || guaranteeRare)) {
+                    // Jackpot-Drop für ein Exklusiv-Teil!
                     const randomDropId = dropNodes[Math.floor(Math.random() * dropNodes.length)];
                     m.result.drops.push(randomDropId);
-                } else {
-                    totalPo += 250; // Kleiner Scrap-Bonus, wenn kein Exotic droppt
+                } else if (!guaranteeRare) {
+                    totalPo += 250; // Kleiner Schrott-Bonus, falls kein Blueprint gedroppt ist
                 }
             }
         }
