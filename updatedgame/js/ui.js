@@ -268,7 +268,8 @@ function renderNewWorld() {
     if(vgDisplay) vgDisplay.textContent = state.newWorld.vg || 0;
 
     // --- INVENTAR FILTERN & ANZEIGEN ---
-    const filterVal = document.getElementById("inv-filter").value;
+    // --- INVENTAR FILTERN & ANZEIGEN ---
+    const filterVal = document.getElementById("inv-filter") ? document.getElementById("inv-filter").value : "sort_rarity";
     let displayItems = [...(state.newWorld.inventory || [])];
 
     if (filterVal === "sort_rarity") {
@@ -279,18 +280,28 @@ function renderNewWorld() {
     }
 
     const invList = document.getElementById("inventory-list");
-    invList.innerHTML = "";
-    displayItems.forEach(part => {
-        const color = RARITIES[part.rarity].color;
-        const div = document.createElement("div");
-        div.className = "inv-item anim-pop";
-        div.draggable = true;
-        div.ondragstart = (ev) => dragStart(ev, part.id);
-        div.onclick = () => equipPart(part.id); 
-        div.innerHTML = `<b style="color: ${color};">${part.rarity}</b><br><span style="color: var(--muted);">${part.type.toUpperCase()}</span><br>${part.name}`;
-        invList.appendChild(div);
-    });
-
+    if (invList) {
+        invList.innerHTML = "";
+        displayItems.forEach(part => {
+            const color = RARITIES[part.rarity].color;
+            const div = document.createElement("div");
+            
+            // --- NEU: Exoten-Erkennung (NUR echte Drop-Only Items wie _d01) ---
+            const isExotic = part.catalogId && part.catalogId.includes("_d");
+            
+            if (isExotic) {
+                div.className = "inv-item anim-pop exotic-rgb"; // RGB Klasse hinzufügen
+            } else {
+                div.className = "inv-item anim-pop";
+            }
+            
+            div.draggable = true;
+            div.ondragstart = (ev) => dragStart(ev, part.id);
+            div.onclick = () => equipPart(part.id); 
+            div.innerHTML = `<b style="color: ${color};">${part.rarity}</b><br><span style="color: var(--muted);">${part.type.toUpperCase()}</span><br>${part.name}`;
+            invList.appendChild(div);
+        });
+    }
     // --- SLOTS & 3D HOLOGRAMM ---
     const types = ["props", "battery", "frame", "fc", "camera"];
     let partsEquipped = 0;
