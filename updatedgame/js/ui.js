@@ -820,23 +820,61 @@ function initHologram() {
 function animateHologram() {
     requestAnimationFrame(animateHologram);
     
-    // Die ganze Drohne dreht sich langsam
-    droneGroup.rotation.y += 0.005;
-    
-    // Die Propeller drehen sich schnell
-    droneMeshes.props.children.forEach(p => p.rotation.y -= 0.1);
+    // --- NEU: FLUG- UND CRASH-LOGIK ---
+    let targetY = 0;       // Wo soll die Drohne in der Höhe sein?
+    let targetScale = 1;   // Wie groß soll sie sein?
+    let isCrashed = false; // Ist sie kaputt?
 
-    // RGB Animation Logic
+    // Status aus dem State lesen
+    if (typeof state !== 'undefined' && state.newWorld && state.newWorld.mission) {
+        const m = state.newWorld.mission;
+        
+        if (m.status === "IN_PROGRESS") {
+            const elapsed = Date.now() - m.startTime;
+            const remaining = m.endTime - Date.now();
+            
+            if (elapsed < 2000) {
+                // TAKEOFF (Erste 2 Sekunden): Flieg nach oben aus dem Bild und werde klein
+                targetY = 6; 
+                targetScale = 0; 
+            } else if (remaining < 2000) {
+                // RETURN (Letzte 2 Sekunden): Komm von oben zurück ins Bild
+                targetY = 0; 
+                targetScale = 1; 
+            } else {
+                // AWAY (Während der Mission): Bleib unsichtbar im Himmel
+                targetY = 6; 
+                targetScale = 0; 
+            }
+        } 
+        else if (m.status === "WAITING_FOR_CLAIM" && m.result && m.result.crashed) {
+            isCrashed = true;
+            targetY = -0.5; // Fällt auf den Boden
+        }
+    }
+
+    // --- ROTATION & PROPELLER ---
+    if (!isCrashed) {
+        // Normale Flug-Animation
+        droneGroup.rotation.y += 0.005; // Dreht sich im Kreis
+        droneGroup.rotation.z += (0 - droneGroup.rotation.z) * 0.1; // Hält sich gerade
+        if (droneMeshes.props) {
+            droneMeshes.props.children.forEach(p => p.rotation.y -= 0.2); // Propeller drehen
+        }
+    } else {
+        // Crash-Animation: Propeller stehen still, Drohne liegt schief
+        droneGroup.rotation.z += (0.6 - droneGroup.rotation.z) * 0.1; // Kippt zur Seite
+    }
+
+    // --- RGB ANIMATION (Exoten-Leuchten) ---
     rgbHue += 0.01;
     if (rgbHue > 1) rgbHue = 0;
     
-    // Checke alle Meshes, ob sie das "isRGB" Flag haben
     Object.keys(droneMeshes).forEach(key => {
         const mesh = droneMeshes[key];
         if (mesh.isRGB) {
             const color = new THREE.Color();
             color.setHSL(rgbHue, 1, 0.5); // Regenbogen!
-            
             if (key === 'props') {
                 mesh.children.forEach(c => c.material.color = color);
             } else {
@@ -844,6 +882,15 @@ function animateHologram() {
             }
         }
     });
+
+    // --- SMOOTH MOVEMENT (Lerping) ---
+    // Die Drohne gleitet weich zu ihrem Zielwert, statt zu "springen"
+    droneGroup.position.y += (targetY - droneGroup.position.y) * 0.06;
+    
+    const currentScale = droneGroup.scale.x;
+    // Math.max verhindert, dass die Scale unter 0 fällt (was Three.js zum Absturz bringen würde)
+    const safeScale = Math.max(0.0001, currentScale + (targetScale - currentScale) * 0.06);
+    droneGroup.scale.set(safeScale, safeScale, safeScale);
 
     holoRenderer.render(holoScene, holoCamera);
 }
