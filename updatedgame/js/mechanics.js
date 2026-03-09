@@ -188,14 +188,6 @@ const BASE_MISSION_DURATION = 30000;
 // 🚁 MISSIONS-LOGIK (NEW WORLD)
 // ==========================================
 
-// ==========================================
-// 🚁 REFACtORED MISSIONS-LOGIK
-// ==========================================
-
-// ==========================================
-// 🚁 ULTIMATIVE MISSIONS-LOGIK (NEW WORLD)
-// ==========================================
-
 function startMission() {
     const h = state.newWorld.hangar;
     if (!h.battery || !h.frame || !h.props || !h.camera || !h.fc) {
@@ -269,6 +261,9 @@ function resolveMission() {
     if (frame.special?.type === "heavyweight") crashRisk = 0; // Juggernaut
 
     // --- 3. DER CRASH-WÜRFEL ---
+    // NEU: ai_safety (z.B. Sentient Power Cell) reduziert verbleibendes Risiko
+    if (bat.special?.type === "ai_safety") crashRisk *= (1 - bat.special.value); 
+
     let isCrash = Math.random() < crashRisk;
     
     // Phoenix Alloy Rebirth
@@ -374,6 +369,14 @@ function resolveMission() {
                 }
             }
         }
+      // NEU: drone_swarm Fake-Logik (Am Ende von 5B. SUCCESS HANDLING)
+        if (fc.special?.type === "drone_swarm") {
+            totalPo *= fc.special.value; // Loot mal 3
+            totalNrp *= fc.special.value; 
+            log("HIVE-MIND ACTIVE: Drohnenschwarm hat Sektor 3-fach geplündert!", "ok");
+        }
+
+        m.result.poGained = Math.floor(totalPo);
 
         m.result.poGained = Math.floor(totalPo);
         m.result.nrpGained = Math.floor(totalNrp);
