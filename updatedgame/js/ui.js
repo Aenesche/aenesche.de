@@ -158,6 +158,99 @@ function dropToInventory(ev) {
 function dragEnterSlot(ev, slotEl) { ev.preventDefault(); slotEl.classList.add("drag-over"); }
 function dragLeaveSlot(ev, slotEl) { slotEl.classList.remove("drag-over"); }
 
+function updateDroneTelemetry() {
+    const tel = document.getElementById("telemetry-data");
+    if (!tel) return;
+
+    const h = state.newWorld.hangar;
+    let equippedCount = 0;
+    for(let k in h) if(h[k]) equippedCount++;
+
+    if (equippedCount === 0) {
+        tel.innerHTML = "Warte auf Sensordaten...<br><br>Rüste Bauteile aus, um die Live-Statistiken der Drohne zu berechnen.";
+        return;
+    }
+
+    // Sicheres Auslesen der Bauteile (verhindert Absturz, wenn ein Slot leer ist)
+    const bat = h.battery ? PART_CATALOG[h.battery.catalogId] : {timeMult: 1};
+    const frame = h.frame ? PART_CATALOG[h.frame.catalogId] : {breakChance: 0};
+    const props = h.props ? PART_CATALOG[h.props.catalogId] : {poMult: 0, nrpMult: 0};
+    const cam = h.camera ? PART_CATALOG[h.camera.catalogId] : {luckBonus: 0, vgChance: 0};
+    const fc = h.fc ? PART_CATALOG[h.fc.catalogId] : {safety: 0};
+
+    // Hilfsfunktion für Specials
+    const getSpec = (part) => part && part.special ? part.special : {};
+    const batS = getSpec(bat), fraS = getSpec(frame), proS = getSpec(props), camS = getSpec(cam), fcS = getSpec(fc);
+
+    // 1. Crash Risk Berechnung
+    let crash = (frame.breakChance || 0);
+    if (batS.type === "burnout_risk") crash += batS.value;
+    if (proS.type === "burnout_risk" || proS.type === "break_risk") crash += proS.value;
+    if (fcS.type === "auto_level") crash -= fcS.value;
+    crash = Math.max(0, crash);
+    if (fraS.type === "heavyweight") crash = 0; // Juggernaut Override
+    
+    // 2. Luck & Drops Berechnung
+    let luck = cam.luckBonus || 0;
+    if (fcS.type === "set_bonus_v1" && camS.type === "synergy_ready" && camS.value === "v1") luck *= fcS.value;
+    if (fcS.type === "set_bonus_o3" && camS.type === "synergy_ready" && camS.value === "o3") luck *= fcS.value;
+    if (fcS.type === "luck_boost") luck += fcS.value;
+    if (batS.type === "double_loot") luck *= 1; // Double Loot wirkt erst am Ende, aber Luck-Wert bleibt base in Anzeige
+    
+    // Drop Chancen (Nur aktiv, wenn Drohne komplett ist und kein Void-Magnet an ist)
+    let dropChance = equippedCount === 5 && camS.type !== "no_parts" ? Math.min(1.0, 0.05 * luck) : 0;
+    let exoChance = equippedCount === 5 && camS.type !== "no_parts" ? Math.min(0.02, 0.01 * luck) : 0;
+
+    // 3. VG Chance Berechnung
+    let vgC = cam.vgChance || 0;
+    if (batS.type === "void_find") vgC += batS.value;
+    if (fraS.type === "void_find") vgC += fraS.value;
+
+    // 4. Missionszeit Berechnung
+    let timeM = bat.timeMult || 1;
+    if (fraS.type === "heavyweight") timeM *= 1.5;
+    if (fcS.type === "agility_boost") timeM *= 0.95;
+    let timeSec = Math.ceil(30 * timeM);
+    
+    let timeDisplay = `${timeSec}s`;
+    if (proS.type === "instant_mission") timeDisplay += ` <span style="color:#ffb000">(Chrono Chance!)</span>`;
+
+    // 5. Aktive Specials sammeln
+    let activeSpecials = [];
+    if(batS.type) activeSpecials.push(batS.type);
+    if(fraS.type) activeSpecials.push(fraS.type);
+    if(proS.type) activeSpecials.push(proS.type);
+    if(camS.type) activeSpecials.push(camS.type);
+    if(fcS.type) activeSpecials.push(fcS.type);
+
+    let specHtml = activeSpecials.length > 0 
+        ? activeSpecials.map(s => `<span style="color:#00ff88; font-size: 10px;">[${s.toUpperCase()}]</span>`).join("<br>") 
+        : "<span style='color:#555;'>No Sub-Routines Active</span>";
+
+    // HTML Output zusammenbauen
+    tel.innerHTML = `
+        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>Time:</span> <span style="color:var(--text);">${timeDisplay}</span></div>
+        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>Crash Risk:</span> <span style="color:${crash > 0.2 ? 'var(--warn)' : 'var(--text)'};">${(crash * 100).toFixed(1)}%</span></div>
+        
+        <div style="margin: 8px 0; border-top: 1px dashed #222;"></div>
+
+        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>PO Mult:</span> <span style="color:var(--warn);">${(props.poMult || 0).toFixed(1)}x</span></div>
+        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>N-RP Mult:</span> <span style="color:var(--nrp);">${(props.nrpMult || 0).toFixed(1)}x</span></div>
+        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>VG Chance:</span> <span style="color:var(--vg);">${(vgC * 100).toFixed(1)}%</span></div>
+        
+        <div style="margin: 8px 0; border-top: 1px dashed #222;"></div>
+
+        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>Drop Chance:</span> <span style="color:var(--text);">${(dropChance * 100).toFixed(1)}%</span></div>
+        <div style="display:flex; justify-content:space-between; margin-bottom: 2px;"><span>Exot Chance:</span> <span style="color:#ff2da6;">${(exoChance * 100).toFixed(2)}%</span></div>
+        
+        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line);">
+            <b style="color: var(--text);">Active Sub-Routines:</b><br>
+            <div style="margin-top: 5px; line-height: 1.4;">${specHtml}</div>
+        </div>
+    `;
+}
+
+
 function renderNewWorld() {
     if (!state || !state.newWorld) return;
 
