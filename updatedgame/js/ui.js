@@ -716,16 +716,31 @@ function selectTechNode(nodeId) {
                 <button disabled style="border-color: #ff2da6; color: #ff2da6; width: 100%;">ACQUIRED</button>
             `;
         } else {
-            let craftCost = [];
-            if(node.buyCost.cp > 0) craftCost.push(`${fmt(node.buyCost.cp)} CP`);
-            if(node.buyCost.po > 0) craftCost.push(`${fmt(node.buyCost.po)} PO`);
-            if(node.buyCost.vg > 0) craftCost.push(`${fmt(node.buyCost.vg)} VG`);
+            let btnHTML = "";
+        
+        // --- PREIS BERECHNUNG MIT EXOTEN-FALLBACK ---
+        let craftCostCp = node.buyCost?.cp || (node.dropOnly ? 200000000000000 : 0); // 200T
+        let craftCostPo = node.buyCost?.po || (node.dropOnly ? 500000 : 0);          // 500k
+        let craftCostVg = node.buyCost?.vg || (node.dropOnly ? 100 : 0);             // 100
+        
+        let craftCost = [];
+        if(craftCostCp > 0) craftCost.push(`${fmt(craftCostCp)} CP`);
+        if(craftCostPo > 0) craftCost.push(`${fmt(craftCostPo)} PO`);
+        if(craftCostVg > 0) craftCost.push(`${fmt(craftCostVg)} VG`);
 
-            let resCost = [];
-            if(node.unlockCost.rp > 0) resCost.push(`${fmt(node.unlockCost.rp)} RP`);
-            if(node.unlockCost.nrp > 0) resCost.push(`${fmt(node.unlockCost.nrp)} N-RP`);
-            if(node.unlockCost.vg > 0) resCost.push(`${fmt(node.unlockCost.vg)} VG`);
+        let resCost = [];
+        if(node.unlockCost?.rp > 0) resCost.push(`${fmt(node.unlockCost.rp)} RP`);
+        if(node.unlockCost?.nrp > 0) resCost.push(`${fmt(node.unlockCost.nrp)} N-RP`);
+        if(node.unlockCost?.vg > 0) resCost.push(`${fmt(node.unlockCost.vg)} VG`);
 
+        if (node.dropOnly) {
+            // Es ist ein Exot und wurde bereits gefunden (isUnlocked ist true)
+            btnHTML = `
+                <div style="font-size: 11px; color: #ff2da6; margin-bottom: 5px;">Replicate: ${craftCost.join(' | ')}</div>
+                <button onclick="buyCraftedPart('${nodeId}')" style="border-color: #ff2da6; color: #ff2da6; background: rgba(255, 45, 166, 0.05); width: 100%; cursor: pointer;">REPLICATE EXOTIC</button>
+            `;
+        } else {
+            // Normale Items (Craften oder Researchen)
             if (isUnlocked) {
                 btnHTML = `
                     <div style="font-size: 11px; color: var(--muted); margin-bottom: 5px;">Crafting: ${craftCost.join(' | ')}</div>
