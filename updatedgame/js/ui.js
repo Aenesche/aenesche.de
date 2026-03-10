@@ -1024,3 +1024,20 @@ function updateHoloPart(type, hexColor, isRGB) {
         }
     }
 }
+// ==========================================
+// ⌨️ KEYBOARD SHORTCUTS
+// ==========================================
+document.addEventListener('keydown', function(event) {
+    // Prüfen, ob die gedrückte Taste "Escape" ist
+    if (event.key === "Escape") {
+        const techWrap = document.getElementById("tech-wrap");
+        
+        // Prüfen, ob der Tech-Tree gerade überhaupt sichtbar ist
+        if (techWrap && techWrap.style.display === "block") {
+            // Wenn ja, führe die Zurück-Funktion aus
+            if (typeof exitTechTree === "function") {
+                exitTechTree();
+            }
+        }
+    }
+});
