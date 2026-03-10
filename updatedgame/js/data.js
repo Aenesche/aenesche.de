@@ -220,9 +220,11 @@ const PART_CATALOG = {
     // Pfad A (Reines Drop-Glück)
     "cam_005a": { type: "camera", rarity: "Rare", name: "Basic IR-Scanner", luckBonus: 3.5, vgChance: 0.0, special: null },
     "cam_006a": { type: "camera", rarity: "Rare", name: "Wide-Angle Array", luckBonus: 5.0, vgChance: 0.0, special: null },
-    // Pfad B (Ressourcen-Fokus)
-    "cam_005b": { type: "camera", rarity: "Rare", name: "Scrap-Scanner", luckBonus: 2.5, vgChance: 0.0, special: { type: "flat_po", chance: 0.30, value: 50e12 } }, // 30% Chance auf 50T PO
-    "cam_006b": { type: "camera", rarity: "Rare", name: "Data-Lens", luckBonus: 2.8, vgChance: 0.0, special: { type: "flat_nrp", chance: 0.20, value: 15 } }, // 20% Chance auf 15 N-RP
+    // Vorher 50 Billionen PO -> Jetzt: 30% Chance auf +1.500 PO Extra-Jackpot
+    "cam_005b": { type: "camera", rarity: "Rare", name: "Scrap-Scanner", luckBonus: 2.5, vgChance: 0.0, special: { type: "flat_po", chance: 0.30, value: 1500 } }, 
+    
+    // Vorher 15 N-RP -> Jetzt: 20% Chance auf +5 N-RP
+    "cam_006b": { type: "camera", rarity: "Rare", name: "Data-Lens", luckBonus: 2.8, vgChance: 0.0, special: { type: "flat_nrp", chance: 0.20, value: 5 } },
     
     // ==========================================
     // 📷 KAMERA TIER 3 (Super Rare) - VOID GEMS ERSCHEINEN!
@@ -233,9 +235,11 @@ const PART_CATALOG = {
     // Strang M (Purer Void-Fokus in der Mitte)
     "cam_007m": { type: "camera", rarity: "Super Rare", name: "Anomaly Detector", luckBonus: 5.0, vgChance: 0.03, special: null }, // 3% VG
     "cam_008m": { type: "camera", rarity: "Super Rare", name: "Rift-Scanner", luckBonus: 8.0, vgChance: 0.04, special: null },
-    // Strang B (Ressourcen + Bisschen VG)
-    "cam_007b": { type: "camera", rarity: "Super Rare", name: "Deep-Sonar", luckBonus: 6.0, vgChance: 0.01, special: { type: "flat_po", chance: 0.40, value: 500e12 } }, 
-    "cam_008b": { type: "camera", rarity: "Super Rare", name: "Logic-Analyzer", luckBonus: 7.0, vgChance: 0.01, special: { type: "flat_nrp", chance: 0.30, value: 40 } },
+    // Vorher 500 Billionen PO -> Jetzt: 40% Chance auf +8.000 PO
+"cam_007b": { type: "camera", rarity: "Super Rare", name: "Deep-Sonar", luckBonus: 6.0, vgChance: 0.01, special: { type: "flat_po", chance: 0.40, value: 8000 } },  
+
+// Vorher 40 N-RP -> Jetzt: 30% Chance auf +15 N-RP
+"cam_008b": { type: "camera", rarity: "Super Rare", name: "Logic-Analyzer", luckBonus: 7.0, vgChance: 0.01, special: { type: "flat_nrp", chance: 0.30, value: 15 } },
     "cam_201":  { type: "camera", rarity: "Legendary", name: "The Pity-Lens", luckBonus: 1.0, vgChance: 0.0, special: { type: "guarantee_rare", value: 1 } }, // Exot T3
 
     // ==========================================
@@ -247,8 +251,11 @@ const PART_CATALOG = {
     "cam_009m": { type: "camera", rarity: "Legendary", name: "Dark-Energy Sensor", luckBonus: 20.0, vgChance: 0.08, special: null }, // 8% VG
     "cam_010m": { type: "camera", rarity: "Legendary", name: "Void-Tracer", luckBonus: 25.0, vgChance: 0.10, special: null }, // 10% VG
     
-    "cam_009b": { type: "camera", rarity: "Legendary", name: "Seismic Optics", luckBonus: 25.0, vgChance: 0.04, special: { type: "flat_po", chance: 0.50, value: 5000e12 } }, 
-    "cam_010b": { type: "camera", rarity: "Legendary", name: "Neural-Link Cam", luckBonus: 30.0, vgChance: 0.04, special: { type: "flat_nrp", chance: 0.40, value: 100 } },
+    // Vorher 5 Billiarden PO -> Jetzt: 50% Chance auf fette +25.000 PO
+"cam_009b": { type: "camera", rarity: "Legendary", name: "Seismic Optics", luckBonus: 25.0, vgChance: 0.04, special: { type: "flat_po", chance: 0.50, value: 25000 } },  
+
+// Vorher 100 N-RP -> Jetzt: 40% Chance auf +40 N-RP
+"cam_010b": { type: "camera", rarity: "Legendary", name: "Neural-Link Cam", luckBonus: 30.0, vgChance: 0.04, special: { type: "flat_nrp", chance: 0.40, value: 40 } },
     "cam_202":  { type: "camera", rarity: "Ultra Rare", name: "Void-Magnet", luckBonus: 0.5, vgChance: 0.20, special: { type: "no_parts", value: 1 } }, // Exot: Findet NUR Void Gems!
 
     // ==========================================
