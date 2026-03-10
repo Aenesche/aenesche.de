@@ -47,7 +47,7 @@ const THEMES = [
 
 const EFFECTS = [
   { id:"scanlines", name:"Effect: CRT Scanlines", cost:120_000_000, unlockByDefault:false },
-  { id:"cheeta", name:"Effect: C.H.E.E.T.A.", cost:100_000_000_000_000, unlockByDefault:false }
+  { id:"cheeta", name:"New World: INTO THE UNKNOWN", cost:100_000_000_000_000, unlockByDefault:false }
 ];
 
 // --- NEW WORLD DATA ---
