@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI DRONE LAB · Global Leaderboard</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    :root{
+      --bg:#0a0a0a; --panel:#0f0f0f; --text:#eaeaea; --muted:#7a7a7a;
+      --line:#1f1f1f; --accent:#bdbdbd; --warn:#ff4444;
+      --po:#ffaa00; --nrp:#00ff88; --rp:#66d9ff; --vg:#b300ff;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--mono); letter-spacing:.2px; line-height: 1.5; }
+    a{ color:var(--accent); text-decoration:none; } a:hover{ text-decoration:underline; }
+    
+    .wrap{ max-width: 800px; margin:0 auto; padding: 30px 20px 80px; }
+    
+    .topbar{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid var(--line); padding-bottom:15px; margin-bottom:30px; }
+    .title{ font-size:22px; color: var(--accent); } 
+    .tag{ display:inline-block; border:1px solid var(--line); padding:3px 6px; font-size:11px; color:var(--warn); vertical-align: middle; margin-left: 10px; background: rgba(255, 68, 68, 0.1);}
+    
+    .panel{ background:var(--panel); border:1px solid var(--line); padding:20px; margin-bottom: 20px; }
+    
+    /* Tabs für die Kategorien */
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn {
+        flex: 1; padding: 12px; background: #050505; border: 1px solid var(--line);
+        color: var(--muted); cursor: pointer; font-family: var(--mono); font-weight: bold;
+        transition: all 0.2s;
+    }
+    .tab-btn:hover { background: #111; color: var(--text); }
+    .tab-btn.active.cp-tab { border-color: var(--accent); color: var(--text); background: rgba(255,255,255,0.05); }
+    .tab-btn.active.po-tab { border-color: var(--po); color: var(--po); background: rgba(255, 170, 0, 0.05); }
+
+    /* Leaderboard Tabelle */
+    .lb-row { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid #151515; }
+    .lb-row:hover { background: #111; }
+    .lb-rank { width: 50px; font-weight: bold; color: var(--muted); font-size: 16px; }
+    .lb-name { flex: 1; font-weight: bold; color: var(--text); }
+    .lb-score { font-size: 14px; text-align: right; }
+    
+    /* Top 3 Highlighting */
+    .rank-1 .lb-rank { color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+    .rank-1 .lb-name { color: #ffd700; }
+    .rank-2 .lb-rank { color: #c0c0c0; }
+    .rank-3 .lb-rank { color: #cd7f32; }
+    
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        GLOBAL LEADERBOARD <span class="tag">LIVE DATA</span>
+      </div>
+      <div>
+        <a href="index.html" style="color: var(--nrp);">< RETURN TO LAB</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="tabs">
+        <button id="tab-cp" class="tab-btn active cp-tab" onclick="loadLeaderboard('score_cp')">TOP LEGACY COINS (CP)</button>
+        <button id="tab-po" class="tab-btn po-tab" onclick="loadLeaderboard('score_po')">TOP PLUTONIUM (PO)</button>
+      </div>
+
+      <div id="leaderboard-content">
+        <div class="loading">Verbinde mit Zentral-Server...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- SUPABASE SETUP ---
+    const supabaseUrl = 'https://usihbregbanpfspblrnw.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY';
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    let currentMetric = 'score_cp';
+
+    // Zahlen-Formatierer (damit aus 888961054771527000 eine lesbare Zahl wie 888.9T wird)
+    function fmt(n) {
+        if(n === undefined || n === null) return "0";
+        if(n >= 1e18) return (n/1e18).toFixed(2)+"E";
+        if(n >= 1e15) return (n/1e15).toFixed(2)+"P";
+        if(n >= 1e12) return (n/1e12).toFixed(2)+"T";
+        if(n >= 1e9)  return (n/1e9).toFixed(2)+"B";
+        if(n >= 1e6)  return (n/1e6).toFixed(2)+"M";
+        if(n >= 1e3)  return (n/1e3).toFixed(1)+"k";
+        return Math.floor(n).toString();
+    }
+
+    async function loadLeaderboard(metric) {
+        currentMetric = metric;
+        
+        // Tab UI aktualisieren
+        document.getElementById('tab-cp').classList.remove('active');
+        document.getElementById('tab-po').classList.remove('active');
+        if(metric === 'score_cp') document.getElementById('tab-cp').classList.add('active');
+        if(metric === 'score_po') document.getElementById('tab-po').classList.add('active');
+
+        const content = document.getElementById('leaderboard-content');
+        content.innerHTML = '<div class="loading">Sammle Daten-Fragmente...</div>';
+
+        // Daten aus Supabase abrufen!
+        const { data, error } = await supabaseClient
+            .from('game_state')
+            .select('display_name, score_cp, score_po')
+            .eq('leaderboard_opt_in', true) // Nur Leute, die opt-in sind
+            .order(metric, { ascending: false }) // Die höchsten Werte zuerst
+            .limit(50); // Zeige die Top 50
+
+        if (error) {
+            content.innerHTML = `<div class="loading" style="color:var(--warn)">Fehler beim Laden: ${error.message}</div>`;
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            content.innerHTML = '<div class="loading">Keine Einträge gefunden. Werde der Erste!</div>';
+            return;
+        }
+
+        // HTML für die Liste generieren
+        let html = '';
+        data.forEach((player, index) => {
+            const rank = index + 1;
+            let rankClass = '';
+            if (rank === 1) rankClass = 'rank-1';
+            else if (rank === 2) rankClass = 'rank-2';
+            else if (rank === 3) rankClass = 'rank-3';
+
+            // Entweder CP oder PO anzeigen, je nach aktivem Tab
+            const scoreValue = metric === 'score_cp' ? player.score_cp : player.score_po;
+            const scoreColor = metric === 'score_cp' ? 'var(--accent)' : 'var(--po)';
+            const scoreSuffix = metric === 'score_cp' ? ' CP' : ' PO';
+
+            // Filtert Spieler raus, die im Tab noch exakt 0 haben (damit die Liste sauber bleibt)
+            if (scoreValue <= 0 && rank > 10) return;
+
+            html += `
+                <div class="lb-row ${rankClass}">
+                    <div class="lb-rank">#${rank}</div>
+                    <div class="lb-name">${player.display_name}</div>
+                    <div class="lb-score" style="color: ${scoreColor}">${fmt(scoreValue)}${scoreSuffix}</div>
+                </div>
+            `;
+        });
+
+        content.innerHTML = html;
+    }
+
+    // Beim Start direkt die CP-Liste laden
+    loadLeaderboard('score_cp');
+  </script>
+</body>
+</html>
