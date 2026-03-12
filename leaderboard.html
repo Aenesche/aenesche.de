@@ -113,9 +113,13 @@
         const { data, error } = await supabaseClient
             .from('game_state')
             .select('display_name, score_cp, score_po')
-            .eq('leaderboard_opt_in', true) // Nur Leute, die opt-in sind
-            .order(metric, { ascending: false }) // Die höchsten Werte zuerst
-            .limit(50); // Zeige die Top 50
+            .eq('leaderboard_opt_in', true)      // 1. Nur Leute, die reinwollen
+            .not('display_name', 'is', null)     // 2. Keine leeren Namen (null)
+            .neq('display_name', '')             // 3. Keine leeren Namen (Leerstring)
+            .neq('display_name', '[ UNKNOWN ANOMALY ]') // Optional: Falls du die Standard-Namen auch ausblenden willst
+            .gt(metric, 0)                       // 4. WICHTIG: Der Score MUSS größer als 0 sein!
+            .order(metric, { ascending: false }) // 5. Die höchsten Werte zuerst
+            .limit(50);                          // 6. Maximal 50 Spieler
 
         if (error) {
             content.innerHTML = `<div class="loading" style="color:var(--warn)">Fehler beim Laden: ${error.message}</div>`;
