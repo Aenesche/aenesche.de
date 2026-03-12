@@ -1041,3 +1041,41 @@ document.addEventListener('keydown', function(event) {
         }
     }
 });
+
+//ALIAS LOGIK
+// ==========================================
+function checkAlias() {
+    if (state) {
+        const hasNoName = !state.displayName;
+        // Checkt, ob der Name Anomaly ist, der Spieler aber NICHT aktiv "Anonym" gewählt hat
+        const isLegacyAnomaly = state.displayName === "[ UNKNOWN ANOMALY ]" && state.leaderboardOptIn !== false;
+
+        if (hasNoName || isLegacyAnomaly) {
+            document.getElementById('alias-modal').style.display = 'flex';
+        }
+    }
+}
+
+// Wird aufgerufen, wenn man auf "SYSTEM STARTEN" klickt
+window.submitAlias = function() {
+    const nameInput = document.getElementById('alias-input').value.trim();
+    const optOut = document.getElementById('alias-optout').checked;
+
+    // Wenn er nicht anonym sein will, muss er mindestens 3 Buchstaben eingeben
+    if (!optOut && nameInput.length < 3) {
+        alert("Dein Alias muss mindestens 3 Zeichen lang sein!");
+        return;
+    }
+
+    // Namen im lokalen State speichern
+    state.displayName = optOut ? "[ UNKNOWN ANOMALY ]" : nameInput;
+    state.leaderboardOptIn = !optOut;
+
+    // Modal verstecken
+    document.getElementById('alias-modal').style.display = 'none';
+
+    // Direkt in die Supabase Cloud speichern, damit es sofort ans Leaderboard geht!
+    if (typeof saveToServer === "function") {
+        saveToServer();
+    }
+};
