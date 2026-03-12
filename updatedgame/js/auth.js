@@ -1,6 +1,7 @@
 function defaultState(){
   return {
     coins: 0, lifetimeCoins: 0, rp: 0,
+    displayName: null, leaderboardOptIn: true, // <-- NEU: Fürs Leaderboard
     owned: Object.fromEntries(DRONES.map(d => [d.id, 0])),
     dUp: Object.fromEntries(DRONES.map(d => [d.id, 0])),
     techLvl: Object.fromEntries(TECH.map(t => [t.id, 0])),
@@ -12,7 +13,7 @@ function defaultState(){
       activeThemeId: "default", effectsActive: { scanlines:false },
     },
     newWorld: {
-      po: 0, nrp: 0, vg: 0, // <-- vg: 0 hinzugefügt!
+      po: 0, nrp: 0, vg: 0, 
       unlockedNodes: [], inventory: [], 
       hangar: { frame: null, props: null, battery: null, fc: null, camera: null }, 
       mission: null 
@@ -67,7 +68,15 @@ async function loadGameFromServer() {
         state.lastTick = nowMs;
     } else {
         state = defaultState();
-        await supabaseClient.from('game_state').insert([{ user_id: user.id, state_json: state }]);
+        // NEU: Beim allerersten Speichern auch die Leaderboard-Spalten füllen!
+        await supabaseClient.from('game_state').insert([{ 
+            user_id: user.id, 
+            state_json: state,
+            display_name: "[ UNKNOWN ANOMALY ]",
+            leaderboard_opt_in: true,
+            score_cp: 0,
+            score_po: 0
+        }]);
     }
     bootGame();
 }
@@ -77,7 +86,20 @@ async function saveToServer() {
     el.statusTag.textContent = "saving...";
     el.statusTag.style.color = "var(--warn)";
     
-    const { error } = await supabaseClient.from('game_state').update({ state_json: state, updated_at: new Date() }).eq('user_id', user.id);
-    if (error) { log("Server Save Failed!", "bad"); } 
-    else { el.statusTag.textContent = "autosave: OK"; el.statusTag.style.color = "var(--muted)"; }
+    // NEU: Update Befehl mit den extra Spalten für Supabase!
+    const { error } = await supabaseClient.from('game_state').update({ 
+        state_json: state, 
+        updated_at: new Date(),
+        display_name: state.displayName || "[ UNKNOWN ANOMALY ]",
+        leaderboard_opt_in: state.leaderboardOptIn !== false, // Ist default true
+        score_cp: state.coins || 0,
+        score_po: (state.newWorld && state.newWorld.po) ? state.newWorld.po : 0
+    }).eq('user_id', user.id);
+
+    if (error) { 
+        log("Server Save Failed!", "bad"); 
+    } else { 
+        el.statusTag.textContent = "autosave: OK"; 
+        el.statusTag.style.color = "var(--muted)"; 
+    }
 }
