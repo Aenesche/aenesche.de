@@ -78,7 +78,13 @@ async function loadGameFromServer() {
             score_po: 0
         }]);
     }
-    bootGame();
+    bootGame()
+    
+    ;setTimeout(() => {
+        if (typeof checkAlias === "function") {
+            checkAlias();
+        }
+    }, 500); // Eine halbe Sekunde warten, damit das Spiel im Hintergrund fertig aufgebaut ist
 }
 
 async function saveToServer() {
