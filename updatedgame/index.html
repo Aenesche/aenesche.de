@@ -265,74 +265,125 @@
         </div>
       </div>
 
-    <div class="panel">
-        <h2>MISSION LOG</h2>
-        <div class="monoBox" id="nw-log"></div>
-        <div class="hint">Server-Ereignisse und Loot-Drops werden hier protokolliert.</div>
-      </div>
+    <div class="grid">
+      
+      <div>
+        <div class="panel">
+            <h2>MISSION LOG</h2>
+            <div class="monoBox" id="nw-log"></div>
+            <div class="hint">Server-Ereignisse und Loot-Drops werden hier protokolliert.</div>
+        </div>
 
-      <div class="panel" style="margin-top: 15px;">
-        <h2>DRONE ASSEMBLY</h2>
-        
-        <div style="display: flex; gap: 20px; align-items: center; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
+        <div class="panel" style="margin-top: 15px;">
+          <h2>DRONE ASSEMBLY</h2>
+          
+          <div style="display: flex; gap: 20px; align-items: center; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
+              <div id="holo-container" style="width: 220px; height: 220px; border: 1px solid var(--line); background: #020202; position: relative;">
+                  <div style="position: absolute; top: 5px; left: 5px; font-size: 10px; color: var(--muted); pointer-events: none;"></div>
+              </div>
+
+              <div class="drone-grid" style="margin: 0;">
+                <div class="part-slot slot-props" id="slot-props">PROPS<br><small>empty</small></div>
+                <div class="part-slot slot-batt" id="slot-battery">BATTERY<br><small>empty</small></div>
+                <div class="part-slot slot-frame" id="slot-frame">FRAME<br><small>empty</small></div>
+                <div class="part-slot slot-fc" id="slot-fc">FC<br><small>empty</small></div>
+                <div class="part-slot slot-cam" id="slot-camera">CAMERA<br><small>empty</small></div>
+              </div>
+
+              <div id="drone-stats-panel" style="width: 220px; border: 1px dashed var(--muted); background: #050505; padding: 15px; font-size: 11px; color: var(--muted); min-height: 220px; display: flex; flex-direction: column;">
+                  <div style="color: var(--accent); margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid var(--line); padding-bottom: 5px;">DRONE TELEMETRY</div>
+                  <div id="telemetry-data" style="line-height: 1.6;">
+                      Warte auf Sensordaten...
+                  </div>
+              </div>
+          </div>
+          <div class="hint" style="text-align: center;">Baue 5 Teile zusammen, um eine Mission zu starten.</div>
+        </div>
+
+        <div class="panel" style="margin-top: 15px; border-color: var(--warn);">
+          <h2 style="color: var(--warn); text-align: center; font-size: 18px; letter-spacing: 2px;">MISSION CONTROL</h2>
+          <div style="text-align: center; margin-bottom: 20px; color: var(--muted); font-size: 13px;">
+            Target: Sector 7 (Plutonium Rich)
+          </div>
+
+          <div style="position: relative;">
+            <div id="mission-progress-container" style="display: none; height: 40px; background: #111; border: 1px solid var(--line); position: relative; overflow: hidden; margin-top: 15px;">
+              <div id="mission-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ffaa00, #ff4444); transition: width 0.1s linear;"></div>
+              <div id="mission-time" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; line-height: 40px; font-size: 14px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; pointer-events: none;">
+                STANDBY
+              </div>
+            </div>
+
+            <button id="claimMissionBtn" onclick="claimMissionResult()" style="display: none; background: rgba(0,255,136,0.1); border: 1px solid #00ff88; color: #00ff88; width: 100%; padding: 15px; font-family: var(--mono); font-weight: bold; font-size: 16px; cursor: pointer; animation: popIn 0.5s forwards; margin-top: 15px;">CLAIM LOOT</button>
             
-            <div id="holo-container" style="width: 220px; height: 220px; border: 1px solid var(--line); background: #020202; position: relative;">
-                <div style="position: absolute; top: 5px; left: 5px; font-size: 10px; color: var(--muted); pointer-events: none;"></div>
-            </div>
+            <button id="startMissionBtn" onclick="startNewWorldMission()" style="width: 100%; padding: 15px; background: rgba(255,68,68,0.1); border: 1px solid var(--warn); color: var(--warn); cursor: pointer; font-family: var(--mono); font-weight: bold; font-size: 16px;">START MISSION (REQ. 5 PARTS)</button>
 
-            <div class="drone-grid" style="margin: 0;">
-              <div class="part-slot slot-props" id="slot-props">PROPS<br><small>empty</small></div>
-              <div class="part-slot slot-batt" id="slot-battery">BATTERY<br><small>empty</small></div>
-              <div class="part-slot slot-frame" id="slot-frame">FRAME<br><small>empty</small></div>
-              <div class="part-slot slot-fc" id="slot-fc">FC<br><small>empty</small></div>
-              <div class="part-slot slot-cam" id="slot-camera">CAMERA<br><small>empty</small></div>
-            </div>
-
-            <div id="drone-stats-panel" style="width: 220px; border: 1px dashed var(--muted); background: #050505; padding: 15px; font-size: 11px; color: var(--muted); min-height: 220px; display: flex; flex-direction: column;">
-                <div style="color: var(--accent); margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid var(--line); padding-bottom: 5px;">DRONE TELEMETRY</div>
-                <div id="telemetry-data" style="line-height: 1.6;">
-                    Warte auf Sensordaten...
+            <div style="margin-top: 15px; border-top: 1px dashed var(--line); padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #050505; padding: 10px; border: 1px solid var(--line);">
+                <label style="color: var(--nrp); font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="auto-protocol-toggle" onchange="toggleAutoProtocol()">
+                    [ AUTO-PROTOCOL ]
+                </label>
+                
+                <div style="font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px;">
+                    AUTO-EQUIP MAX:
+                    <select id="auto-rarity-limit" style="background: #000; color: var(--text); border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; padding: 3px;">
+                        <option value="Common">Common</option>
+                        <option value="Rare">Rare</option>
+                        <option value="Super Rare">Super Rare</option>
+                    </select>
                 </div>
             </div>
-
-        </div>
-        <div class="hint" style="text-align: center;">Baue 5 Teile zusammen, um eine Mission zu starten.</div>
-        
-        <div class="panel" style="border-color: var(--warn);">
-      <h2 style="color: var(--warn); text-align: center; font-size: 18px; letter-spacing: 2px;">MISSION CONTROL</h2>
-      <div style="text-align: center; margin-bottom: 20px; color: var(--muted); font-size: 13px;">
-        Target: Sector 7 (Plutonium Rich)
-      </div>
-
-      <div style="position: relative;">
-        <div id="mission-progress-container" style="display: none; height: 40px; background: #111; border: 1px solid var(--line); position: relative; overflow: hidden; margin-top: 15px;">
-          <div id="mission-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ffaa00, #ff4444); transition: width 0.1s linear;"></div>
-          <div id="mission-time" style="position: absolute; top: 0; left: 0; width: 100%; text-align: center; line-height: 40px; font-size: 14px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000; pointer-events: none;">
-            STANDBY
           </div>
         </div>
 
-        <button id="claimMissionBtn" onclick="claimMissionResult()" style="display: none; background: rgba(0,255,136,0.1); border: 1px solid #00ff88; color: #00ff88; width: 100%; padding: 15px; font-family: var(--mono); font-weight: bold; font-size: 16px; cursor: pointer; animation: popIn 0.5s forwards; margin-top: 15px;">CLAIM LOOT</button>
-        
-        <button id="startMissionBtn" onclick="startNewWorldMission()" style="width: 100%; padding: 15px; background: rgba(255,68,68,0.1); border: 1px solid var(--warn); color: var(--warn); cursor: pointer; font-family: var(--mono); font-weight: bold; font-size: 16px;">START MISSION (REQ. 5 PARTS)</button>
+      </div>
 
-        <div style="margin-top: 15px; border-top: 1px dashed var(--line); padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #050505; padding: 10px; border: 1px solid var(--line);">
-            <label style="color: var(--nrp); font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                <input type="checkbox" id="auto-protocol-toggle" onchange="toggleAutoProtocol()">
-                [ AUTO-PROTOCOL ]
-            </label>
-            
-            <div style="font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px;">
-                AUTO-EQUIP MAX:
-                <select id="auto-rarity-limit" style="background: #000; color: var(--text); border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; padding: 3px;">
-                    <option value="Common">Common</option>
-                    <option value="Rare">Rare</option>
-                    <option value="Super Rare">Super Rare</option>
-                </select>
-            </div>
+      <div>
+        
+        <div class="panel">
+          <h2>RESOURCES</h2>
+          <div class="stats" style="grid-template-columns: repeat(5, 1fr);">
+            <div class="stat"><div class="k">Plutonium Ore</div><div class="v"><span id="po-display" style="color: var(--warn);">0</span> <small>PO</small></div></div>
+            <div class="stat"><div class="k">Neural Research</div><div class="v"><span id="nrp-display" style="color: #00ff88;">0</span> <small>N-RP</small></div></div>
+            <div class="stat"><div class="k">Legacy Coins</div><div class="v"><span id="legacy-cp">0</span> <small>CP</small></div></div>
+            <div class="stat"><div class="k">Research Pts</div><div class="v"><span id="nw-rp-display" style="color: #66d9ff;">0</span> <small>RP</small></div></div>
+            <div class="stat"><div class="k">Void Gems</div><div class="v"><span id="vg-display" style="color: #b300ff; font-weight: bold;">0</span> <small>VG</small></div></div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+             <h2>INVENTORY</h2>
+          </div>
+          
+          <div style="margin-bottom: 10px;">
+              <select id="inv-filter" onchange="renderNewWorld()" style="width: 100%; background: #050505; color: var(--text); border: 1px solid var(--line); padding: 8px; font-family: var(--mono); font-size: 11px; outline: none; cursor: pointer;">
+                  <option value="all">Sort: Oldest First (Default)</option>
+                  <option value="sort_rarity">Sort: Highest Rarity</option>
+                  <option value="type_frame">Filter: Frames Only</option>
+                  <option value="type_props">Filter: Props Only</option>
+                  <option value="type_battery">Filter: Batteries Only</option>
+                  <option value="type_fc">Filter: Flight Controllers Only</option>
+                  <option value="type_camera">Filter: Cameras Only</option>
+              </select>
+          </div>
+
+          <div class="hint">Ziehe ein Teil in den passenden Slot (Drag & Drop) oder klicke es an.</div>
+          
+          <div class="inventory-grid" id="inventory-list" 
+               ondragover="allowDrop(event)" 
+               ondrop="dropToInventory(event)" 
+               style="min-height: 100px; padding-bottom: 20px;">
+          </div>
+        </div>
+        <div class="panel" style="margin-top: 14px;">
+          <h2>R&D DEPARTMENT (TECH TREE)</h2>
+          <div class="hint">Betritt die geheimen Archive, um neue Bauteile zu erforschen und herzustellen.</div>
+          <button onclick="openTechTree()" style="width: 100%; margin-top: 10px; border-color: #00ff88; color: #00ff88; font-weight: bold;">ENTER TECH TREES</button>
         </div>
       </div>
     </div>
+  </div>
         
       <div>
         <div class="panel">
