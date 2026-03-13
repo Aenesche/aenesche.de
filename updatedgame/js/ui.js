@@ -1079,3 +1079,112 @@ window.submitAlias = function() {
         saveToServer();
     }
 };
+// ==========================================
+// 🤖 AUTO-PROTOCOL LOGIK
+// ==========================================
+let autoProtocolInterval = null;
+
+// Wird vom Checkbox-Schalter im HTML aufgerufen
+window.toggleAutoProtocol = function() {
+    const isEnabled = document.getElementById('auto-protocol-toggle').checked;
+    
+    if (isEnabled) {
+        log("AUTO-PROTOCOL ONLINE: Drohnen-Schwarm automatisiert.", "ok");
+        // Der Heartbeat: Checkt alle 5 Sekunden, was zu tun ist
+        autoProtocolInterval = setInterval(processAutoProtocol, 5000); 
+    } else {
+        log("AUTO-PROTOCOL OFFLINE: Manuelle Kontrolle aktiv.", "warn");
+        clearInterval(autoProtocolInterval);
+        autoProtocolInterval = null;
+    }
+}
+
+function processAutoProtocol() {
+    if (!state || !state.newWorld) return;
+    const m = state.newWorld.mission;
+    const isMissionActive = !!m;
+
+    // --- PHASE 1: CLAIM LOOT ---
+    if (isMissionActive && m.status === "WAITING_FOR_CLAIM") {
+        log("AUTO: Claiming Mission Results...", "ok");
+        // Wir simulieren einen Klick auf den Claim-Button (oder rufen die Funktion auf)
+        if (typeof claimMission === "function") {
+            claimMission();
+        } else {
+            document.getElementById("claimMissionBtn").click();
+        }
+        return; // Pause bis zum nächsten Heartbeat
+    }
+
+    // --- PHASE 2: MISSING PARTS AUFFÜLLEN ---
+    if (!isMissionActive) {
+        const types = ["frame", "props", "battery", "fc", "camera"];
+        let missingTypes = types.filter(t => !state.newWorld.hangar[t]);
+
+        if (missingTypes.length > 0) {
+            let outOfParts = false;
+            
+            missingTypes.forEach(type => {
+                const success = autoEquipCheapest(type);
+                if (!success) outOfParts = true;
+            });
+
+            // Wenn wir ein Teil absolut nicht finden konnten, brechen wir die Automatik ab!
+            if (outOfParts) {
+                document.getElementById('auto-protocol-toggle').checked = false;
+                toggleAutoProtocol();
+                log("AUTO-PROTOCOL ABORTED: Nicht genug Ersatzteile im Inventar!", "bad");
+                return;
+            }
+        }
+
+        // --- PHASE 3: MISSION STARTEN ---
+        // Wenn keine Teile mehr fehlen, zünden wir die Triebwerke
+        let partsEquipped = types.filter(t => state.newWorld.hangar[t]).length;
+        if (partsEquipped === 5) {
+            log("AUTO: Starte nächste Mission...", "ok");
+            if (typeof startNewWorldMission === "function") {
+                startNewWorldMission();
+            } else {
+                document.getElementById("startMissionBtn").click();
+            }
+        }
+    }
+}
+
+// Hilfsfunktion: Sucht das billigste Teil einer Kategorie und rüstet es aus
+function autoEquipCheapest(type) {
+    const maxRarityStr = document.getElementById('auto-rarity-limit').value;
+    const maxWeight = RARITIES[maxRarityStr].weight;
+
+    // 1. Hole alle Teile dieses Typs aus dem Inventar
+    let available = state.newWorld.inventory.filter(item => {
+        const data = PART_CATALOG[item.catalogId];
+        if (!data) return false;
+        
+        // Exoten (_d01) sofort ausschließen! Die werden niemals automatisch ausgerüstet.
+        if (item.catalogId.includes("_d")) return false; 
+        
+        // Rarity-Limit checken
+        if (RARITIES[data.rarity].weight > maxWeight) return false;
+        
+        return item.type === type;
+    });
+
+    // 2. Keine Teile gefunden? -> Fail.
+    if (available.length === 0) return false;
+
+    // 3. Nach Gewicht sortieren (das schwächste/billigste zuerst)
+    available.sort((a, b) => {
+        const dataA = PART_CATALOG[a.catalogId];
+        const dataB = PART_CATALOG[b.catalogId];
+        return RARITIES[dataA.rarity].weight - RARITIES[dataB.rarity].weight;
+    });
+
+    // 4. Das billigste ausrüsten
+    if (typeof equipPart === "function") {
+        equipPart(available[0].id);
+        return true;
+    }
+    return false;
+}
