@@ -396,7 +396,7 @@ function renderNewWorld() {
 
         if (m.result && m.result.crashed) {
             if(claimBtn) {
-                claimBtn.textContent = "BERGE TRÜMMER (LOSE PARTS)";
+                claimBtn.textContent = "MISSION LOST (GO CRY ABOUT IT)";
                 claimBtn.style.borderColor = "var(--warn)";
                 claimBtn.style.color = "var(--warn)";
             }
