@@ -314,6 +314,23 @@
 </div>
           
           <button id="claimMissionBtn" onclick="claimMissionResult()" style="display: none; border-color: #00ff88; color: #00ff88; width: 100%; animation: popIn 0.5s forwards; margin-top: 15px;">CLAIM LOOT</button>
+          <button id="startMissionBtn" onclick="startNewWorldMission()" style="width: 100%; padding: 15px; background: rgba(255,68,68,0.1); border: 1px solid var(--warn); color: var(--warn); cursor: pointer; font-family: var(--mono); font-weight: bold; font-size: 16px;">START MISSION (REQ. 5 PARTS)</button>
+    
+    <div style="margin-top: 15px; border-top: 1px dashed var(--line); padding-top: 15px; display: flex; justify-content: space-between; align-items: center; background: #050505; padding: 10px; border: 1px solid var(--line);">
+        <label style="color: var(--nrp); font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="auto-protocol-toggle" onchange="toggleAutoProtocol()">
+            [ AUTO-PROTOCOL ]
+        </label>
+        
+        <div style="font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px;">
+            AUTO-EQUIP MAX:
+            <select id="auto-rarity-limit" style="background: #000; color: var(--text); border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; padding: 3px;">
+                <option value="Common">Common</option>
+                <option value="Rare">Rare</option>
+                <option value="Super Rare">Super Rare</option>
+            </select>
+        </div>
+    </div>
         </div>
       </div>
 
