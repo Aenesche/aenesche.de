@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beamer Ansicht - Drinkmaster</title>
+  <style>
+    :root {
+      --bg-color: #0d0d0d;
+      --neon-cyan: #00f3ff;
+      --neon-pink: #ff00ea;
+      --text-main: #ffffff;
+      --panel-bg: #1a1a1a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden; /* Auf dem Beamer wollen wir nicht scrollen */
+    }
+
+    /* Header mit dem Raum-Code */
+    header {
+      padding: 20px;
+      text-align: center;
+      background-color: #000;
+      border-bottom: 2px solid var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+    }
+
+    h1 { font-size: 2.5rem; letter-spacing: 2px; }
+    .neon-text { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0, 243, 255, 0.8); font-size: 4rem;}
+
+    /* Layout: Links QR-Code, Rechts Leaderboard */
+    .container {
+      display: flex;
+      flex: 1;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .qr-panel {
+      flex: 0 0 350px;
+      background: var(--panel-bg);
+      border-radius: 15px;
+      border: 1px solid #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    }
+
+    .qr-panel h2 { margin-bottom: 20px; color: var(--neon-pink); }
+    
+    /* Der QR Code Container bekommt einen weißen Hintergrund, damit Handys ihn gut scannen können */
+    #qrcode {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    .leaderboard-panel {
+      flex: 1;
+      background: var(--panel-bg);
+      border-radius: 15px;
+      border: 1px solid #333;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .leaderboard-panel h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2rem;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    /* Platzhalter für die späteren Blöcke */
+    #live-stats {
+      flex: 1;
+      display: flex;
+      align-items: flex-end; /* Blöcke wachsen von unten nach oben */
+      justify-content: space-around;
+      gap: 10px;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>RAUM CODE: <br><span id="roomCodeDisplay" class="neon-text">LÄDT...</span></h1>
+  </header>
+
+  <div class="container">
+    <div class="qr-panel">
+      <h2>Join the Party</h2>
+      <div id="qrcode"></div>
+      <p style="margin-top: 20px; color: #aaa; text-align: center;">Scanne den Code oder gehe auf<br><strong style="color: white;">aenesche.de/drinkmaster</strong></p>
+    </div>
+
+    <div class="leaderboard-panel">
+      <h2>LIVE RANKING</h2>
+      <div id="live-stats">
+        <p style="color: #666; width: 100%; text-align: center; align-self: center;">Warte auf die ersten Drinks...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
