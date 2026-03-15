@@ -4,6 +4,7 @@ const SUPABASE_ANON_KEY = 'dein-anon-key';
 
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+
 // Funktion 1: Admin erstellt einen neuen Raum
 async function createRoom() {
   // 1. Admin nach einem Passwort fragen (simplen Browser-Prompt für den Anfang, 
