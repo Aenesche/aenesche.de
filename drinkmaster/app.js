@@ -56,6 +56,6 @@ function joinRoom() {
   const code = document.getElementById('roomCodeInput').value.toUpperCase();
   if (code.length > 0) {
     // Weiterleiten zur mobilen User-Ansicht
-    window.location.href = `party.html?room=${code}`;
+    window.location.href = `presentation.html?room=${code}`;
   }
 }
