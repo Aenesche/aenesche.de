@@ -3,6 +3,7 @@ const SUPABASE_URL = 'https://deine-projekt-id.supabase.co';
 const SUPABASE_ANON_KEY = 'dein-anon-key';
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+
 // 1. Raum-Code aus der URL auslesen (z.B. ?room=XYZ)
 const urlParams = new URLSearchParams(window.location.search);
 const currentRoomCode = urlParams.get('room');
