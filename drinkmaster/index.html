@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Party Tracker</title>
+  <style>
+    :root {
+      --bg-color: #0d0d0d;
+      --neon-cyan: #00f3ff;
+      --neon-pink: #ff00ea;
+      --text-main: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 2rem;
+      letter-spacing: 2px;
+    }
+
+    /* Neon Text Effekt */
+    .neon-text {
+      color: var(--neon-cyan);
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(0, 243, 255, 0.3);
+    }
+
+    /* Clean Neon Buttons */
+    .btn {
+      background: transparent;
+      color: var(--text-main);
+      border: 2px solid #333;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 10px;
+      width: 100%;
+      max-width: 300px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-create {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2) inset, 0 0 15px rgba(0, 243, 255, 0.2);
+    }
+
+    .btn-create:hover {
+      background: var(--neon-cyan);
+      color: var(--bg-color);
+      box-shadow: 0 0 25px rgba(0, 243, 255, 0.6);
+    }
+
+    .btn-join {
+      border-color: var(--neon-pink);
+      color: var(--neon-pink);
+      box-shadow: 0 0 15px rgba(255, 0, 234, 0.2) inset, 0 0 15px rgba(255, 0, 234, 0.2);
+    }
+
+    .btn-join:hover {
+      background: var(--neon-pink);
+      color: var(--bg-color);
+      box-shadow: 0 0 25px rgba(255, 0, 234, 0.6);
+    }
+
+    .input-group { margin-top: 20px; display: none; }
+    
+    input {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: white;
+      padding: 12px;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      width: 100%;
+      max-width: 300px;
+      margin-bottom: 10px;
+      outline: none;
+    }
+    input:focus { border-color: var(--neon-pink); }
+  </style>
+</head>
+<body>
+
+  <h1>LIQUID<span class="neon-text">STATS</span></h1>
+
+  <button class="btn btn-create" onclick="createRoom()">Neue Party starten</button>
+  
+  <div style="margin-top: 2rem;">
+    <button class="btn btn-join" onclick="toggleJoinForm()">Mit Code beitreten</button>
+    <div class="input-group" id="joinForm">
+      <input type="text" id="roomCodeInput" placeholder="Raum-Code (z.B. AB12C)" style="text-transform: uppercase;">
+      <button class="btn" style="border-color: white;" onclick="joinRoom()">Los</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script> </body>
+</html>
