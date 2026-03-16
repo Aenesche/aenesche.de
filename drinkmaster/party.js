@@ -64,33 +64,58 @@ async function init() {
 }
 
 // 2. Neuer User tritt bei
+// 2. Neuer User tritt bei ODER loggt sich in bestehenden Namen ein
 async function joinParty() {
   const username = document.getElementById('usernameInput').value.trim();
+  const password = document.getElementById('passwordInput').value.trim(); // Neues Feld auslesen
+
   if (username.length < 2) {
     alert("Bitte gib einen Namen ein (min. 2 Zeichen).");
     return;
   }
 
-  const localToken = crypto.randomUUID();
+  // 1. Prüfen, ob der Name in diesem Raum schon existiert
+  const { data: existingUser } = await client
+    .from('party_users')
+    .select('id, password_hash, local_token')
+    .eq('room_id', currentRoomId)
+    .eq('display_name', username)
+    .single();
 
-  // FIX: client.from statt supabase.from
+  if (existingUser) {
+    // NAME EXISTIERT BEREITS! Passwort prüfen.
+    // (Achtung: password_hash ist hier einfach das Klartext-Passwort fürs Party-Game)
+    if (existingUser.password_hash && existingUser.password_hash !== password) {
+      alert("Dieser Name ist geschützt. Falsches Passwort!");
+      return;
+    } else if (!existingUser.password_hash && password !== "") {
+      alert("Dieser Name hat kein Passwort. Lass das Feld leer, um dich einzuloggen.");
+      return;
+    }
+
+    // Login erfolgreich (Passwort stimmt oder war leer)
+    localStorage.setItem(`token_${roomCode}`, existingUser.local_token);
+    currentUserId = existingUser.id;
+    document.getElementById('display-name').innerText = username;
+    showDashboard();
+    return;
+  }
+
+  // 2. NAME IST NEU -> Neuen User anlegen
+  const localToken = crypto.randomUUID();
   const { data, error } = await client
     .from('party_users')
     .insert([{ 
       room_id: currentRoomId, 
       display_name: username,
-      local_token: localToken 
+      local_token: localToken,
+      password_hash: password || null // Speichert das Passwort, falls eines angegeben wurde
     }])
     .select()
     .single();
 
   if (error) {
-    if (error.code === '23505') { 
-      alert("Dieser Name ist in diesem Raum schon vergeben! Bitte wähle einen anderen.");
-    } else {
-      console.error(error);
-      alert("Fehler beim Beitreten. Check die Konsole.");
-    }
+    alert("Fehler beim Beitreten.");
     return;
   }
 
@@ -99,6 +124,7 @@ async function joinParty() {
   document.getElementById('display-name').innerText = username;
   showDashboard();
 }
+
 
 // 3. UI Helper
 function showDashboard() {
