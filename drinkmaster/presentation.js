@@ -170,9 +170,15 @@ function renderLeaderboard() {
       let rawH = Math.max(15, drink.volume_ml * 0.2);
       block.style.height = `${rawH * scaleFactor}px`;
       
-      // BREITE abhängig vom Volumen (mind. 40px für Shots, max 130px für Maßkrüge)
+      // BREITE dynamisch berechnen
       let blockW = 40 + (drink.volume_ml / 500) * 80;
-      blockW = Math.min(Math.max(blockW, 40), 130);
+      
+      // NEU: Wie viel Platz hat ein Spieler maximal auf dem Bildschirm?
+      const maxColWidth = (container.clientWidth / sortedUserIds.length) - 4; // 4px Puffer
+      
+      blockW = Math.min(blockW, maxColWidth); // Block darf nicht breiter als die Spalte sein
+      if (blockW < 8) blockW = 8; // Aber auch nicht unsichtbar schmal
+      
       block.style.width = `${blockW}px`;
       
       // STUFENLOSE FARBE
