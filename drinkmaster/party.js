@@ -144,15 +144,23 @@ function setPreset(vol, alc) {
 }
 
 // 4. Drink in die Datenbank feuern
+// 4. Drink in die Datenbank feuern (mit 10 Sekunden Cooldown)
 async function submitDrink() {
+  const btn = document.querySelector('.btn-submit');
+  
+  // Sicherheits-Check: Wenn der Button schon gesperrt ist, tu gar nichts
+  if (btn.disabled) return;
+
   const vol = parseInt(volSlider.value);
   const alc = parseFloat(alcSlider.value);
 
-  const btn = document.querySelector('.btn-submit');
-  btn.innerText = "WIRD GESENDET...";
+  // Button sofort sperren und visuell anpassen
+  btn.disabled = true;
   btn.style.opacity = "0.5";
+  btn.style.cursor = "not-allowed";
+  btn.innerText = "WIRD GESENDET...";
 
-  // FIX: client.from statt supabase.from
+  // Ab zu Supabase!
   const { error } = await client
     .from('party_drinks')
     .insert([{
@@ -162,17 +170,32 @@ async function submitDrink() {
       alcohol_percent: alc
     }]);
 
-  btn.style.opacity = "1";
-  
   if (error) {
     console.error(error);
     alert("Fehler beim Eintragen!");
+    // Bei Fehler sofort wieder freigeben
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.style.cursor = "pointer";
     btn.innerText = "DRINK EINTRAGEN";
   } else {
-    btn.innerText = "ERFOLGREICH! PROST 🍻";
-    setTimeout(() => { btn.innerText = "DRINK EINTRAGEN"; }, 2000);
+    // ERFOLG! Jetzt startet der 10-Sekunden-Timer
+    let timeLeft = 10;
+    btn.innerText = `PROST! 🍻 (${timeLeft}s)`;
+
+    const cooldownTimer = setInterval(() => {
+      timeLeft -= 1;
+      
+      if (timeLeft > 0) {
+        btn.innerText = `PROST! 🍻 (${timeLeft}s)`;
+      } else {
+        // Zeit abgelaufen: Timer stoppen und Button wieder normal machen
+        clearInterval(cooldownTimer);
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.style.cursor = "pointer";
+        btn.innerText = "DRINK EINTRAGEN";
+      }
+    }, 1000); // 1000 Millisekunden = 1 Sekunde
   }
 }
-
-// App starten
-init();
