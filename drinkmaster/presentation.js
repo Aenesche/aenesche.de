@@ -28,14 +28,23 @@ async function initLeaderboard() {
 
   await loadInitialData();
 
+  // WICHTIG: Hört jetzt auf '*', also INSERT (neuer Drink) und DELETE (Admin löscht Drink)
   client.channel('party_drinks_channel')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'party_drinks', filter: `room_id=eq.${currentRoomId}` }, 
-      (payload) => { handleNewDrink(payload.new); }
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'party_drinks', filter: `room_id=eq.${currentRoomId}` }, 
+      () => { 
+        // Egal was passiert ist, lade alles neu und zeichne es perfekt!
+        loadInitialData(); 
+      }
     ).subscribe();
 }
 
 async function loadInitialData() {
   const { data: users } = await client.from('party_users').select('id, display_name').eq('room_id', currentRoomId);
+  
+  // WICHTIG: Bevor wir neu laden, müssen wir die alten Daten im Speicher löschen, sonst verdoppelt sich alles!
+  userDataMap = {};
+  userDrinksMap = {};
+
   if (users) {
     users.forEach(u => {
       userDataMap[u.id] = { name: u.display_name, score: 0 };
@@ -90,28 +99,15 @@ function getContinuousColor(alc) {
     }
   }
 
-  // Mathe: Wie weit sind wir zwischen der unteren und oberen Farbe? (0.0 bis 1.0)
   const t = (alc - lower.pct) / (upper.pct - lower.pct);
   const rgb1 = hexToRgb(lower.color);
   const rgb2 = hexToRgb(upper.color);
 
-  // RGB Werte stufenlos mischen
   const r = Math.round(rgb1[0] + (rgb2[0] - rgb1[0]) * t);
   const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * t);
   const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * t);
 
   return rgbToHex(r, g, b);
-}
-
-async function handleNewDrink(drinkData) {
-  if (!userDataMap[drinkData.user_id]) {
-    const { data: uData } = await client.from('party_users').select('display_name').eq('id', drinkData.user_id).single();
-    userDataMap[drinkData.user_id] = { name: uData?.display_name || "Unbekannt", score: 0 };
-    userDrinksMap[drinkData.user_id] = [];
-  }
-  userDataMap[drinkData.user_id].score += calculateScore(drinkData.volume_ml, drinkData.alcohol_percent);
-  userDrinksMap[drinkData.user_id].push(drinkData);
-  renderLeaderboard();
 }
 
 // ==========================================
@@ -129,19 +125,15 @@ function renderLeaderboard() {
   sortedUserIds.forEach(userId => {
     let rawHeight = 0;
     userDrinksMap[userId].forEach(drink => {
-      // Basis-Höhe pro Block (abhängig vom Volumen)
       let h = Math.max(15, drink.volume_ml * 0.2); 
-      rawHeight += h + 2; // +2 für den Abstand
+      rawHeight += h + 2; 
     });
     if (rawHeight > maxRawTowerHeight) maxRawTowerHeight = rawHeight;
   });
 
   // 2. Skalierungsfaktor berechnen
-  // Wir haben z.B. 600px Platz auf dem Bildschirm. Wenn der höchste Turm 1200px wäre, ist der Faktor 0.5 (alles wird halbiert).
-  const maxAllowedPixels = container.clientHeight * 0.8; // Wir nutzen 80% der verfügbaren Container-Höhe
+  const maxAllowedPixels = container.clientHeight * 0.8; 
   let scaleFactor = maxAllowedPixels / (maxRawTowerHeight || 1);
-  
-  // Wenn erst ein Drink drin ist, wollen wir den nicht über den ganzen Bildschirm ziehen
   if (scaleFactor > 1.2) scaleFactor = 1.2; 
 
   // 3. Türme zeichnen
@@ -166,25 +158,21 @@ function renderLeaderboard() {
       const block = document.createElement('div');
       block.className = 'drink-block';
       
-      // HÖHE mit Scale-Faktor anpassen
       let rawH = Math.max(15, drink.volume_ml * 0.2);
       block.style.height = `${rawH * scaleFactor}px`;
       
-      // BREITE dynamisch berechnen
       let blockW = 40 + (drink.volume_ml / 500) * 80;
       
-      // NEU: Wie viel Platz hat ein Spieler maximal auf dem Bildschirm?
-      const maxColWidth = (container.clientWidth / sortedUserIds.length) - 4; // 4px Puffer
+      const maxColWidth = (container.clientWidth / sortedUserIds.length) - 4; 
       
-      blockW = Math.min(blockW, maxColWidth); // Block darf nicht breiter als die Spalte sein
-      if (blockW < 8) blockW = 8; // Aber auch nicht unsichtbar schmal
+      blockW = Math.min(blockW, maxColWidth); 
+      if (blockW < 8) blockW = 8; 
       
       block.style.width = `${blockW}px`;
       
-      // STUFENLOSE FARBE
       const hexColor = getContinuousColor(drink.alcohol_percent);
       block.style.backgroundColor = hexColor;
-      block.style.boxShadow = `0 0 12px ${hexColor}80`; // 80 ist Hex für 50% Deckkraft
+      block.style.boxShadow = `0 0 12px ${hexColor}80`; 
 
       tower.appendChild(block);
     });
@@ -200,7 +188,6 @@ function renderLeaderboard() {
   });
 }
 
-// Fenstergröße anpassen (Skaliert live neu, wenn du das Browser-Fenster ziehst!)
 window.addEventListener('resize', renderLeaderboard);
 
 initLeaderboard();
