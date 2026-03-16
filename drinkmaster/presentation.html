@@ -70,15 +70,19 @@
       box-shadow: 0 4px 6px rgba(0,0,0,0.3) inset;
     }
 
-    /* Container für einen Spieler */
+        /* Lässt die Spalten dynamisch schrumpfen, wenn der Platz eng wird */
     .player-column {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
-      width: 140px; /* Genug Platz für die fetten Bier-Blöcke */
+      flex: 1 1 0; /* GANZ WICHTIG: Erlaubt das Schrumpfen */
+      max-width: 140px;
+      min-width: 20px; /* Spalten dürfen sehr schmal werden */
       height: 100%;
+      position: relative;
     }
+
 
     .player-tower {
       display: flex;
@@ -87,17 +91,17 @@
       align-items: center;
     }
 
-    /* Die Namen hängen jetzt fix unter der X-Achse */
+    /* Dynamische Schriftgröße (clamp) und Zeilenumbruch */
     .player-name {
       margin-top: 15px;
       font-weight: bold;
       color: #ccc;
       text-align: center;
       width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      position: absolute; /* Löst den Namen aus dem Flex-Flow der Säule */
-      bottom: -35px; /* Positioniert ihn genau unter der Linie */
+      word-wrap: break-word; /* Bricht lange Namen um */
+      font-size: clamp(0.5rem, 1.5vw, 1rem); /* Schrift wird kleiner, je enger es ist */
+      position: absolute;
+      bottom: -35px;
     }
     
     .player-score {
