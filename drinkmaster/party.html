@@ -12,7 +12,6 @@
       --panel-bg: #1a1a1a;
       --text-main: #ffffff;
     }
-    
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
 
@@ -25,10 +24,9 @@
       padding: 20px;
     }
 
-    /* Hilfsklassen zum Ein-/Ausblenden */
     .hidden { display: none !important; }
 
-    /* --- LOGIN BEREICH --- */
+    /* LOGIN */
     #login-section {
       display: flex;
       flex-direction: column;
@@ -48,7 +46,6 @@
       outline: none;
     }
     input:focus { border-color: var(--neon-cyan); }
-    
 
     .btn {
       background: transparent; color: white;
@@ -56,10 +53,11 @@
       font-size: 1.2rem; border-radius: 8px; cursor: pointer;
       width: 100%; max-width: 350px; text-transform: uppercase;
       box-shadow: 0 0 10px rgba(0, 243, 255, 0.2) inset;
+      transition: all 0.3s ease;
     }
     .btn:active { background: var(--neon-cyan); color: black; }
 
-    /* --- DASHBOARD BEREICH --- */
+    /* DASHBOARD */
     #dashboard-section {
       flex: 1;
       display: flex;
@@ -85,7 +83,6 @@
       border: 1px solid #555; padding: 5px 10px; border-radius: 5px;
     }
 
-    /* Slider Design */
     .slider-container {
       background: var(--panel-bg);
       padding: 20px;
@@ -94,45 +91,31 @@
       border: 1px solid #333;
     }
 
-    .slider-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 15px;
-      font-size: 1.1rem;
-    }
-
+    .slider-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1rem; }
     .val-display { color: var(--neon-cyan); font-weight: bold; font-size: 1.3rem;}
 
-    input[type=range] {
-      -webkit-appearance: none; width: 100%; background: transparent;
-    }
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
     input[type=range]::-webkit-slider-thumb {
       -webkit-appearance: none; height: 25px; width: 25px;
       border-radius: 50%; background: var(--neon-cyan);
-      cursor: pointer; margin-top: -10px;
-      box-shadow: 0 0 10px var(--neon-cyan);
+      cursor: pointer; margin-top: -10px; box-shadow: 0 0 10px var(--neon-cyan);
     }
-    input[type=range]::-webkit-slider-runnable-track {
-      width: 100%; height: 5px; cursor: pointer;
-      background: #444; border-radius: 5px;
-    }
+    input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 5px; cursor: pointer; background: #444; border-radius: 5px; }
 
-    /* Presets */
-    .presets {
-      display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px;
-    }
-    .preset-btn {
-      background: #222; border: 1px solid #444; color: white;
-      padding: 10px 15px; border-radius: 8px; white-space: nowrap;
-    }
-
+    .presets { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+    .preset-btn { background: #222; border: 1px solid #444; color: white; padding: 10px 15px; border-radius: 8px; white-space: nowrap; cursor: pointer;}
+    
     .btn-submit {
       border-color: var(--neon-pink); color: var(--neon-pink);
       box-shadow: 0 0 15px rgba(255, 0, 234, 0.2) inset;
       margin-top: auto; font-weight: bold; font-size: 1.4rem; padding: 20px;
     }
     .btn-submit:active { background: var(--neon-pink); color: white; }
-
+    
+    /* Grau für gesperrten Button */
+    .btn-submit:disabled {
+      border-color: #555; color: #888; box-shadow: none; cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -140,23 +123,24 @@
   <div id="login-section">
     <h1>Join <span class="neon-text" id="room-display">...</span></h1>
     <p style="margin-bottom: 20px; color: #888;">Gib deinen Namen ein, um zu starten.</p>
-
-        <input type="text" id="usernameInput" placeholder="Dein Name" autocomplete="off">
+    
+    <input type="text" id="usernameInput" placeholder="Dein Name" autocomplete="off">
     <input type="password" id="passwordInput" placeholder="Passwort (Optional)" autocomplete="off">
-    <button class="btn" onclick="joinParty()">Let's Gooo</button>
+    
+    <button class="btn" onclick="joinParty()">Let's Go</button>
   </div>
 
   <div id="dashboard-section" class="hidden">
     <div class="header-bar">
       <div class="user-name" id="display-name">Name</div>
-      <a href="#" id="link-to-presentation" target="_blank" class="link-beamer">Live-Ansicht ansehen</a>
+      <a href="#" id="link-to-presentation" target="_blank" class="link-beamer">Live-Ansicht</a>
     </div>
 
     <div class="presets">
       <button class="preset-btn" onclick="setPreset(500, 4.9)">🍺 Großes Bier</button>
       <button class="preset-btn" onclick="setPreset(330, 4.9)">🍻 Kleines Bier</button>
       <button class="preset-btn" onclick="setPreset(40, 40)">🥃 Shot</button>
-      <button class="preset-btn" onclick="setPreset(200, 12)">🍹 Mische (Normal)</button>
+      <button class="preset-btn" onclick="setPreset(200, 10)">🍹 Mische</button>
     </div>
 
     <div class="slider-container">
@@ -175,7 +159,7 @@
       <input type="range" id="alcSlider" min="0" max="80" step="0.1" value="4.9" oninput="updateSliders()">
     </div>
 
-    <button class="btn btn-submit" onclick="submitDrink()">DRINK EINTRAGEN</button>
+    <button class="btn btn-submit" id="submitBtn" onclick="submitDrink()">DRINK EINTRAGEN</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
