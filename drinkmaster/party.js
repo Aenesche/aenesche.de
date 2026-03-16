@@ -1,5 +1,8 @@
-const SUPABASE_URL = 'https://usihbregbanpfspblrnw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY';
+// TRAGE HIER WIEDER DEINE ECHTEN KEYS EIN
+const SUPABASE_URL = 'https://deine-projekt-id.supabase.co';
+const SUPABASE_ANON_KEY = 'dein-anon-key';
+
+// Hier nutzen wir jetzt 'client'
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // URL Parameter auslesen
@@ -24,11 +27,10 @@ async function init() {
   }
   document.getElementById('room-display').innerText = roomCode;
   
-  // Link zur Präsentation dynamisch setzen
   document.getElementById('link-to-presentation').href = `presentation.html?room=${roomCode}`;
 
-  // Hole die echte Raum-ID aus der Datenbank anhand des Codes
-  const { data: roomData, error: roomError } = await supabase
+  // FIX: client.from statt supabase.from
+  const { data: roomData, error: roomError } = await client
     .from('party_rooms')
     .select('id')
     .eq('room_code', roomCode)
@@ -40,19 +42,17 @@ async function init() {
   }
   currentRoomId = roomData.id;
 
-  // Seamless Login prüfen: Hat der User schon einen Token für diesen Raum?
   const savedToken = localStorage.getItem(`token_${roomCode}`);
   
   if (savedToken) {
-    // Prüfen, ob der User in der DB existiert
-    const { data: userData } = await supabase
+    // FIX: client.from statt supabase.from
+    const { data: userData } = await client
       .from('party_users')
       .select('id, display_name')
       .eq('local_token', savedToken)
       .single();
 
     if (userData) {
-      // User erfolgreich wiedererkannt!
       currentUserId = userData.id;
       document.getElementById('display-name').innerText = userData.display_name;
       showDashboard();
@@ -60,7 +60,6 @@ async function init() {
     }
   }
   
-  // Wenn kein Token oder User nicht in DB: Zeige Login
   loginSection.classList.remove('hidden');
 }
 
@@ -72,10 +71,10 @@ async function joinParty() {
     return;
   }
 
-  // Generiere einen zufälligen Token für den Browser
   const localToken = crypto.randomUUID();
 
-  const { data, error } = await supabase
+  // FIX: client.from statt supabase.from
+  const { data, error } = await client
     .from('party_users')
     .insert([{ 
       room_id: currentRoomId, 
@@ -86,15 +85,15 @@ async function joinParty() {
     .single();
 
   if (error) {
-    if (error.code === '23505') { // Postgres Unique Violation
+    if (error.code === '23505') { 
       alert("Dieser Name ist in diesem Raum schon vergeben! Bitte wähle einen anderen.");
     } else {
-      alert("Fehler beim Beitreten.");
+      console.error(error);
+      alert("Fehler beim Beitreten. Check die Konsole.");
     }
     return;
   }
 
-  // Erfolgreich: Token speichern und ins Dashboard wechseln
   localStorage.setItem(`token_${roomCode}`, localToken);
   currentUserId = data.id;
   document.getElementById('display-name').innerText = username;
@@ -123,12 +122,12 @@ async function submitDrink() {
   const vol = parseInt(volSlider.value);
   const alc = parseFloat(alcSlider.value);
 
-  // Kurzes visuelles Feedback (Button flackert)
   const btn = document.querySelector('.btn-submit');
   btn.innerText = "WIRD GESENDET...";
   btn.style.opacity = "0.5";
 
-  const { error } = await supabase
+  // FIX: client.from statt supabase.from
+  const { error } = await client
     .from('party_drinks')
     .insert([{
       user_id: currentUserId,
@@ -140,6 +139,7 @@ async function submitDrink() {
   btn.style.opacity = "1";
   
   if (error) {
+    console.error(error);
     alert("Fehler beim Eintragen!");
     btn.innerText = "DRINK EINTRAGEN";
   } else {
