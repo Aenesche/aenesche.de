@@ -1,4 +1,3 @@
-// Deine echten Supabase Keys!
 const SUPABASE_URL = 'https://usihbregbanpfspblrnw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY';
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -6,22 +5,21 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const urlParams = new URLSearchParams(window.location.search);
 const currentRoomCode = urlParams.get('room');
 
-if (!currentRoomCode) {
-  window.location.href = 'index.html';
-}
+if (!currentRoomCode) window.location.href = 'index.html';
 
-// UI Setup
 document.getElementById('roomCodeDisplay').innerText = currentRoomCode;
-const joinUrl = `https://aenesche.de/drinkmaster/party.html?room=${currentRoomCode}`;
-new QRCode(document.getElementById("qrcode"), { text: joinUrl, width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
+new QRCode(document.getElementById("qrcode"), { 
+  text: `https://aenesche.de/drinkmaster/party.html?room=${currentRoomCode}`, 
+  width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H 
+});
 
 // ==========================================
-// LIVE LEADERBOARD (TOWER-LOGIK)
+// LOGIK & DATEN
 // ==========================================
 
 let currentRoomId = null;
-let userDataMap = {}; // Speichert Name und Score
-let userDrinksMap = {}; // Speichert Arrays mit allen Drinks pro User
+let userDataMap = {}; 
+let userDrinksMap = {}; 
 
 async function initLeaderboard() {
   const { data: roomData } = await client.from('party_rooms').select('id').eq('room_code', currentRoomCode).single();
@@ -45,7 +43,6 @@ async function loadInitialData() {
     });
   }
 
-  // WICHTIG: Order by created_at, damit wir richtig stapeln (ältester Drink unten)
   const { data: drinks } = await client.from('party_drinks').select('*').eq('room_id', currentRoomId).order('created_at', { ascending: true });
   if (drinks) {
     drinks.forEach(d => {
@@ -62,13 +59,48 @@ function calculateScore(volume, alcPercent) {
   return volume * (alcPercent / 100);
 }
 
-// Farben je nach Alkoholgehalt
-function getColorForAlcohol(alc) {
-  if (alc <= 0) return '#63b3ed'; // 0% Wasser -> Hellblau
-  if (alc <= 6) return '#f6e05e'; // ~5% Bier -> Gelb
-  if (alc <= 15) return '#ed8936'; // ~12% Wein -> Orange
-  if (alc <= 25) return '#e53e3e'; // ~20% Mische -> Rot
-  return '#d53f8c'; // > 25% Shots -> Pink/Neon
+// ==========================================
+// STUFENLOSE FARBEN (INTERPOLATION)
+// ==========================================
+function hexToRgb(hex) {
+  let bigint = parseInt(hex.replace('#', ''), 16);
+  return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+}
+
+function rgbToHex(r, g, b) {
+  return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).padStart(6, '0');
+}
+
+function getContinuousColor(alc) {
+  const anchors = [
+    { pct: 0, color: '#00f3ff' },  // 0% Wasser (Cyan)
+    { pct: 5, color: '#f6e05e' },  // 5% Bier (Gelb)
+    { pct: 12, color: '#ed8936' }, // 12% Wein/Mische (Orange)
+    { pct: 20, color: '#e53e3e' }, // 20% Harte Mische (Rot)
+    { pct: 40, color: '#ff00ea' }  // 40%+ Shot (Pink)
+  ];
+
+  if (alc <= 0) return anchors[0].color;
+  if (alc >= 40) return anchors[4].color;
+
+  let lower = anchors[0], upper = anchors[1];
+  for (let i = 0; i < anchors.length - 1; i++) {
+    if (alc >= anchors[i].pct && alc <= anchors[i+1].pct) {
+      lower = anchors[i]; upper = anchors[i+1]; break;
+    }
+  }
+
+  // Mathe: Wie weit sind wir zwischen der unteren und oberen Farbe? (0.0 bis 1.0)
+  const t = (alc - lower.pct) / (upper.pct - lower.pct);
+  const rgb1 = hexToRgb(lower.color);
+  const rgb2 = hexToRgb(upper.color);
+
+  // RGB Werte stufenlos mischen
+  const r = Math.round(rgb1[0] + (rgb2[0] - rgb1[0]) * t);
+  const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * t);
+  const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * t);
+
+  return rgbToHex(r, g, b);
 }
 
 async function handleNewDrink(drinkData) {
@@ -77,37 +109,56 @@ async function handleNewDrink(drinkData) {
     userDataMap[drinkData.user_id] = { name: uData?.display_name || "Unbekannt", score: 0 };
     userDrinksMap[drinkData.user_id] = [];
   }
-
   userDataMap[drinkData.user_id].score += calculateScore(drinkData.volume_ml, drinkData.alcohol_percent);
   userDrinksMap[drinkData.user_id].push(drinkData);
-  
   renderLeaderboard();
 }
 
+// ==========================================
+// RENDERING & AUTO-SCALING
+// ==========================================
 function renderLeaderboard() {
   const container = document.getElementById('live-stats');
   container.innerHTML = '';
 
-  // User nach Gesamtscore sortieren
   const sortedUserIds = Object.keys(userDataMap).sort((a, b) => userDataMap[b].score - userDataMap[a].score);
 
+  // 1. Finde den absolut höchsten Turm im Raum (für das Auto-Scaling)
+  let maxRawTowerHeight = 0;
+  
+  sortedUserIds.forEach(userId => {
+    let rawHeight = 0;
+    userDrinksMap[userId].forEach(drink => {
+      // Basis-Höhe pro Block (abhängig vom Volumen)
+      let h = Math.max(15, drink.volume_ml * 0.2); 
+      rawHeight += h + 2; // +2 für den Abstand
+    });
+    if (rawHeight > maxRawTowerHeight) maxRawTowerHeight = rawHeight;
+  });
+
+  // 2. Skalierungsfaktor berechnen
+  // Wir haben z.B. 600px Platz auf dem Bildschirm. Wenn der höchste Turm 1200px wäre, ist der Faktor 0.5 (alles wird halbiert).
+  const maxAllowedPixels = container.clientHeight * 0.8; // Wir nutzen 80% der verfügbaren Container-Höhe
+  let scaleFactor = maxAllowedPixels / (maxRawTowerHeight || 1);
+  
+  // Wenn erst ein Drink drin ist, wollen wir den nicht über den ganzen Bildschirm ziehen
+  if (scaleFactor > 1.2) scaleFactor = 1.2; 
+
+  // 3. Türme zeichnen
   sortedUserIds.forEach((userId) => {
     const user = userDataMap[userId];
     const drinks = userDrinksMap[userId];
-    
     if (user.score === 0 || drinks.length === 0) return;
 
-    // Container für die ganze Spalte dieses Spielers
     const col = document.createElement('div');
     col.className = 'player-column';
+    col.style.position = 'relative';
 
-    // Zeigt den Gesamt-Score oben drüber an (gerundet)
     const scoreLabel = document.createElement('div');
     scoreLabel.className = 'player-score';
     scoreLabel.innerText = Math.round(user.score);
     col.appendChild(scoreLabel);
 
-    // Der eigentliche Turm aus Drinks
     const tower = document.createElement('div');
     tower.className = 'player-tower';
 
@@ -115,26 +166,25 @@ function renderLeaderboard() {
       const block = document.createElement('div');
       block.className = 'drink-block';
       
-      // HÖHE: Menge bestimmt die Höhe (z.B. 500ml * 0.3 = 150px hoch)
-      // Wichtig: Maximalhöhe begrenzen, falls jemand "10000ml" eingibt
-      let h = Math.min(drink.volume_ml * 0.3, 300);
-      // Mindesthöhe, damit auch ein 20ml Shot sichtbar ist
-      if (h < 15) h = 15; 
+      // HÖHE mit Scale-Faktor anpassen
+      let rawH = Math.max(15, drink.volume_ml * 0.2);
+      block.style.height = `${rawH * scaleFactor}px`;
       
-      block.style.height = `${h}px`;
+      // BREITE abhängig vom Volumen (mind. 40px für Shots, max 130px für Maßkrüge)
+      let blockW = 40 + (drink.volume_ml / 500) * 80;
+      blockW = Math.min(Math.max(blockW, 40), 130);
+      block.style.width = `${blockW}px`;
       
-      // FARBE: Abhängig vom Alkoholgehalt
-      block.style.backgroundColor = getColorForAlcohol(drink.alcohol_percent);
-      
-      // Leichter Glow-Effekt für die Farbe
-      block.style.boxShadow = `0 0 10px ${getColorForAlcohol(drink.alcohol_percent)}66`;
+      // STUFENLOSE FARBE
+      const hexColor = getContinuousColor(drink.alcohol_percent);
+      block.style.backgroundColor = hexColor;
+      block.style.boxShadow = `0 0 12px ${hexColor}80`; // 80 ist Hex für 50% Deckkraft
 
       tower.appendChild(block);
     });
 
     col.appendChild(tower);
 
-    // Name des Spielers ganz unten (unter der Linie)
     const nameLabel = document.createElement('div');
     nameLabel.className = 'player-name';
     nameLabel.innerText = user.name;
@@ -143,5 +193,8 @@ function renderLeaderboard() {
     container.appendChild(col);
   });
 }
+
+// Fenstergröße anpassen (Skaliert live neu, wenn du das Browser-Fenster ziehst!)
+window.addEventListener('resize', renderLeaderboard);
 
 initLeaderboard();
