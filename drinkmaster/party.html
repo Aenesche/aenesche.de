@@ -48,6 +48,7 @@
       outline: none;
     }
     input:focus { border-color: var(--neon-cyan); }
+    
 
     .btn {
       background: transparent; color: white;
@@ -139,9 +140,10 @@
   <div id="login-section">
     <h1>Join <span class="neon-text" id="room-display">...</span></h1>
     <p style="margin-bottom: 20px; color: #888;">Gib deinen Namen ein, um zu starten.</p>
-    
-    <input type="text" id="usernameInput" placeholder="Dein Name" autocomplete="off">
-    <button class="btn" onclick="joinParty()">Let's Go</button>
+
+        <input type="text" id="usernameInput" placeholder="Dein Name" autocomplete="off">
+    <input type="password" id="passwordInput" placeholder="Passwort (Optional)" autocomplete="off">
+    <button class="btn" onclick="joinParty()">Let's Gooo</button>
   </div>
 
   <div id="dashboard-section" class="hidden">
