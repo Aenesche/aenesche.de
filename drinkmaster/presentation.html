@@ -7,10 +7,7 @@
   <style>
     :root {
       --bg-color: #0d0d0d;
-      --neon-cyan: #00f3ff;
-      --neon-pink: #ff00ea;
       --text-main: #ffffff;
-      --panel-bg: #1a1a1a;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
@@ -19,102 +16,109 @@
       background-color: var(--bg-color);
       color: var(--text-main);
       display: flex;
-      flex-direction: column;
       height: 100vh;
-      overflow: hidden; /* Auf dem Beamer wollen wir nicht scrollen */
+      overflow: hidden;
     }
 
-    /* Header mit dem Raum-Code */
-    header {
-      padding: 20px;
-      text-align: center;
-      background-color: #000;
-      border-bottom: 2px solid var(--neon-cyan);
-      box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
-    }
-
-    h1 { font-size: 2.5rem; letter-spacing: 2px; }
-    .neon-text { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0, 243, 255, 0.8); font-size: 4rem;}
-
-    /* Layout: Links QR-Code, Rechts Leaderboard */
-    .container {
-      display: flex;
-      flex: 1;
-      padding: 20px;
-      gap: 20px;
-    }
-
-    .qr-panel {
-      flex: 0 0 350px;
-      background: var(--panel-bg);
-      border-radius: 15px;
-      border: 1px solid #333;
+    /* Linke Spalte: Infos & QR */
+    .info-panel {
+      width: 300px;
+      padding: 40px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      border-right: 2px solid #333; /* Die Y-Achse deines Diagramms */
+      background: #111;
     }
 
-    .qr-panel h2 { margin-bottom: 20px; color: var(--neon-pink); }
-    
-    /* Der QR Code Container bekommt einen weißen Hintergrund, damit Handys ihn gut scannen können */
-    #qrcode {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-    }
+    .room-code-box { text-align: center; margin-bottom: 50px; }
+    .room-code-box h3 { color: #888; font-weight: normal; margin-bottom: 10px; text-transform: uppercase;}
+    .neon-text { color: #00f3ff; font-size: 3.5rem; letter-spacing: 3px; font-weight: bold; text-shadow: 0 0 15px rgba(0, 243, 255, 0.5); }
 
-    .leaderboard-panel {
+    .qr-box { text-align: center; }
+    .qr-box h3 { color: #888; font-weight: normal; margin-bottom: 15px; text-transform: uppercase; }
+    #qrcode { background: white; padding: 15px; border-radius: 10px; display: inline-block;}
+
+    /* Rechte Spalte: Das Diagramm */
+    .chart-area {
       flex: 1;
-      background: var(--panel-bg);
-      border-radius: 15px;
-      border: 1px solid #333;
-      padding: 20px;
+      position: relative;
       display: flex;
       flex-direction: column;
+      padding: 40px;
     }
 
-    .leaderboard-panel h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 2rem;
-      border-bottom: 1px solid #333;
-      padding-bottom: 10px;
-    }
-
-    /* Platzhalter für die späteren Blöcke */
     #live-stats {
       flex: 1;
       display: flex;
-      align-items: flex-end; /* Blöcke wachsen von unten nach oben */
+      align-items: flex-end; /* Baut die Türme von unten auf */
       justify-content: space-around;
-      gap: 10px;
-      padding: 20px;
+      border-bottom: 2px solid #333; /* Die X-Achse deines Diagramms */
+      padding-bottom: 1px; /* Damit die Blöcke exakt auf der Linie stehen */
+    }
+
+    /* Styling für die einzelnen Drink-Blöcke */
+    .drink-block {
+      width: 100%;
+      border-radius: 4px;
+      margin-bottom: 2px; /* Kleiner Spalt zwischen den Drinks */
+      transition: all 0.5s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3) inset;
+    }
+
+    /* Container für einen Spieler */
+    .player-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      width: 80px;
+      height: 100%;
+    }
+
+    .player-tower {
+      display: flex;
+      flex-direction: column-reverse; /* WICHTIG: Erster Drink ist ganz unten! */
+      width: 100%;
+      align-items: center;
+    }
+
+    .player-name {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #ccc;
+      text-align: center;
+      width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .player-score {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>RAUM CODE: <br><span id="roomCodeDisplay" class="neon-text">LÄDT...</span></h1>
-  </header>
-
-  <div class="container">
-    <div class="qr-panel">
-      <h2>Join the Party</h2>
+  <div class="info-panel">
+    <div class="room-code-box">
+      <h3>Raum Code</h3>
+      <div id="roomCodeDisplay" class="neon-text">...</div>
+    </div>
+    
+    <div class="qr-box">
+      <h3>Join Party</h3>
       <div id="qrcode"></div>
-      <p style="margin-top: 20px; color: #aaa; text-align: center;">Scanne den Code oder gehe auf<br><strong style="color: white;">aenesche.de/drinkmaster</strong></p>
     </div>
+  </div>
 
-    <div class="leaderboard-panel">
-      <h2>LIVE RANKING</h2>
-      <div id="live-stats">
-        <p style="color: #666; width: 100%; text-align: center; align-self: center;">Warte auf die ersten Drinks...</p>
+  <div class="chart-area">
+    <div id="live-stats">
       </div>
-    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
