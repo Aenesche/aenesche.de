@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Beamer Ansicht - Drinkmaster</title>
   <style>
-    :root {
+        :root {
       --bg-color: #0d0d0d;
       --text-main: #ffffff;
     }
@@ -28,8 +28,9 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      border-right: 2px solid #333; /* Die Y-Achse deines Diagramms */
+      border-right: 2px solid #333;
       background: #111;
+      z-index: 10;
     }
 
     .room-code-box { text-align: center; margin-bottom: 50px; }
@@ -46,23 +47,25 @@
       position: relative;
       display: flex;
       flex-direction: column;
+      justify-content: flex-end; /* Drückt alles nach unten an die Linie */
       padding: 40px;
+      padding-bottom: 20px;
     }
 
     #live-stats {
-      flex: 1;
+      width: 100%;
+      height: 75vh; /* Feste Höhe, damit die Namen nie aus dem Bild fliegen */
       display: flex;
-      align-items: flex-end; /* Baut die Türme von unten auf */
+      align-items: flex-end; /* Blöcke stapeln sich von unten nach oben */
       justify-content: space-around;
-      border-bottom: 2px solid #333; /* Die X-Achse deines Diagramms */
-      padding-bottom: 1px; /* Damit die Blöcke exakt auf der Linie stehen */
+      border-bottom: 2px solid #333; /* Die X-Achse */
+      padding-bottom: 2px;
     }
 
     /* Styling für die einzelnen Drink-Blöcke */
     .drink-block {
-      width: 100%;
       border-radius: 4px;
-      margin-bottom: 2px; /* Kleiner Spalt zwischen den Drinks */
+      margin-bottom: 2px;
       transition: all 0.5s ease;
       box-shadow: 0 4px 6px rgba(0,0,0,0.3) inset;
     }
@@ -73,33 +76,38 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
-      width: 80px;
+      width: 140px; /* Genug Platz für die fetten Bier-Blöcke */
       height: 100%;
     }
 
     .player-tower {
       display: flex;
-      flex-direction: column-reverse; /* WICHTIG: Erster Drink ist ganz unten! */
+      flex-direction: column-reverse; /* Erster Drink ganz unten */
       width: 100%;
       align-items: center;
     }
 
+    /* Die Namen hängen jetzt fix unter der X-Achse */
     .player-name {
       margin-top: 15px;
       font-weight: bold;
       color: #ccc;
       text-align: center;
-      width: 100px;
+      width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
+      position: absolute; /* Löst den Namen aus dem Flex-Flow der Säule */
+      bottom: -35px; /* Positioniert ihn genau unter der Linie */
     }
     
     .player-score {
-      font-size: 1.2rem;
+      font-size: 1.5rem;
       font-weight: bold;
       color: #fff;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
+      text-shadow: 0 0 10px rgba(255,255,255,0.3);
     }
+
   </style>
 </head>
 <body>
