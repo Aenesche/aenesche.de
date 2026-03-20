@@ -235,9 +235,28 @@ async function submitDrink() {
 let reactionTimer = null;
 let reactionStartTime = 0;
 let isGreen = false;
+let isWaiting = false;
 
 function startReactionTest() {
   document.getElementById('reaction-overlay').classList.remove('hidden');
+  
+  // UI auf Start-Zustand setzen
+  document.getElementById('reaction-title').innerText = 'Fokus...';
+  document.getElementById('reaction-pad').classList.add('hidden');
+  document.getElementById('reaction-anim').classList.add('hidden');
+  document.getElementById('btn-start-reaction').classList.remove('hidden');
+  
+  isGreen = false;
+  isWaiting = false;
+  clearTimeout(reactionTimer);
+}
+
+function beginReactionTimer() {
+  // Start-Button weg, Klickfeld und Animation her!
+  document.getElementById('btn-start-reaction').classList.add('hidden');
+  document.getElementById('reaction-pad').classList.remove('hidden');
+  document.getElementById('reaction-anim').classList.remove('hidden'); 
+  
   resetReactionPad();
 }
 
@@ -248,21 +267,27 @@ function closeReactionTest() {
 
 function resetReactionPad() {
   isGreen = false;
+  isWaiting = true;
   const pad = document.getElementById('reaction-pad');
   const title = document.getElementById('reaction-title');
+  const anim = document.getElementById('reaction-anim');
   
   pad.style.background = '#e53e3e'; // Rot
   pad.style.boxShadow = '0 0 30px #e53e3e80';
   pad.innerText = 'ACHTUNG';
   title.innerText = 'Warte auf GRÜN...';
+  anim.classList.remove('hidden'); // Animation zeigen, während es rot ist
 
   clearTimeout(reactionTimer);
   
-  // Zufällige Wartezeit zwischen 2 und 6 Sekunden
-  const randomDelay = Math.floor(Math.random() * 4000) + 2000; 
+  // Zufällige Wartezeit zwischen 3 und 10 Sekunden (3000ms bis 10000ms)
+  const randomDelay = Math.floor(Math.random() * 7000) + 3000; 
   
   reactionTimer = setTimeout(() => {
     isGreen = true;
+    isWaiting = false;
+    anim.classList.add('hidden'); // Animation verstecken, wenn es losgeht!
+    
     pad.style.background = '#48bb78'; // Grün
     pad.style.boxShadow = '0 0 30px #48bb7880';
     pad.innerText = 'JETZT DRÜCKEN!';
@@ -270,8 +295,10 @@ function resetReactionPad() {
   }, randomDelay);
 }
 
-// Klick-Event auf das rote/grüne Feld
 document.getElementById('reaction-pad').addEventListener('click', async () => {
+  // Verhindern, dass Klicks vor dem Start-Button-Drücken zählen
+  if (!isWaiting && !isGreen) return; 
+
   const pad = document.getElementById('reaction-pad');
   const title = document.getElementById('reaction-title');
 
@@ -285,6 +312,7 @@ document.getElementById('reaction-pad').addEventListener('click', async () => {
   // Erfolgreich gedrückt!
   const reactionTime = Date.now() - reactionStartTime;
   clearTimeout(reactionTimer);
+  isGreen = false;
   
   pad.style.background = '#3182ce'; // Blau als Bestätigung
   pad.style.boxShadow = '0 0 30px #3182ce80';
@@ -300,12 +328,11 @@ document.getElementById('reaction-pad').addEventListener('click', async () => {
     reaction_time_ms: reactionTime
   }]);
 
-  // Nach 2 Sekunden das Spiel schließen und Button sperren
+  // Nach 2,5 Sekunden das Spiel schließen
   setTimeout(() => {
     closeReactionTest();
     loadUserStats();
-  }, 2000);
+  }, 2500);
 });
-
 // Start!
 init();
