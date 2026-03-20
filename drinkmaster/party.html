@@ -67,6 +67,7 @@
       margin: 0 auto;
       width: 100%;
     }
+    
 
     .header-bar {
       display: flex;
@@ -162,6 +163,12 @@
 
     <button class="btn btn-submit" id="submitBtn" onclick="submitDrink()">DRINK EINTRAGEN</button>
   </div>
+
+  <div style="text-align: center; margin-top: 15px; margin-bottom: 20px;">
+  <button class="btn" id="btn-reaction-test" onclick="startReactionTest()" disabled style="border-color: #f6e05e; color: #f6e05e; box-shadow: none;">
+    🔒 Reaktionstest (Trink mehr zum Freischalten!)
+  </button>
+</div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="party.js"></script>
