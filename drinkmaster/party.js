@@ -11,8 +11,8 @@ let currentUserId = null;
 let totalPureAlcohol = 0;
 let currentBucket = 0;
 let completedBuckets = [];
-let userReactions = []; // NEU: Speichert alle gespielten Runden für das Diagramm
-let myChartInstance = null; // NEU: Unsere Graphen-Instanz
+let userReactions = []; // Speichert alle gespielten Runden für das Diagramm
+let myChartInstance = null; // Unsere Graphen-Instanz
 
 const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard-section');
@@ -49,7 +49,7 @@ async function joinParty() {
 
   if (username.length < 2) { alert("Bitte gib einen Namen ein (min. 2 Zeichen)."); return; }
 
-  const { data: existingUser, error: checkError } = await client.from('party_users').select('id, password_hash, local_token').eq('room_id', currentRoomId).eq('display_name', username).maybeSingle();
+  const { data: existingUser } = await client.from('party_users').select('id, password_hash, local_token').eq('room_id', currentRoomId).eq('display_name', username).maybeSingle();
 
   if (existingUser) {
     if (existingUser.password_hash && existingUser.password_hash !== password) {
@@ -87,7 +87,7 @@ async function loadUserStats() {
   }
   currentBucket = Math.floor(totalPureAlcohol / 10);
 
-  // NEU: Wir laden ALLE Daten der Tests (für das Diagramm)
+  // Reaktionen für das Diagramm laden
   const { data: reactions } = await client.from('party_reactions').select('*').eq('user_id', currentUserId).order('pure_alcohol_ml', { ascending: true });
   
   userReactions = reactions || [];
@@ -114,13 +114,15 @@ function updateReactionButton() {
   }
 }
 
+// ==========================================
+// UI & STATS GRAPH
+// ==========================================
 function showDashboard() {
   loginSection.classList.add('hidden');
   statsSection.classList.add('hidden');
   dashboardSection.classList.remove('hidden');
 }
 
-// NEU: Stats Anzeigen & Graphen generieren
 function showPersonalStats() {
   dashboardSection.classList.add('hidden');
   statsSection.classList.remove('hidden');
@@ -171,7 +173,7 @@ function renderChart() {
           ticks: { color: '#888' }
         },
         y: {
-          title: { display: true, text: 'Reaktionszeit (Millisekunden)', color: '#ccc', font: {size: 14} },
+          title: { display: true, text: 'Reaktionszeit (ms)', color: '#ccc', font: {size: 14} },
           grid: { color: '#333' },
           ticks: { color: '#888' },
           beginAtZero: false
@@ -184,6 +186,9 @@ function renderChart() {
   });
 }
 
+// ==========================================
+// SLIDER & DRINKS
+// ==========================================
 function updateSliders() {
   document.getElementById('vol-val').innerText = volSlider.value;
   document.getElementById('alc-val').innerText = alcSlider.value;
@@ -230,7 +235,9 @@ async function submitDrink() {
   }
 }
 
+// ==========================================
 // GAME LOGIK
+// ==========================================
 let reactionTimer = null;
 let reactionStartTime = 0;
 let isGreen = false;
