@@ -86,7 +86,7 @@ function toggleView() {
   if (isGraphView) {
     document.getElementById('live-stats').style.display = 'none';
     document.getElementById('global-chart-container').style.display = 'block';
-    btn.innerText = '🍺 Zeige Jenga-Turm';
+    btn.innerText = 'Zurrück 🍺';
     btn.style.borderColor = '#00f3ff';
     btn.style.color = '#00f3ff';
     renderGlobalChart();
