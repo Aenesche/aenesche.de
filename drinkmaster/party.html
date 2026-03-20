@@ -118,6 +118,22 @@
     .btn-submit:disabled {
       border-color: #555; color: #888; box-shadow: none; cursor: not-allowed;
     }
+
+    /* Neue Animation für das drehende Logo */
+    @keyframes spinAndPulse {
+      0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+      50% { transform: scale(1.2) rotate(180deg); opacity: 1; text-shadow: 0 0 20px var(--neon-cyan); }
+      100% { transform: scale(1) rotate(360deg); opacity: 0.8; }
+    }
+    
+    .spinning-logo {
+      font-size: 1.5rem;
+      color: var(--neon-cyan);
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin-bottom: 30px;
+      animation: spinAndPulse 3s linear infinite;
+    }
   </style>
 </head>
 <body>
@@ -164,21 +180,20 @@
     <button class="btn btn-submit" id="submitBtn" onclick="submitDrink()">DRINK EINTRAGEN</button>
   </div>
 
-  <div style="text-align: center; margin-top: 15px; margin-bottom: 20px;">
-  <button class="btn" id="btn-reaction-test" onclick="startReactionTest()" disabled style="border-color: #f6e05e; color: #f6e05e; box-shadow: none;">
-    🔒 Reaktionstest (Trink mehr zum Freischalten!)
-  </button>
-</div>
-
   <div id="reaction-overlay" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #111; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
   
-  <h2 id="reaction-title" style="margin-bottom: 20px; font-size: 2rem; text-align: center; padding: 20px;">Warte auf GRÜN...</h2>
+  <h2 id="reaction-title" style="margin-bottom: 20px; font-size: 2rem; text-align: center; padding: 20px;">Bist du bereit?</h2>
   
-  <div id="reaction-pad" style="width: 80vw; height: 50vh; background: #e53e3e; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; cursor: pointer; box-shadow: 0 0 30px #e53e3e80; transition: background 0.1s;">
+  <div id="reaction-anim" class="hidden spinning-logo">AENESCHE.DE</div>
+
+  <button id="btn-start-reaction" class="btn" onclick="beginReactionTimer()" style="margin-bottom: 30px; border-color: var(--neon-cyan); color: var(--neon-cyan);">TEST STARTEN</button>
+
+  <div id="reaction-pad" class="hidden" style="width: 80vw; height: 40vh; background: #e53e3e; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; cursor: pointer; box-shadow: 0 0 30px #e53e3e80; transition: background 0.1s; text-align: center;">
     ACHTUNG
   </div>
 
-  <button class="btn" onclick="closeReactionTest()" style="margin-top: 40px; border-color: #888; color: #888;">Abbrechen</button>
+  <button class="btn" onclick="closeReactionTest()" style="margin-top: 20px; border-color: #888; color: #888;">Schließen</button>
+</div>" onclick="closeReactionTest()" style="margin-top: 40px; border-color: #888; color: #888;">Abbrechen</button>
 </div>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
