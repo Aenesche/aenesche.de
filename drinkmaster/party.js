@@ -11,9 +11,12 @@ let currentUserId = null;
 let totalPureAlcohol = 0;
 let currentBucket = 0;
 let completedBuckets = [];
+let userReactions = []; // NEU: Speichert alle gespielten Runden für das Diagramm
+let myChartInstance = null; // NEU: Unsere Graphen-Instanz
 
 const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard-section');
+const statsSection = document.getElementById('stats-section');
 const volSlider = document.getElementById('volumeSlider');
 const alcSlider = document.getElementById('alcSlider');
 
@@ -84,33 +87,101 @@ async function loadUserStats() {
   }
   currentBucket = Math.floor(totalPureAlcohol / 10);
 
-  const { data: reactions } = await client.from('party_reactions').select('alcohol_bucket').eq('user_id', currentUserId);
-  completedBuckets = reactions ? reactions.map(r => r.alcohol_bucket) : [];
+  // NEU: Wir laden ALLE Daten der Tests (für das Diagramm)
+  const { data: reactions } = await client.from('party_reactions').select('*').eq('user_id', currentUserId).order('pure_alcohol_ml', { ascending: true });
+  
+  userReactions = reactions || [];
+  completedBuckets = userReactions.map(r => r.alcohol_bucket);
 
   updateReactionButton();
 }
 
 function updateReactionButton() {
   const btn = document.getElementById('btn-reaction-test');
-  if (!btn) return; // Hier ist die Sicherheitsabfrage!
+  if (!btn) return;
 
   if (completedBuckets.includes(currentBucket)) {
     btn.disabled = true;
     btn.style.borderColor = '#555';
     btn.style.color = '#888';
     const nextTarget = (currentBucket + 1) * 10;
-    btn.innerText = `🔒 Test gemacht! Nächster ab ${nextTarget} ml purem Alkohol`;
+    btn.innerText = `🔒 Gespielt! (Next: ${nextTarget}ml)`;
   } else {
     btn.disabled = false;
     btn.style.borderColor = '#f6e05e';
     btn.style.color = '#f6e05e';
-    btn.innerText = `🎮 Reaktionstest spielen! (Stufe ${currentBucket})`;
+    btn.innerText = `🎮 Spielen! (Stufe ${currentBucket})`;
   }
 }
 
 function showDashboard() {
   loginSection.classList.add('hidden');
+  statsSection.classList.add('hidden');
   dashboardSection.classList.remove('hidden');
+}
+
+// NEU: Stats Anzeigen & Graphen generieren
+function showPersonalStats() {
+  dashboardSection.classList.add('hidden');
+  statsSection.classList.remove('hidden');
+  renderChart();
+}
+
+function hidePersonalStats() {
+  statsSection.classList.add('hidden');
+  dashboardSection.classList.remove('hidden');
+}
+
+function renderChart() {
+  const ctx = document.getElementById('myChart').getContext('2d');
+  
+  // Formatieren der Daten für Chart.js
+  const dataPoints = userReactions.map(r => ({
+    x: r.pure_alcohol_ml,
+    y: r.reaction_time_ms
+  }));
+
+  if (myChartInstance) {
+    myChartInstance.destroy(); // Alten Graphen löschen, falls existent
+  }
+
+  myChartInstance = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Reaktionszeit',
+        data: dataPoints,
+        borderColor: '#00f3ff', // Cyan Linie
+        backgroundColor: '#ff00ea', // Pinke Punkte
+        borderWidth: 3,
+        pointRadius: 6,
+        pointHoverRadius: 9,
+        showLine: true, // Verbindet die Punkte zu einer Kurve!
+        tension: 0.3 // Macht die Kurve leicht geschwungen
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          type: 'linear',
+          title: { display: true, text: 'Getrunkener Reinalkohol (ml)', color: '#ccc', font: {size: 14} },
+          grid: { color: '#333' },
+          ticks: { color: '#888' }
+        },
+        y: {
+          title: { display: true, text: 'Reaktionszeit (Millisekunden)', color: '#ccc', font: {size: 14} },
+          grid: { color: '#333' },
+          ticks: { color: '#888' },
+          beginAtZero: false
+        }
+      },
+      plugins: {
+        legend: { display: false } // Versteckt die unnötige Legende
+      }
+    }
+  });
 }
 
 function updateSliders() {
