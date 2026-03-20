@@ -8,6 +8,11 @@ const roomCode = urlParams.get('room');
 let currentRoomId = null;
 let currentUserId = null;
 
+// User Stats für das Game
+let totalPureAlcohol = 0;
+let currentBucket = 0;
+let completedBuckets = [];
+
 const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard-section');
 const volSlider = document.getElementById('volumeSlider');
@@ -46,6 +51,9 @@ async function init() {
     if (userData) {
       currentUserId = userData.id;
       document.getElementById('display-name').innerText = userData.display_name;
+      
+      // NEU: Lade Drinks und gespielte Tests!
+      await loadUserStats();
       showDashboard();
       return;
     }
@@ -54,7 +62,7 @@ async function init() {
   loginSection.classList.remove('hidden');
 }
 
-// 2. User Logik (Mit sicherem Passwort-Check)
+// 2. User Logik
 async function joinParty() {
   const username = document.getElementById('usernameInput').value.trim();
   const password = document.getElementById('passwordInput').value.trim(); 
@@ -64,7 +72,6 @@ async function joinParty() {
     return;
   }
 
-  // Prüfen, ob der Name schon existiert (maybeSingle verhindert Absturz bei neuem User!)
   const { data: existingUser, error: checkError } = await client
     .from('party_users')
     .select('id, password_hash, local_token')
@@ -73,7 +80,6 @@ async function joinParty() {
     .maybeSingle();
 
   if (existingUser) {
-    // Name existiert -> Passwort abgleichen
     if (existingUser.password_hash && existingUser.password_hash !== password) {
       alert("Dieser Name ist durch ein Passwort geschützt!");
       return;
@@ -85,11 +91,11 @@ async function joinParty() {
     localStorage.setItem(`token_${roomCode}`, existingUser.local_token);
     currentUserId = existingUser.id;
     document.getElementById('display-name').innerText = username;
+    await loadUserStats();
     showDashboard();
     return;
   }
 
-  // Name ist neu -> User in DB eintragen
   const localToken = crypto.randomUUID();
   const { data, error } = await client
     .from('party_users')
@@ -110,10 +116,59 @@ async function joinParty() {
   localStorage.setItem(`token_${roomCode}`, localToken);
   currentUserId = data.id;
   document.getElementById('display-name').innerText = username;
+  await loadUserStats();
   showDashboard();
 }
 
-// 3. UI Helpers
+// 3. Stats & Game Status laden
+async function loadUserStats() {
+  // A. Alle Drinks des Users holen und reinen Alkohol berechnen
+  const { data: drinks } = await client
+    .from('party_drinks')
+    .select('volume_ml, alcohol_percent')
+    .eq('user_id', currentUserId);
+  
+  totalPureAlcohol = 0;
+  if (drinks) {
+    drinks.forEach(d => {
+      totalPureAlcohol += d.volume_ml * (d.alcohol_percent / 100);
+    });
+  }
+  
+  // Stufe berechnen (pro 10ml ein neuer Bucket)
+  currentBucket = Math.floor(totalPureAlcohol / 10);
+
+  // B. Gespielte Tests abrufen
+  const { data: reactions } = await client
+    .from('party_reactions')
+    .select('alcohol_bucket')
+    .eq('user_id', currentUserId);
+    
+  completedBuckets = reactions ? reactions.map(r => r.alcohol_bucket) : [];
+
+  updateReactionButton();
+}
+
+function updateReactionButton() {
+  const btn = document.getElementById('btn-reaction-test');
+  
+  if (completedBuckets.includes(currentBucket)) {
+    // Test für diese Stufe schon gemacht
+    btn.disabled = true;
+    btn.style.borderColor = '#555';
+    btn.style.color = '#888';
+    const nextTarget = (currentBucket + 1) * 10;
+    btn.innerText = `🔒 Test gemacht! Nächster ab ${nextTarget} ml purem Alkohol`;
+  } else {
+    // Test ist frei!
+    btn.disabled = false;
+    btn.style.borderColor = '#f6e05e';
+    btn.style.color = '#f6e05e';
+    btn.innerText = `🎮 Reaktionstest spielen! (Stufe ${currentBucket})`;
+  }
+}
+
+// 4. UI Helpers
 function showDashboard() {
   loginSection.classList.add('hidden');
   dashboardSection.classList.remove('hidden');
@@ -130,16 +185,14 @@ function setPreset(vol, alc) {
   updateSliders();
 }
 
-// 4. Drink Eintragen (Mit 10 Sek Cooldown)
+// 5. Drink Eintragen
 async function submitDrink() {
   const btn = document.getElementById('submitBtn');
-  
   if (btn.disabled) return;
 
   const vol = parseInt(volSlider.value);
   const alc = parseFloat(alcSlider.value);
 
-  // Button sperren
   btn.disabled = true;
   btn.innerText = "WIRD GESENDET...";
 
@@ -157,13 +210,14 @@ async function submitDrink() {
     btn.disabled = false;
     btn.innerText = "DRINK EINTRAGEN";
   } else {
-    // ERFOLG! Countdown starten
+    // Nach dem Eintragen sofort die Stats neu laden, um das Game evtl. freizuschalten
+    await loadUserStats();
+
     let timeLeft = 10;
     btn.innerText = `PROST! 🍻 (${timeLeft}s)`;
 
     const cooldownTimer = setInterval(() => {
       timeLeft -= 1;
-      
       if (timeLeft > 0) {
         btn.innerText = `PROST! 🍻 (${timeLeft}s)`;
       } else {
@@ -174,6 +228,84 @@ async function submitDrink() {
     }, 1000); 
   }
 }
+
+// ==========================================
+// 6. GAME LOGIK (REAKTIONSTEST)
+// ==========================================
+let reactionTimer = null;
+let reactionStartTime = 0;
+let isGreen = false;
+
+function startReactionTest() {
+  document.getElementById('reaction-overlay').classList.remove('hidden');
+  resetReactionPad();
+}
+
+function closeReactionTest() {
+  document.getElementById('reaction-overlay').classList.add('hidden');
+  clearTimeout(reactionTimer);
+}
+
+function resetReactionPad() {
+  isGreen = false;
+  const pad = document.getElementById('reaction-pad');
+  const title = document.getElementById('reaction-title');
+  
+  pad.style.background = '#e53e3e'; // Rot
+  pad.style.boxShadow = '0 0 30px #e53e3e80';
+  pad.innerText = 'ACHTUNG';
+  title.innerText = 'Warte auf GRÜN...';
+
+  clearTimeout(reactionTimer);
+  
+  // Zufällige Wartezeit zwischen 2 und 6 Sekunden
+  const randomDelay = Math.floor(Math.random() * 4000) + 2000; 
+  
+  reactionTimer = setTimeout(() => {
+    isGreen = true;
+    pad.style.background = '#48bb78'; // Grün
+    pad.style.boxShadow = '0 0 30px #48bb7880';
+    pad.innerText = 'JETZT DRÜCKEN!';
+    reactionStartTime = Date.now();
+  }, randomDelay);
+}
+
+// Klick-Event auf das rote/grüne Feld
+document.getElementById('reaction-pad').addEventListener('click', async () => {
+  const pad = document.getElementById('reaction-pad');
+  const title = document.getElementById('reaction-title');
+
+  if (!isGreen) {
+    // Zu früh gedrückt! Strafe: Timer startet neu
+    title.innerText = 'Zu früh! Noch ein Versuch...';
+    resetReactionPad();
+    return;
+  }
+
+  // Erfolgreich gedrückt!
+  const reactionTime = Date.now() - reactionStartTime;
+  clearTimeout(reactionTimer);
+  
+  pad.style.background = '#3182ce'; // Blau als Bestätigung
+  pad.style.boxShadow = '0 0 30px #3182ce80';
+  pad.innerText = 'GESPEICHERT';
+  title.innerText = `${reactionTime} Millisekunden!`;
+
+  // Daten an Supabase senden
+  await client.from('party_reactions').insert([{
+    user_id: currentUserId,
+    room_id: currentRoomId,
+    alcohol_bucket: currentBucket,
+    pure_alcohol_ml: totalPureAlcohol,
+    reaction_time_ms: reactionTime
+  }]);
+
+  // Nach 2 Sekunden das Spiel schließen und Button sperren
+  setTimeout(() => {
+    closeReactionTest();
+    loadUserStats();
+  }, 2000);
+});
 
 // Start!
 init();
