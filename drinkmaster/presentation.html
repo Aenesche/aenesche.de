@@ -23,14 +23,28 @@
     .btn-toggle:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 20px rgba(255,0,234,0.6); }
 
     /* Rechte Spalte: Die Diagramme */
-    .chart-area { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px; padding-bottom: 20px; }
-
+    .chart-area { 
+          flex: 1; position: relative; display: flex; flex-direction: column; 
+          justify-content: flex-end; padding: 40px; 
+          padding-bottom: 80px; /* MEHR PLATZ NACH UNTEN FÜR DIE NAMEN */
+    }
     /* Der alte Jenga-Turm */
     #live-stats { width: 100%; height: 75vh; display: flex; align-items: flex-end; justify-content: space-around; border-bottom: 2px solid #333; padding-bottom: 2px; }
     .drink-block { border-radius: 4px; margin-bottom: 2px; transition: all 0.5s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.3) inset; }
     .player-column { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1 1 0; max-width: 140px; min-width: 20px; height: 100%; position: relative; }
     .player-tower { display: flex; flex-direction: column-reverse; width: 100%; align-items: center; }
-    .player-name { margin-top: 15px; font-weight: bold; color: #ccc; text-align: center; width: 100%; word-wrap: break-word; font-size: clamp(0.5rem, 1.5vw, 1rem); position: absolute; bottom: -35px; }
+    .player-name { 
+          margin-top: 10px; font-weight: bold; color: #ccc; 
+          width: 100px; /* Feste Breite für die Rotation */
+          font-size: clamp(0.7rem, 1.5vw, 1rem); 
+          position: absolute; 
+          bottom: -60px; /* Weiter nach unten schieben */
+          transform: rotate(-45deg); /* Schräg stellen! */
+          transform-origin: top left;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+    }
     .player-score { font-size: 1.5rem; font-weight: bold; color: #fff; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
     /* NEU: Reaktions-Chart Container */
