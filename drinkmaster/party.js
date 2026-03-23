@@ -127,6 +127,42 @@ function showPersonalStats() {
   dashboardSection.classList.add('hidden');
   statsSection.classList.remove('hidden');
   renderChart();
+  renderPersonalStatsUI(); // NEU
+}
+
+function renderPersonalStatsUI() {
+  const pbEl = document.getElementById('pb-time');
+  const pwEl = document.getElementById('pw-time');
+  const historyEl = document.getElementById('history-list');
+
+  if (userReactions.length === 0) {
+    pbEl.innerText = '-- ms';
+    pwEl.innerText = '-- ms';
+    historyEl.innerHTML = '<p style="color: #666; text-align: center;">Noch keine Tests gespielt.</p>';
+    return;
+  }
+
+  // PB und PW berechnen
+  let minTime = Math.min(...userReactions.map(r => r.reaction_time_ms));
+  let maxTime = Math.max(...userReactions.map(r => r.reaction_time_ms));
+
+  pbEl.innerText = minTime + ' ms';
+  pwEl.innerText = maxTime + ' ms';
+
+  // Liste füllen (Neueste zuerst)
+  historyEl.innerHTML = '';
+  [...userReactions].reverse().forEach(r => {
+    const div = document.createElement('div');
+    div.style.borderBottom = '1px solid #333';
+    div.style.padding = '8px 0';
+    div.style.display = 'flex';
+    div.style.justifyContent = 'space-between';
+    div.innerHTML = `
+      <span style="color: #ccc;">Stufe ${r.alcohol_bucket} <span style="font-size: 0.8rem; color: #666;">(${Math.round(r.pure_alcohol_ml)}ml)</span></span>
+      <strong style="color: var(--neon-cyan);">${r.reaction_time_ms} ms</strong>
+    `;
+    historyEl.appendChild(div);
+  });
 }
 
 function hidePersonalStats() {
