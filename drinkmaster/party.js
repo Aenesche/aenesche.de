@@ -307,23 +307,32 @@ document.getElementById('reaction-pad').addEventListener('click', async () => {
     return;
   }
 
-  const reactionTime = Date.now() - reactionStartTime;
+  const rawReactionTime = Date.now() - reactionStartTime;
   clearTimeout(reactionTimer);
   isGreen = false;
   
   pad.style.background = '#3182ce'; 
   pad.style.boxShadow = '0 0 30px #3182ce80';
   pad.innerText = 'GESPEICHERT';
-  title.innerText = `${reactionTime} Millisekunden!`;
+
+  // Cap bei 3000ms und lustige Sprüche
+  let finalTime = rawReactionTime;
+  if (rawReactionTime > 3000) {
+    finalTime = 3000;
+    title.innerText = '3000+ ms... Mad cuz bad! 🐌';
+  } else if (rawReactionTime > 1000) {
+    title.innerText = `${finalTime} ms. Ein bisschen lahm, oder? 🐢`;
+  } else {
+    title.innerText = `${finalTime} Millisekunden! ⚡`;
+  }
 
   await client.from('party_reactions').insert([{
     user_id: currentUserId,
     room_id: currentRoomId,
     alcohol_bucket: currentBucket,
     pure_alcohol_ml: totalPureAlcohol,
-    reaction_time_ms: reactionTime
+    reaction_time_ms: finalTime // Hier speichern wir die gecappte Zeit
   }]);
-
   setTimeout(() => {
     closeReactionTest();
     loadUserStats();
