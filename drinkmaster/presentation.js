@@ -294,6 +294,8 @@ function renderLeaderboard() {
     drinks.forEach(drink => {
       const block = document.createElement('div');
       block.className = 'drink-block';
+      // NEU: Hover-Information (Zeigt ml und Vol% an, wenn du mit der Maus auf dem Beamer drüberfährst)
+      block.title = `${drink.volume_ml} ml | ${drink.alcohol_percent}% Vol.`;
       
       let rawH = Math.max(15, drink.volume_ml * 0.2);
       block.style.height = `${rawH * scaleFactor}px`;
