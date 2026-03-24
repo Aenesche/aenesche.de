@@ -114,13 +114,19 @@ function renderGlobalChart() {
   }));
 
   // 2. Durchschnittskurve (Gruppiert nach Bucket)
+  // NEU: Deine Stellschraube für die Kurve! (z.B. 10 = fasst alles in 10ml-Schritten zusammen)
+  const CURVE_GROUPING_ML = 20; 
+
   let avgCurveData = [];
   let buckets = {};
   globalReactions.forEach(r => {
-    if (!buckets[r.alcohol_bucket]) buckets[r.alcohol_bucket] = { sumX: 0, sumY: 0, count: 0 };
-    buckets[r.alcohol_bucket].sumX += r.pure_alcohol_ml;
-    buckets[r.alcohol_bucket].sumY += r.reaction_time_ms;
-    buckets[r.alcohol_bucket].count += 1;
+    // Wir ignorieren den Datenbank-Bucket und berechnen die Gruppierung live!
+    let dynamicBucket = Math.floor(r.pure_alcohol_ml / CURVE_GROUPING_ML);
+    
+    if (!buckets[dynamicBucket]) buckets[dynamicBucket] = { sumX: 0, sumY: 0, count: 0 };
+    buckets[dynamicBucket].sumX += r.pure_alcohol_ml;
+    buckets[dynamicBucket].sumY += r.reaction_time_ms;
+    buckets[dynamicBucket].count += 1;
   });
 
   Object.keys(buckets).sort((a,b) => a-b).forEach(bKey => {
