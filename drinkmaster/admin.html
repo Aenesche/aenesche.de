@@ -111,8 +111,16 @@
 
     async function deleteEntry(table, id) {
       if(!confirm("Eintrag wirklich löschen?")) return;
-      await client.from(table).delete().eq('id', id);
-      loadAllData();
+      
+      const { error } = await client.from(table).delete().eq('id', id);
+      
+      if (error) {
+        alert("Fehler beim Löschen: " + error.message);
+        console.error(error);
+      } else {
+        // Lädt die Admin-Liste neu. (Beamer aktualisiert sich ab jetzt von selbst!)
+        loadAllData();
+      }
     }
   </script>
 </body>
