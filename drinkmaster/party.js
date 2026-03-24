@@ -36,6 +36,13 @@ async function init() {
       currentUserId = userData.id;
       document.getElementById('display-name').innerText = userData.display_name;
       await loadUserStats();
+
+      // NEU: Das Handy lauscht jetzt auf Änderungen an den EIGENEN Daten!
+      client.channel('user_personal_updates')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'party_drinks', filter: `user_id=eq.${currentUserId}` }, () => { loadUserStats(); })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'party_reactions', filter: `user_id=eq.${currentUserId}` }, () => { loadUserStats(); })
+        .subscribe();
+
       showDashboard();
       return;
     }
