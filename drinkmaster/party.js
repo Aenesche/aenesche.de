@@ -302,9 +302,12 @@ function closeReactionTest() {
   clearTimeout(reactionTimer);
 }
 
+let isFailed = false; // NEUE VARIABLE
+
 function resetReactionPad() {
   isGreen = false;
   isWaiting = true;
+  isFailed = false; // Reset Fail-State
   const pad = document.getElementById('reaction-pad');
   const title = document.getElementById('reaction-title');
   const anim = document.getElementById('reaction-anim');
@@ -328,8 +331,64 @@ function resetReactionPad() {
     pad.style.boxShadow = '0 0 30px #48bb7880';
     pad.innerText = 'JETZT DRÜCKEN!';
     reactionStartTime = Date.now();
+
+    // NEU: AUTO-FAIL NACH 3 SEKUNDEN
+    reactionTimer = setTimeout(() => {
+      if (isGreen) {
+        isGreen = false;
+        isFailed = true; // Markiert das Spiel als fehlgeschlagen
+        pad.style.background = '#e53e3e';
+        pad.style.boxShadow = '0 0 30px #e53e3e80';
+        pad.innerText = 'FAIL';
+        title.innerHTML = 'Mad cuz bad! 🐌<br><span style="font-size: 1rem; color: #888;">(Zu langsam. Tippe für Neustart)</span>';
+      }
+    }, 3000);
+
   }, randomDelay);
 }
+
+document.getElementById('reaction-pad').addEventListener('click', async () => {
+  // Wenn der 3s Timer abgelaufen ist, startet ein Klick das Spiel einfach neu
+  if (isFailed) {
+    resetReactionPad();
+    return;
+  }
+
+  if (!isWaiting && !isGreen) return; 
+
+  const pad = document.getElementById('reaction-pad');
+  const title = document.getElementById('reaction-title');
+
+  if (!isGreen) {
+    title.innerText = 'Zu früh! Noch ein Versuch...';
+    resetReactionPad();
+    return;
+  }
+
+  // Erfolgreich gedrückt!
+  const reactionTime = Date.now() - reactionStartTime;
+  clearTimeout(reactionTimer); // Stoppt den bösen 3-Sekunden Fail-Timer
+  isGreen = false;
+  
+  pad.style.background = '#3182ce'; 
+  pad.style.boxShadow = '0 0 30px #3182ce80';
+  pad.innerText = 'GESPEICHERT';
+  title.innerText = `${reactionTime} Millisekunden! ⚡`;
+
+  // Speichern in Supabase
+  await client.from('party_reactions').insert([{
+    user_id: currentUserId,
+    room_id: currentRoomId,
+    alcohol_bucket: currentBucket,
+    pure_alcohol_ml: totalPureAlcohol,
+    reaction_time_ms: reactionTime
+  }]);
+
+  setTimeout(() => {
+    closeReactionTest();
+    loadUserStats();
+  }, 2000);
+});
 
 document.getElementById('reaction-pad').addEventListener('click', async () => {
   if (!isWaiting && !isGreen) return; 
