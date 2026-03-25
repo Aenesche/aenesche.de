@@ -13,9 +13,9 @@ async function createRoom() {
     return;
   }
 
+  // HIER wird die Variable definiert: Sie heißt 'roomCode'
   const roomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
 
-  // FIX: Hier nutzen wir jetzt 'client.from'
   const { data, error } = await client
     .from('party_rooms')
     .insert([
@@ -35,9 +35,11 @@ async function createRoom() {
   localStorage.setItem('adminRoomId', roomData.id);
   localStorage.setItem('adminRoomCode', roomCode);
 
-  // Leitet direkt zur Beamer-Ansicht weiter
+  // FIX: 1. Zuerst öffnen wir den Admin-Tab (nutzt jetzt die richtige Variable 'roomCode')
+  window.open(`admin.html?room=${roomCode}`, '_blank');
+  
+  // FIX: 2. Danach leiten wir das aktuelle Fenster um
   window.location.href = `presentation.html?room=${roomCode}`;
-  window.open(`admin.html?room=${neuerRaumCode}`, '_blank');
 }
 
 function toggleJoinForm() {
