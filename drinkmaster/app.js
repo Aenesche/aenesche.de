@@ -37,6 +37,7 @@ async function createRoom() {
 
   // Leitet direkt zur Beamer-Ansicht weiter
   window.location.href = `presentation.html?room=${roomCode}`;
+  window.open(`admin.html?room=${neuerRaumCode}`, '_blank');
 }
 
 function toggleJoinForm() {
