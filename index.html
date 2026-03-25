@@ -152,6 +152,74 @@
           <div class="buttons">
             <button class="primary" id="playBtn">INITIALIZE CONNECTION</button>
             <button id="wikiBtn">OPEN DATABANK (WIKI)</button>
+            <style>
+  .dm-countdown-btn {
+    background: #111;
+    color: #888;
+    border: 2px solid #444;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    border-radius: 8px;
+    cursor: not-allowed;
+    text-transform: uppercase;
+    font-weight: bold;
+    display: inline-block;
+    text-decoration: none;
+    transition: all 0.5s ease;
+    text-align: center;
+    min-width: 320px;
+  }
+
+  /* Der Zustand, wenn der Timer abgelaufen ist */
+  .dm-countdown-btn.live {
+    background: transparent;
+    color: #fff;
+    border-color: #00f3ff;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.4) inset, 0 0 20px rgba(0, 243, 255, 0.4);
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.8);
+  }
+  .dm-countdown-btn.live:hover {
+    background: #00f3ff;
+    color: #000;
+    text-shadow: none;
+  }
+</style>
+
+<a href="#" id="drinkmaster-btn" class="dm-countdown-btn">
+  DRINKMASTER LÄDT...
+</a>
+
+<script>
+  // Zieldatum festlegen: 28. März 2026 um 22:00 Uhr (CET/CEST)
+  const releaseDate = new Date("2026-03-28T22:00:00+01:00").getTime();
+  
+  const countdownTimer = setInterval(function() {
+    const now = new Date().getTime();
+    const distance = releaseDate - now;
+
+    const btn = document.getElementById("drinkmaster-btn");
+
+    // Zeitberechnungen
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    if (distance > 0) {
+      // Zeit läuft noch ab
+      btn.innerHTML = `🔒 DRINKMASTER IN:<br><span style="font-size: 0.9em; color: #aaa;">${days}t ${hours}s ${minutes}m ${seconds}s</span>`;
+    } else {
+      // TIMER ABGELAUFEN! Button aktivieren!
+      clearInterval(countdownTimer);
+      btn.innerHTML = "🎮 DRINKMASTER STARTEN";
+      btn.classList.add("live");
+      // Passe diesen Link an den echten Pfad zu deinem Spiel an!
+      btn.href = "/drinkmaster/index.html"; 
+    }
+  }, 1000);
+</script>
           </div>
         </div>
 
