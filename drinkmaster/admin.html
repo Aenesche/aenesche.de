@@ -56,6 +56,12 @@
   <script>
     const client = supabase.createClient('https://usihbregbanpfspblrnw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY');
     let adminRoomId = null;
+    // Lese den Raum-Code aus der URL, falls vorhanden, und trage ihn ins Feld ein
+    const adminUrlParams = new URLSearchParams(window.location.search);
+    const prefillRoom = adminUrlParams.get('room');
+    if (prefillRoom) {
+      document.getElementById('adminRoom').value = prefillRoom;
+    }
 
     async function loginAdmin() {
       const room = document.getElementById('adminRoom').value.toUpperCase();
