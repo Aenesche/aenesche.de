@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nichtschüler-Abitur Berlin — Notenrechner</title>
+<meta name="description" content="Berechne deine Abiturnote für das Berliner Nichtschülerabitur mit allen Ausschlusskriterien.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F5F0;
+    --surface: #FFFFFF;
+    --surface-alt: #EEEDEB;
+    --text: #1A1917;
+    --text-mid: #5C5B57;
+    --text-dim: #9A9891;
+    --border: rgba(0,0,0,0.08);
+    --accent: #3D5A80;
+    --accent-light: #E8EEF4;
+    --green: #2D6A4F;
+    --green-bg: #E8F5EE;
+    --amber: #926C15;
+    --amber-bg: #FEF7E0;
+    --red: #9B2C2C;
+    --red-bg: #FDE8E8;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --font: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'DM Mono', 'SF Mono', monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #181816;
+      --surface: #232220;
+      --surface-alt: #2C2B28;
+      --text: #E8E6E1;
+      --text-mid: #A8A69F;
+      --text-dim: #6B6A64;
+      --border: rgba(255,255,255,0.08);
+      --accent: #7EADD2;
+      --accent-light: #1E2D3D;
+      --green: #6BCB96;
+      --green-bg: #1A2E24;
+      --amber: #E0B44A;
+      --amber-bg: #2E2714;
+      --red: #F07070;
+      --red-bg: #2E1A1A;
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 1rem 4rem;
+  }
+
+  .container {
+    max-width: 540px;
+    width: 100%;
+  }
+
+  header {
+    margin-bottom: 2rem;
+  }
+
+  header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+  }
+
+  header p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  .group-title {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin: 1.5rem 0 0.5rem;
+    padding-left: 2px;
+  }
+
+  .group-title:first-of-type {
+    margin-top: 0;
+  }
+
+  .exam-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+  }
+
+  .exam-label {
+    font-size: 0.82rem;
+    color: var(--text-mid);
+    width: 115px;
+    flex-shrink: 0;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    height: 4px;
+    background: var(--surface-alt);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    cursor: grab;
+    transition: transform 0.1s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:active {
+    transform: scale(1.15);
+    cursor: grabbing;
+  }
+
+  input[type=range]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    cursor: grab;
+  }
+
+  .pts-badge {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    min-width: 24px;
+    text-align: center;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: var(--surface-alt);
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .pts-badge.under5 {
+    background: var(--red-bg);
+    color: var(--red);
+  }
+
+  .pts-badge.zero {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .weighted {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    min-width: 42px;
+    text-align: right;
+  }
+
+  .result-card {
+    margin-top: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    transition: border-color 0.2s;
+  }
+
+  .result-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .result-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+  }
+
+  .result-big {
+    font-family: var(--mono);
+    font-size: 2rem;
+    font-weight: 500;
+    line-height: 1.1;
+  }
+
+  .result-dim {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  .bar-track {
+    height: 5px;
+    background: var(--surface-alt);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.25s ease, background 0.25s;
+  }
+
+  .bar-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    font-family: var(--mono);
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .warnings {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .warning-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    line-height: 1.35;
+  }
+
+  .warning-pill.fail {
+    background: var(--red-bg);
+    color: var(--red);
+  }
+
+  .warning-pill.warn {
+    background: var(--amber-bg);
+    color: var(--amber);
+  }
+
+  .warning-pill.ok {
+    background: var(--green-bg);
+    color: var(--green);
+  }
+
+  .warning-icon {
+    flex-shrink: 0;
+    font-size: 0.9rem;
+    width: 20px;
+    text-align: center;
+  }
+
+  .info-section {
+    margin-top: 2rem;
+    padding: 1rem 1.25rem;
+    background: var(--accent-light);
+    border-radius: var(--radius);
+    font-size: 0.78rem;
+    color: var(--text-mid);
+    line-height: 1.6;
+  }
+
+  .info-section strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  footer {
+    margin-top: 3rem;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  @media (max-width: 420px) {
+    .exam-label { width: 90px; font-size: 0.78rem; }
+    .weighted { display: none; }
+    .result-big { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Nichtschüler-Abitur Berlin</h1>
+    <p>Punkte eingeben, Note berechnen — inkl. aller Ausschlusskriterien</p>
+  </header>
+
+  <div id="exams"></div>
+  <div class="result-card" id="result-card"></div>
+
+  <div class="info-section">
+    <strong>Formel:</strong> N = 17/3 &minus; P/180 &nbsp;(abgeschnitten auf 1 Nachkommastelle, min. 1,0)<br>
+    <strong>Gewichtung:</strong> LK &times;13 &nbsp;|&nbsp; GK schriftl. &times;9 &nbsp;|&nbsp; Mündl. &times;4<br>
+    <strong>Maximum:</strong> 2&times;15&times;13 + 2&times;15&times;9 + 4&times;15&times;4 = 900
+  </div>
+
+  <footer>
+    Ohne Gewähr — bitte im Zweifel die
+    <a href="https://gesetze.berlin.de/bsbe/document/jlr-AbiNSchPrVBE2009V6IVZ/format/xsl/part/X" target="_blank" rel="noopener">PrüfVO&#8209;Nichtschülerabitur</a>
+    prüfen.
+  </footer>
+</div>
+
+<script>
+const exams = [
+  { id: 'lk1', label: 'LK-Prüfung 1', factor: 13, group: 'lk' },
+  { id: 'lk2', label: 'LK-Prüfung 2', factor: 13, group: 'lk' },
+  { id: 'gk1', label: 'GK schriftlich 1', factor: 9, group: 'gk' },
+  { id: 'gk2', label: 'GK schriftlich 2', factor: 9, group: 'gk' },
+  { id: 'm1', label: 'Mündlich 1', factor: 4, group: 'mu' },
+  { id: 'm2', label: 'Mündlich 2', factor: 4, group: 'mu' },
+  { id: 'm3', label: 'Mündlich 3', factor: 4, group: 'mu' },
+  { id: 'm4', label: 'Mündlich 4', factor: 4, group: 'mu' },
+];
+
+const groupMeta = {
+  lk: 'Leistungskurs — schriftlich (&times;13)',
+  gk: 'Grundkurs — schriftlich (&times;9)',
+  mu: 'Mündliche Prüfungen (&times;4)',
+};
+
+const values = {};
+exams.forEach(e => values[e.id] = 10);
+
+const container = document.getElementById('exams');
+const resultCard = document.getElementById('result-card');
+let lastGroup = '';
+
+exams.forEach(e => {
+  if (e.group !== lastGroup) {
+    lastGroup = e.group;
+    const h = document.createElement('div');
+    h.className = 'group-title';
+    h.innerHTML = groupMeta[e.group];
+    container.appendChild(h);
+  }
+
+  const row = document.createElement('div');
+  row.className = 'exam-row';
+
+  const label = document.createElement('span');
+  label.className = 'exam-label';
+  label.textContent = e.label;
+
+  const slider = document.createElement('input');
+  slider.type = 'range';
+  slider.min = 0;
+  slider.max = 15;
+  slider.step = 1;
+  slider.value = 10;
+
+  const badge = document.createElement('span');
+  badge.className = 'pts-badge';
+  badge.textContent = '10';
+  badge.id = 'badge_' + e.id;
+
+  const wt = document.createElement('span');
+  wt.className = 'weighted';
+  wt.textContent = '= ' + (10 * e.factor);
+  wt.id = 'wt_' + e.id;
+
+  slider.addEventListener('input', function () {
+    const v = parseInt(this.value);
+    values[e.id] = v;
+    badge.textContent = v;
+    badge.className = 'pts-badge' + (v === 0 ? ' zero' : v < 5 ? ' under5' : '');
+    wt.textContent = '= ' + (v * e.factor);
+    update();
+  });
+
+  row.appendChild(label);
+  row.appendChild(slider);
+  row.appendChild(badge);
+  row.appendChild(wt);
+  container.appendChild(row);
+});
+
+function update() {
+  let total = 0;
+  exams.forEach(e => total += values[e.id] * e.factor);
+
+  // Note: truncated, not rounded (§ VO-GO Berlin)
+  const rawNote = 17 / 3 - total / 180;
+  let noteNum = Math.floor(rawNote * 10) / 10;
+  if (noteNum < 1.0) noteNum = 1.0;
+  const noteStr = noteNum.toFixed(1);
+
+  // --- Exclusion criteria ---
+  const warnings = [];
+  let failed = false;
+
+  // 1) 0 Punkte in irgendeinem Fach
+  const zeroExams = exams.filter(e => values[e.id] === 0);
+  if (zeroExams.length > 0) {
+    failed = true;
+    const names = zeroExams.map(e => e.label).join(', ');
+    warnings.push({
+      type: 'fail',
+      text: '0 Punkte in: ' + names + ' — Prüfung sofort nicht bestanden.'
+    });
+  }
+
+  // 2) Beide LK unter 5 Punkten
+  const lkUnder5 = exams.filter(e => e.group === 'lk' && values[e.id] > 0 && values[e.id] < 5);
+  if (lkUnder5.length === 2) {
+    failed = true;
+    warnings.push({
+      type: 'fail',
+      text: 'Beide LK-Prüfungen unter 5 Punkten — nicht bestanden.'
+    });
+  } else if (lkUnder5.length === 1) {
+    warnings.push({
+      type: 'warn',
+      text: '1 LK unter 5 Punkten — beim 2. LK auch unterpunkten = nicht bestanden.'
+    });
+  }
+
+  // 3) 3+ Fächer unter 5 Punkten (excl. 0, die schon oben gefangen werden)
+  const under5All = exams.filter(e => values[e.id] > 0 && values[e.id] < 5);
+  if (under5All.length >= 3) {
+    failed = true;
+    warnings.push({
+      type: 'fail',
+      text: under5All.length + ' Fächer unter 5 Punkten (max. 2 erlaubt) — nicht bestanden.'
+    });
+  } else if (under5All.length === 2) {
+    warnings.push({
+      type: 'warn',
+      text: '2 Fächer unter 5 Punkten — kein Spielraum mehr, bei einem weiteren: nicht bestanden.'
+    });
+  }
+
+  // 4) Gesamtpunktzahl unter 300
+  if (total < 300) {
+    failed = true;
+    warnings.push({
+      type: 'fail',
+      text: 'Unter 300 Gesamtpunkten (mind. 300 nötig für Note 4,0) — nicht bestanden.'
+    });
+  }
+
+  // Bestanden message
+  if (!failed && warnings.length === 0) {
+    warnings.push({
+      type: 'ok',
+      text: 'Alle Kriterien erfüllt — Abitur bestanden.'
+    });
+  } else if (!failed && warnings.length > 0) {
+    warnings.push({
+      type: 'ok',
+      text: 'Knapp, aber bestanden — achte auf die Warnungen oben.'
+    });
+  }
+
+  const pct = Math.round(total / 900 * 100);
+  const noteColor = failed ? 'var(--red)' : noteNum <= 2.0 ? 'var(--green)' : noteNum <= 3.0 ? 'var(--amber)' : 'var(--red)';
+  const barColor = noteColor;
+
+  const warningsHTML = warnings.map(w => {
+    const icon = w.type === 'fail' ? '✕' : w.type === 'warn' ? '!' : '✓';
+    return '<div class="warning-pill ' + w.type + '"><span class="warning-icon">' + icon + '</span>' + w.text + '</div>';
+  }).join('');
+
+  resultCard.innerHTML =
+    '<div class="result-top">' +
+      '<div>' +
+        '<div class="result-label">Gesamtpunktzahl</div>' +
+        '<span class="result-big">' + total + '</span> <span class="result-dim">/ 900</span>' +
+      '</div>' +
+      '<div style="text-align:right;">' +
+        '<div class="result-label">Abiturnote</div>' +
+        '<span class="result-big" style="color:' + noteColor + ';">' + (failed ? 'n.b.' : noteStr) + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:' + barColor + ';"></div></div>' +
+    '<div class="bar-labels"><span>0</span><span>300 (4,0)</span><span>900 (1,0)</span></div>' +
+    '<div class="warnings">' + warningsHTML + '</div>';
+}
+
+update();
+</script>
+</body>
+</html>
