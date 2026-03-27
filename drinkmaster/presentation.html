@@ -9,7 +9,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
-    /* Linke Spalte: Infos & QR */
     .info-panel { width: 300px; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 2px solid #333; background: #111; z-index: 10; }
     .room-code-box { text-align: center; margin-bottom: 50px; }
     .room-code-box h3 { color: #888; font-weight: normal; margin-bottom: 10px; text-transform: uppercase;}
@@ -18,36 +17,40 @@
     .qr-box h3 { color: #888; font-weight: normal; margin-bottom: 15px; text-transform: uppercase; }
     #qrcode { background: white; padding: 15px; border-radius: 10px; display: inline-block;}
 
-    /* NEU: Switch-Button für den Beamer */
     .btn-toggle { background: transparent; color: var(--neon-pink); border: 2px solid var(--neon-pink); padding: 10px 20px; font-size: 1rem; border-radius: 8px; cursor: pointer; text-transform: uppercase; margin-top: 40px; box-shadow: 0 0 10px rgba(255,0,234,0.3); transition: 0.3s; font-weight: bold;}
     .btn-toggle:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 20px rgba(255,0,234,0.6); }
 
-    /* Rechte Spalte: Die Diagramme */
-    .chart-area { 
-          flex: 1; position: relative; display: flex; flex-direction: column; 
-          justify-content: flex-end; padding: 40px; 
-          padding-bottom: 80px; /* MEHR PLATZ NACH UNTEN FÜR DIE NAMEN */
+    .chart-area { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px; padding-bottom: 80px; width: calc(100vw - 300px); }
+
+    /* NEU: Scrollbar Styling für die Jenga-Blöcke */
+    #live-stats { 
+      width: 100%; height: 75vh; display: flex; align-items: flex-end; 
+      justify-content: flex-start; /* Links ausrichten statt quetschen */
+      gap: 15px; /* Fester Abstand zwischen Spielern */
+      border-bottom: 2px solid #333; padding-bottom: 2px; 
+      overflow-x: auto; /* Erlaubt horizontales Scrollen */
+      overflow-y: hidden;
     }
-    /* Der alte Jenga-Turm */
-    #live-stats { width: 100%; height: 75vh; display: flex; align-items: flex-end; justify-content: space-around; border-bottom: 2px solid #333; padding-bottom: 2px; }
+    
+    /* Neon Scrollbar */
+    #live-stats::-webkit-scrollbar { height: 12px; }
+    #live-stats::-webkit-scrollbar-track { background: #111; border-radius: 6px; }
+    #live-stats::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 6px; box-shadow: 0 0 10px var(--neon-cyan); }
+
     .drink-block { border-radius: 4px; margin-bottom: 2px; transition: all 0.5s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.3) inset; }
-    .player-column { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1 1 0; max-width: 140px; min-width: 20px; height: 100%; position: relative; }
-    .player-tower { display: flex; flex-direction: column-reverse; width: 100%; align-items: center; }
-    .player-name { 
-          margin-top: 10px; font-weight: bold; color: #ccc; 
-          width: 100px; /* Feste Breite für die Rotation */
-          font-size: clamp(0.7rem, 1.5vw, 1rem); 
-          position: absolute; 
-          bottom: -60px; /* Weiter nach unten schieben */
-          transform: rotate(-45deg); /* Schräg stellen! */
-          transform-origin: top left;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+    
+    /* NEU: Feste Mindestbreite, kein Quetschen mehr! */
+    .player-column { 
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end; 
+      flex: 0 0 auto; /* Verhindert das Schrumpfen! */
+      width: 80px; /* Basisbreite */
+      height: 100%; position: relative; 
     }
+    
+    .player-tower { display: flex; flex-direction: column-reverse; width: 100%; align-items: center; }
+    .player-name { margin-top: 10px; font-weight: bold; color: #ccc; width: 100px; font-size: clamp(0.7rem, 1.5vw, 1rem); position: absolute; bottom: -60px; transform: rotate(-45deg); transform-origin: top left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .player-score { font-size: 1.5rem; font-weight: bold; color: #fff; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
-    /* NEU: Reaktions-Chart Container */
     #global-chart-container { display: none; width: 100%; height: 100%; padding-bottom: 20px; }
   </style>
 </head>
@@ -58,19 +61,15 @@
       <h3>Raum Code</h3>
       <div id="roomCodeDisplay" class="neon-text">...</div>
     </div>
-    
     <div class="qr-box">
       <h3>Join Party</h3>
       <div id="qrcode"></div>
-      <h3>Site hosted on Aenesche.de</h3>
     </div>
-
     <button id="toggleViewBtn" class="btn-toggle" onclick="toggleView()">📊 Reaktionstests</button>
   </div>
 
   <div class="chart-area">
     <div id="live-stats"></div>
-    
     <div id="global-chart-container">
       <canvas id="globalChart"></canvas>
     </div>
