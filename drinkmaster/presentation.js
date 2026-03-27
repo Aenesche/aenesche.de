@@ -210,9 +210,9 @@ function renderLeaderboard() {
       let rawH = Math.max(15, drink.volume_ml * 0.2);
       block.style.height = `${rawH * scaleFactor}px`;
       
-      // NEU: Keine maximale Breite mehr, Blöcke bleiben stabil
-      let blockW = 40 + (drink.volume_ml / 500) * 80;
-      blockW = Math.max(Math.min(blockW, 120), 40); 
+      // Block-Breite berechnen (Maximal 110px, damit es noch in die 130px Spalte passt)
+      let blockW = 40 + (drink.volume_ml / 500) * 70;
+      blockW = Math.max(Math.min(blockW, 110), 40); 
       block.style.width = `${blockW}px`;
       
       const hexColor = getContinuousColor(drink.alcohol_percent);
