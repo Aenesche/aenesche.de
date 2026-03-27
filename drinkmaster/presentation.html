@@ -42,8 +42,9 @@
     /* NEU: Feste Mindestbreite, kein Quetschen mehr! */
     .player-column { 
       display: flex; flex-direction: column; align-items: center; justify-content: flex-end; 
-      flex: 0 0 auto; /* Verhindert das Schrumpfen! */
-      width: 80px; /* Basisbreite */
+      flex: 0 0 auto; 
+      width: 130px; /* Vorher 80px - Jetzt genug Platz für dicke Blöcke */
+      margin: 0 5px; /* Ein kleiner Schutzabstand zwischen den Spielern */
       height: 100%; position: relative; 
     }
     
