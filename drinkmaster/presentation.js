@@ -13,16 +13,14 @@ new QRCode(document.getElementById("qrcode"), {
   width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H 
 });
 
-// ==========================================
-// GLOBALE VARIABLEN & DATEN
-// ==========================================
 let currentRoomId = null;
 let userDataMap = {}; 
 let userDrinksMap = {}; 
-let globalReactions = []; // NEU: Alle Reaktionen
+let globalReactions = []; 
 
-let isGraphView = false; // Toggle-Zustand
-let presentationChart = null; // Chart.js Instanz
+let isGraphView = false; 
+let presentationChart = null; 
+let autoSwitchTimer = null; // NEU: Der Timer für den automatischen Wechsel
 
 async function initLeaderboard() {
   const { data: roomData } = await client.from('party_rooms').select('id').eq('room_code', currentRoomCode).single();
@@ -31,15 +29,20 @@ async function initLeaderboard() {
 
   await loadInitialData();
 
-  // WICHTIG: Hört jetzt auf Drinks UND auf Reactions! Egal was passiert -> Neu laden
+  // NEU: Hört auch auf das 'broadcast' Event vom Admin-Panel!
   client.channel('party_channel')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'party_drinks', filter: `room_id=eq.${currentRoomId}` }, () => { loadInitialData(); })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'party_reactions', filter: `room_id=eq.${currentRoomId}` }, () => { loadInitialData(); })
+    .on('broadcast', { event: 'autoswitch' }, (payload) => {
+      clearInterval(autoSwitchTimer);
+      if (payload.payload.active) {
+        autoSwitchTimer = setInterval(toggleView, payload.payload.seconds * 1000);
+      }
+    })
     .subscribe();
 }
 
 async function loadInitialData() {
-  // 1. User holen
   const { data: users } = await client.from('party_users').select('id, display_name').eq('room_id', currentRoomId);
   userDataMap = {};
   userDrinksMap = {};
@@ -51,7 +54,6 @@ async function loadInitialData() {
     });
   }
 
-  // 2. Drinks holen
   const { data: drinks } = await client.from('party_drinks').select('*').eq('room_id', currentRoomId).order('created_at', { ascending: true });
   if (drinks) {
     drinks.forEach(d => {
@@ -62,23 +64,14 @@ async function loadInitialData() {
     });
   }
 
-  // 3. NEU: Alle Reaktionen inkl. User-Namen holen
   const { data: reactions } = await client.from('party_reactions').select('*, party_users(display_name)').eq('room_id', currentRoomId);
   globalReactions = reactions || [];
 
-  // Nur die aktive Ansicht neu zeichnen
-  if (isGraphView) {
-    renderGlobalChart();
-  } else {
-    renderLeaderboard();
-  }
+  if (isGraphView) renderGlobalChart(); else renderLeaderboard();
 }
 
 function calculateScore(volume, alcPercent) { return volume * (alcPercent / 100); }
 
-// ==========================================
-// VIEW TOGGLE LOGIK
-// ==========================================
 function toggleView() {
   isGraphView = !isGraphView;
   const btn = document.getElementById('toggleViewBtn');
@@ -86,7 +79,7 @@ function toggleView() {
   if (isGraphView) {
     document.getElementById('live-stats').style.display = 'none';
     document.getElementById('global-chart-container').style.display = 'block';
-    btn.innerText = 'Zurrück 🍺';
+    btn.innerText = '🍺 Zeige Jenga-Turm';
     btn.style.borderColor = '#00f3ff';
     btn.style.color = '#00f3ff';
     renderGlobalChart();
@@ -100,29 +93,18 @@ function toggleView() {
   }
 }
 
-// ==========================================
-// ANSICHT 2: GLOBALER SCATTER PLOT
-// ==========================================
 function renderGlobalChart() {
   const ctx = document.getElementById('globalChart').getContext('2d');
+  const CURVE_GROUPING_ML = 15; 
 
-  // 1. Die Wolke (Scatter Plot)
   const scatterData = globalReactions.map(r => ({
-    x: r.pure_alcohol_ml,
-    y: r.reaction_time_ms,
-    name: r.party_users?.display_name || 'Unbekannt'
+    x: r.pure_alcohol_ml, y: r.reaction_time_ms, name: r.party_users?.display_name || 'Unbekannt'
   }));
-
-  // 2. Durchschnittskurve (Gruppiert nach Bucket)
-  // NEU: Deine Stellschraube für die Kurve! (z.B. 10 = fasst alles in 10ml-Schritten zusammen)
-  const CURVE_GROUPING_ML = 20; 
 
   let avgCurveData = [];
   let buckets = {};
   globalReactions.forEach(r => {
-    // Wir ignorieren den Datenbank-Bucket und berechnen die Gruppierung live!
     let dynamicBucket = Math.floor(r.pure_alcohol_ml / CURVE_GROUPING_ML);
-    
     if (!buckets[dynamicBucket]) buckets[dynamicBucket] = { sumX: 0, sumY: 0, count: 0 };
     buckets[dynamicBucket].sumX += r.pure_alcohol_ml;
     buckets[dynamicBucket].sumY += r.reaction_time_ms;
@@ -134,134 +116,57 @@ function renderGlobalChart() {
     avgCurveData.push({ x: b.sumX / b.count, y: b.sumY / b.count });
   });
 
-  // 3. Trendlinie (Lineare Regression - Gerade)
   let lrData = [];
   if (scatterData.length > 1) {
     let n = scatterData.length;
     let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
-    scatterData.forEach(p => {
-      sumX += p.x; sumY += p.y;
-      sumXY += p.x * p.y; sumXX += p.x * p.x;
-    });
-    
-    // Verhindert Mathe-Fehler, wenn alle auf der selben Linie liegen
+    scatterData.forEach(p => { sumX += p.x; sumY += p.y; sumXY += p.x * p.y; sumXX += p.x * p.x; });
     let denominator = (n * sumXX - sumX * sumX);
     if (denominator !== 0) {
       let m = (n * sumXY - sumX * sumY) / denominator;
       let b = (sumY - m * sumX) / n;
-      
-      let minX = 0;
-      let maxX = Math.max(...scatterData.map(p => p.x), 50); // Mindestens bis 50ml zeichnen
+      let minX = 0; let maxX = Math.max(...scatterData.map(p => p.x), 50); 
       lrData = [ { x: minX, y: m * minX + b }, { x: maxX + 20, y: m * (maxX + 20) + b } ];
     }
   }
 
-  // Alten Graphen löschen, falls existent
   if (presentationChart) presentationChart.destroy();
 
-  // Neuen Graphen zeichnen
   presentationChart = new Chart(ctx, {
     data: {
       datasets: [
-        {
-          type: 'scatter',
-          label: 'Einzelne Tests',
-          data: scatterData,
-          backgroundColor: '#00f3ff', // Cyan
-          borderColor: '#00f3ff',
-          pointRadius: 7,
-          pointHoverRadius: 10,
-        },
-        {
-          type: 'line',
-          label: 'Durchschnittskurve',
-          data: avgCurveData,
-          borderColor: '#ff00ea', // Pink
-          backgroundColor: 'transparent',
-          borderWidth: 4,
-          tension: 0.4, // Geschwungene Linie
-          pointRadius: 8,
-          pointBackgroundColor: '#ff00ea'
-        },
-        {
-          type: 'line',
-          label: 'Trendlinie (Gerade)',
-          data: lrData,
-          borderColor: '#f6e05e', // Gelb
-          borderDash: [10, 5], // Gestrichelt
-          backgroundColor: 'transparent',
-          borderWidth: 2,
-          pointRadius: 0,
-          tension: 0 // Komplett gerade
-        }
+        { type: 'scatter', label: 'Einzelne Tests', data: scatterData, backgroundColor: '#00f3ff', borderColor: '#00f3ff', pointRadius: 7, pointHoverRadius: 10 },
+        { type: 'line', label: 'Durchschnittskurve', data: avgCurveData, borderColor: '#ff00ea', backgroundColor: 'transparent', borderWidth: 4, tension: 0.4, pointRadius: 8, pointBackgroundColor: '#ff00ea' },
+        { type: 'line', label: 'Trendlinie (Gerade)', data: lrData, borderColor: '#f6e05e', borderDash: [10, 5], backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0 }
       ]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false,
       scales: {
-        x: {
-          type: 'linear',
-          title: { display: true, text: 'Reinalkohol (ml)', color: '#ccc', font: {size: 18, weight: 'bold'} },
-          grid: { color: '#333' },
-          ticks: { color: '#aaa', font: {size: 14} }
-        },
-        y: {
-          title: { display: true, text: 'Reaktionszeit (Millisekunden)', color: '#ccc', font: {size: 18, weight: 'bold'} },
-          grid: { color: '#333' },
-          ticks: { color: '#aaa', font: {size: 14} },
-          beginAtZero: false
-        }
+        x: { type: 'linear', title: { display: true, text: 'Reinalkohol (ml)', color: '#ccc', font: {size: 18, weight: 'bold'} }, grid: { color: '#333' }, ticks: { color: '#aaa', font: {size: 14} } },
+        y: { title: { display: true, text: 'Reaktionszeit (ms)', color: '#ccc', font: {size: 18, weight: 'bold'} }, grid: { color: '#333' }, ticks: { color: '#aaa', font: {size: 14} }, beginAtZero: false }
       },
       plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-          labels: { color: '#fff', font: { size: 16 }, usePointStyle: true, padding: 20 }
-        },
+        legend: { display: true, position: 'top', labels: { color: '#fff', font: { size: 16 }, usePointStyle: true, padding: 20 } },
         tooltip: {
-          backgroundColor: 'rgba(0,0,0,0.8)',
-          titleFont: { size: 16 },
-          bodyFont: { size: 14 },
-          padding: 15,
-          callbacks: {
-            label: function(ctx) {
-              // Zeigt den Namen der Person beim drüberfahren (Scatter)
-              if (ctx.datasetIndex === 0) return `${ctx.raw.name}: ${ctx.raw.y} ms (bei ${Math.round(ctx.raw.x)} ml)`;
-              return `${ctx.raw.y.toFixed(0)} ms`;
-            }
-          }
+          backgroundColor: 'rgba(0,0,0,0.8)', titleFont: { size: 16 }, bodyFont: { size: 14 }, padding: 15,
+          callbacks: { label: function(ctx) { if (ctx.datasetIndex === 0) return `${ctx.raw.name}: ${ctx.raw.y} ms (bei ${Math.round(ctx.raw.x)} ml)`; return `${ctx.raw.y.toFixed(0)} ms`; } }
         }
       }
     }
   });
 }
 
-// ==========================================
-// ANSICHT 1: JENGA TURM (Alte Logik)
-// ==========================================
-function hexToRgb(hex) {
-  let bigint = parseInt(hex.replace('#', ''), 16);
-  return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
-}
-function rgbToHex(r, g, b) {
-  return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).padStart(6, '0');
-}
+function hexToRgb(hex) { let bigint = parseInt(hex.replace('#', ''), 16); return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255]; }
+function rgbToHex(r, g, b) { return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).padStart(6, '0'); }
 function getContinuousColor(alc) {
-  const anchors = [
-    { pct: 0, color: '#00f3ff' }, { pct: 5, color: '#f6e05e' }, { pct: 12, color: '#ed8936' }, { pct: 20, color: '#e53e3e' }, { pct: 40, color: '#ff00ea' }
-  ];
-  if (alc <= 0) return anchors[0].color;
-  if (alc >= 40) return anchors[4].color;
+  const anchors = [ { pct: 0, color: '#00f3ff' }, { pct: 5, color: '#f6e05e' }, { pct: 12, color: '#ed8936' }, { pct: 20, color: '#e53e3e' }, { pct: 40, color: '#ff00ea' } ];
+  if (alc <= 0) return anchors[0].color; if (alc >= 40) return anchors[4].color;
   let lower = anchors[0], upper = anchors[1];
-  for (let i = 0; i < anchors.length - 1; i++) {
-    if (alc >= anchors[i].pct && alc <= anchors[i+1].pct) { lower = anchors[i]; upper = anchors[i+1]; break; }
-  }
+  for (let i = 0; i < anchors.length - 1; i++) { if (alc >= anchors[i].pct && alc <= anchors[i+1].pct) { lower = anchors[i]; upper = anchors[i+1]; break; } }
   const t = (alc - lower.pct) / (upper.pct - lower.pct);
   const rgb1 = hexToRgb(lower.color); const rgb2 = hexToRgb(upper.color);
-  const r = Math.round(rgb1[0] + (rgb2[0] - rgb1[0]) * t);
-  const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * t);
-  const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * t);
+  const r = Math.round(rgb1[0] + (rgb2[0] - rgb1[0]) * t); const g = Math.round(rgb1[1] + (rgb2[1] - rgb1[1]) * t); const b = Math.round(rgb1[2] + (rgb2[2] - rgb1[2]) * t);
   return rgbToHex(r, g, b);
 }
 
@@ -300,18 +205,14 @@ function renderLeaderboard() {
     drinks.forEach(drink => {
       const block = document.createElement('div');
       block.className = 'drink-block';
-      // NEU: Hover-Information (Zeigt ml und Vol% an, wenn du mit der Maus auf dem Beamer drüberfährst)
       block.title = `${drink.volume_ml} ml | ${drink.alcohol_percent}% Vol.`;
       
       let rawH = Math.max(15, drink.volume_ml * 0.2);
       block.style.height = `${rawH * scaleFactor}px`;
       
+      // NEU: Keine maximale Breite mehr, Blöcke bleiben stabil
       let blockW = 40 + (drink.volume_ml / 500) * 80;
-      const maxColWidth = (container.clientWidth / sortedUserIds.length) - 4; 
-      
-      blockW = Math.min(blockW, maxColWidth); 
-      if (blockW < 8) blockW = 8; 
-      
+      blockW = Math.max(Math.min(blockW, 120), 40); 
       block.style.width = `${blockW}px`;
       
       const hexColor = getContinuousColor(drink.alcohol_percent);
@@ -332,8 +233,6 @@ function renderLeaderboard() {
   });
 }
 
-window.addEventListener('resize', () => {
-  if (isGraphView) renderGlobalChart(); else renderLeaderboard();
-});
+window.addEventListener('resize', () => { if (isGraphView) renderGlobalChart(); else renderLeaderboard(); });
 
 initLeaderboard();
