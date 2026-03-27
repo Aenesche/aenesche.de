@@ -18,7 +18,7 @@
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
 
-    .list-section { background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333; }
+    .list-section { background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-bottom: 20px; }
     .list-section h2 { color: #aaa; font-size: 1.2rem; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 5px; }
 
     .data-row { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 10px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid var(--neon-cyan);}
@@ -38,14 +38,24 @@
   <div class="container" id="admin-dashboard" style="display: none;">
     <h1>KONTROLLZENTRUM</h1>
     <p style="text-align: center; margin-bottom: 20px; color: #aaa;">Lösche Fehleingaben. Der Beamer aktualisiert sich live!</p>
-    <button onclick="loadAllData()" style="width: auto; margin: 0 auto 20px auto; display: block; background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);">🔄 DATEN AKTUALISIEREN</button>
+    
+    <div class="list-section" style="border-color: var(--neon-cyan);">
+      <h2 style="color: var(--neon-cyan);">🔄 Beamer Auto-Switch</h2>
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <input type="number" id="switchInterval" value="10" min="5" style="margin: 0; width: 100px; flex: none;" placeholder="Sekunden">
+        <span style="color: #aaa;">Sekunden</span>
+        <button onclick="startAutoSwitch()" style="margin: 0; background: var(--neon-cyan); color: #000; flex: 1;">START</button>
+        <button onclick="stopAutoSwitch()" style="margin: 0; background: #555; flex: 1;">STOP</button>
+      </div>
+    </div>
+
+    <button onclick="loadAllData()" style="width: auto; margin: 0 auto 20px auto; display: block; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink);">🔄 LISTEN AKTUALISIEREN</button>
     
     <div class="grid">
       <div class="list-section">
         <h2>🍺 Letzte Drinks</h2>
         <div id="drink-list"></div>
       </div>
-
       <div class="list-section">
         <h2>⚡ Letzte Tests</h2>
         <div id="reaction-list"></div>
@@ -57,12 +67,11 @@
   <script>
     const client = supabase.createClient('https://usihbregbanpfspblrnw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY');
     let adminRoomId = null;
-    // Lese den Raum-Code aus der URL, falls vorhanden, und trage ihn ins Feld ein
+    let adminChannel = null; // NEU: Der Broadcast-Kanal
+    
     const adminUrlParams = new URLSearchParams(window.location.search);
     const prefillRoom = adminUrlParams.get('room');
-    if (prefillRoom) {
-      document.getElementById('adminRoom').value = prefillRoom;
-    }
+    if (prefillRoom) document.getElementById('adminRoom').value = prefillRoom;
 
     async function loginAdmin() {
       const room = document.getElementById('adminRoom').value.toUpperCase();
@@ -74,13 +83,27 @@
       adminRoomId = data.id;
       document.getElementById('login-box').style.display = 'none';
       document.getElementById('admin-dashboard').style.display = 'block';
+      
+      // NEU: Mit dem Channel verbinden, um funken zu können
+      adminChannel = client.channel('party_channel');
+      adminChannel.subscribe();
+
       loadAllData();
     }
 
-    function loadAllData() {
-      loadDrinks();
-      loadReactions();
+    // NEU: Auto-Switch Funksignale senden
+    function startAutoSwitch() {
+      const sec = parseInt(document.getElementById('switchInterval').value) || 10;
+      adminChannel.send({ type: 'broadcast', event: 'autoswitch', payload: { active: true, seconds: sec } });
+      alert(`Auto-Switch gestartet (Alle ${sec}s)`);
     }
+
+    function stopAutoSwitch() {
+      adminChannel.send({ type: 'broadcast', event: 'autoswitch', payload: { active: false } });
+      alert("Auto-Switch gestoppt");
+    }
+
+    function loadAllData() { loadDrinks(); loadReactions(); }
 
     async function loadDrinks() {
       const { data: drinks } = await client.from('party_drinks').select('*, party_users(display_name)').eq('room_id', adminRoomId).order('created_at', { ascending: false });
@@ -91,10 +114,7 @@
       drinks.forEach(d => {
         const div = document.createElement('div');
         div.className = 'data-row';
-        div.innerHTML = `
-          <div><strong>${d.party_users?.display_name || 'Unbekannt'}</strong><br><span style="color:#aaa; font-size:0.8rem;">${d.volume_ml}ml | ${d.alcohol_percent}%</span></div>
-          <button class="del-btn" onclick="deleteEntry('party_drinks', '${d.id}')">X</button>
-        `;
+        div.innerHTML = `<div><strong>${d.party_users?.display_name || 'Unbekannt'}</strong><br><span style="color:#aaa; font-size:0.8rem;">${d.volume_ml}ml | ${d.alcohol_percent}%</span></div><button class="del-btn" onclick="deleteEntry('party_drinks', '${d.id}')">X</button>`;
         list.appendChild(div);
       });
     }
@@ -108,26 +128,15 @@
       reactions.forEach(r => {
         const div = document.createElement('div');
         div.className = 'data-row reaction';
-        div.innerHTML = `
-          <div><strong>${r.party_users?.display_name || 'Unbekannt'}</strong><br><span style="color:#aaa; font-size:0.8rem;">${r.reaction_time_ms} ms (Stufe ${r.alcohol_bucket})</span></div>
-          <button class="del-btn" onclick="deleteEntry('party_reactions', '${r.id}')">X</button>
-        `;
+        div.innerHTML = `<div><strong>${r.party_users?.display_name || 'Unbekannt'}</strong><br><span style="color:#aaa; font-size:0.8rem;">${r.reaction_time_ms} ms (Stufe ${r.alcohol_bucket})</span></div><button class="del-btn" onclick="deleteEntry('party_reactions', '${r.id}')">X</button>`;
         list.appendChild(div);
       });
     }
 
     async function deleteEntry(table, id) {
       if(!confirm("Eintrag wirklich löschen?")) return;
-      
       const { error } = await client.from(table).delete().eq('id', id);
-      
-      if (error) {
-        alert("Fehler beim Löschen: " + error.message);
-        console.error(error);
-      } else {
-        // Lädt die Admin-Liste neu. (Beamer aktualisiert sich ab jetzt von selbst!)
-        loadAllData();
-      }
+      if (error) { alert("Fehler: " + error.message); } else { loadAllData(); }
     }
   </script>
 </body>
