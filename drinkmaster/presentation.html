@@ -21,67 +21,42 @@
     .btn-toggle:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 20px rgba(255,0,234,0.6); }
 
     .chart-area { 
-      flex: 1; 
-      position: relative; 
-      display: flex; 
-      flex-direction: column; 
-      justify-content: flex-end; 
-      padding: 40px; 
-      /* WICHTIG: Genug Platz für die schrägen Namen lassen! */
-      padding-bottom: 120px; 
-      width: calc(100vw - 300px); 
+      flex: 1; position: relative; display: flex; flex-direction: column; 
+      justify-content: flex-end; padding: 40px; width: calc(100vw - 300px); 
     }
-    /* NEU: Scrollbar Styling für die Jenga-Blöcke */
+
     #live-stats { 
-      width: 100%; 
-      height: 70vh; /* Etwas weniger hoch, damit unten Platz für Namen ist */
-      display: flex; 
-      align-items: flex-end; 
-      justify-content: flex-start; 
-      gap: 15px; 
-      border-bottom: 2px solid #333; 
-      padding-bottom: 2px; 
-      overflow-x: auto; 
-      overflow-y: hidden;
+      width: 100%; height: 80vh; display: flex; align-items: flex-end; 
+      justify-content: flex-start; gap: 15px; 
+      border-bottom: 2px solid #333; padding-bottom: 10px; 
+      overflow-x: auto; overflow-y: hidden; 
     }
     
-    /* Neon Scrollbar */
     #live-stats::-webkit-scrollbar { height: 12px; }
     #live-stats::-webkit-scrollbar-track { background: #111; border-radius: 6px; }
     #live-stats::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 6px; box-shadow: 0 0 10px var(--neon-cyan); }
 
     .drink-block { border-radius: 4px; margin-bottom: 2px; transition: all 0.5s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.3) inset; }
-    
-    /* NEU: Feste Mindestbreite, kein Quetschen mehr! */
+
     .player-column { 
       display: flex; flex-direction: column; align-items: center; justify-content: flex-end; 
-      flex: 0 0 auto; 
-      width: 130px; /* Vorher 80px - Jetzt genug Platz für dicke Blöcke */
-      margin: 0 5px; /* Ein kleiner Schutzabstand zwischen den Spielern */
-      height: 100%; position: relative; 
+      flex: 0 0 auto; width: 130px; margin: 0 5px; height: 100%; position: relative; 
+      padding-bottom: 120px; /* DER TRICK: Macht 120px Platz IN der Box für die Namen */
     }
-    
+
     .player-tower { display: flex; flex-direction: column-reverse; width: 100%; align-items: center; }
-    .player-name { 
-      margin-top: 15px; 
-      font-weight: bold; 
-      color: #ccc; 
-      width: 120px; /* Breite für den Text */
-      font-size: 1rem; 
-      position: absolute; 
-      /* Positionierung relativ zum Spalten-Ende */
-      bottom: -110px; 
-      left: 10px;
-      /* Rotation */
-      transform: rotate(-45deg); 
-      transform-origin: top left; 
-      /* Zu langer Text wird mit ... abgekürzt */
-      white-space: nowrap; 
-      overflow: hidden; 
-      text-overflow: ellipsis; 
-    }
+    
     .player-score { font-size: 1.5rem; font-weight: bold; color: #fff; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
+    .player-name { 
+      font-weight: bold; color: #ccc; width: 130px; font-size: 1rem; 
+      position: absolute; 
+      bottom: 20px; /* Sitzt jetzt IN der Spalte, direkt über der Scrollbar */
+      left: 20px; 
+      transform: rotate(-45deg); 
+      transform-origin: left bottom; 
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+    }
     #global-chart-container { display: none; width: 100%; height: 100%; padding-bottom: 20px; }
   </style>
 </head>
