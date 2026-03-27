@@ -20,15 +20,28 @@
     .btn-toggle { background: transparent; color: var(--neon-pink); border: 2px solid var(--neon-pink); padding: 10px 20px; font-size: 1rem; border-radius: 8px; cursor: pointer; text-transform: uppercase; margin-top: 40px; box-shadow: 0 0 10px rgba(255,0,234,0.3); transition: 0.3s; font-weight: bold;}
     .btn-toggle:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 20px rgba(255,0,234,0.6); }
 
-    .chart-area { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px; padding-bottom: 80px; width: calc(100vw - 300px); }
-
+    .chart-area { 
+      flex: 1; 
+      position: relative; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: flex-end; 
+      padding: 40px; 
+      /* WICHTIG: Genug Platz für die schrägen Namen lassen! */
+      padding-bottom: 120px; 
+      width: calc(100vw - 300px); 
+    }
     /* NEU: Scrollbar Styling für die Jenga-Blöcke */
     #live-stats { 
-      width: 100%; height: 75vh; display: flex; align-items: flex-end; 
-      justify-content: flex-start; /* Links ausrichten statt quetschen */
-      gap: 15px; /* Fester Abstand zwischen Spielern */
-      border-bottom: 2px solid #333; padding-bottom: 2px; 
-      overflow-x: auto; /* Erlaubt horizontales Scrollen */
+      width: 100%; 
+      height: 70vh; /* Etwas weniger hoch, damit unten Platz für Namen ist */
+      display: flex; 
+      align-items: flex-end; 
+      justify-content: flex-start; 
+      gap: 15px; 
+      border-bottom: 2px solid #333; 
+      padding-bottom: 2px; 
+      overflow-x: auto; 
       overflow-y: hidden;
     }
     
@@ -49,7 +62,24 @@
     }
     
     .player-tower { display: flex; flex-direction: column-reverse; width: 100%; align-items: center; }
-    .player-name { margin-top: 10px; font-weight: bold; color: #ccc; width: 100px; font-size: clamp(0.7rem, 1.5vw, 1rem); position: absolute; bottom: -60px; transform: rotate(-45deg); transform-origin: top left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .player-name { 
+      margin-top: 15px; 
+      font-weight: bold; 
+      color: #ccc; 
+      width: 120px; /* Breite für den Text */
+      font-size: 1rem; 
+      position: absolute; 
+      /* Positionierung relativ zum Spalten-Ende */
+      bottom: -110px; 
+      left: 10px;
+      /* Rotation */
+      transform: rotate(-45deg); 
+      transform-origin: top left; 
+      /* Zu langer Text wird mit ... abgekürzt */
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
     .player-score { font-size: 1.5rem; font-weight: bold; color: #fff; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
     #global-chart-container { display: none; width: 100%; height: 100%; padding-bottom: 20px; }
