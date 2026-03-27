@@ -20,7 +20,12 @@ let globalReactions = [];
 
 let isGraphView = false; 
 let presentationChart = null; 
-let autoSwitchTimer = null; // NEU: Der Timer für den automatischen Wechsel
+let autoSwitchTimer = null; 
+
+// NEU: Scroll Variablen
+let autoScrollTimer = null;
+let scrollDirection = 1; // 1 = rechts, -1 = links
+let scrollSpeed = 1;
 
 async function initLeaderboard() {
   const { data: roomData } = await client.from('party_rooms').select('id').eq('room_code', currentRoomCode).single();
@@ -29,7 +34,6 @@ async function initLeaderboard() {
 
   await loadInitialData();
 
-  // NEU: Hört auch auf das 'broadcast' Event vom Admin-Panel!
   client.channel('party_channel')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'party_drinks', filter: `room_id=eq.${currentRoomId}` }, () => { loadInitialData(); })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'party_reactions', filter: `room_id=eq.${currentRoomId}` }, () => { loadInitialData(); })
@@ -37,6 +41,14 @@ async function initLeaderboard() {
       clearInterval(autoSwitchTimer);
       if (payload.payload.active) {
         autoSwitchTimer = setInterval(toggleView, payload.payload.seconds * 1000);
+      }
+    })
+    // NEU: Hört auf das Auto-Scroll Signal
+    .on('broadcast', { event: 'autoscroll' }, (payload) => {
+      clearInterval(autoScrollTimer);
+      if (payload.payload.active) {
+        scrollSpeed = payload.payload.speed || 1;
+        startAutoScroll();
       }
     })
     .subscribe();
@@ -91,6 +103,38 @@ function toggleView() {
     btn.style.color = '#ff00ea';
     renderLeaderboard();
   }
+}
+
+// NEU: Sanftes Ping-Pong Scrollen
+function startAutoScroll() {
+  const container = document.getElementById('live-stats');
+  if (!container) return;
+
+  clearInterval(autoScrollTimer);
+  autoScrollTimer = setInterval(() => {
+    if (isGraphView) return; // Nicht scrollen, wenn das Diagramm offen ist
+
+    let maxScroll = container.scrollWidth - container.clientWidth;
+    if (maxScroll <= 0) return; // Nichts zu scrollen, alles passt auf den Bildschirm
+
+    container.scrollLeft += scrollDirection * scrollSpeed;
+
+    // Wenn am rechten oder linken Rand angekommen: Pausieren und umdrehen
+    if (scrollDirection === 1 && container.scrollLeft >= maxScroll - 1) {
+      scrollDirection = -1;
+      pauseAndResumeScroll();
+    } else if (scrollDirection === -1 && container.scrollLeft <= 1) {
+      scrollDirection = 1;
+      pauseAndResumeScroll();
+    }
+  }, 20); // 50 FPS für weiche Bewegung
+}
+
+function pauseAndResumeScroll() {
+  clearInterval(autoScrollTimer);
+  setTimeout(() => {
+    startAutoScroll();
+  }, 2000); // 2 Sekunden Pause am Rand
 }
 
 function renderGlobalChart() {
@@ -210,7 +254,6 @@ function renderLeaderboard() {
       let rawH = Math.max(15, drink.volume_ml * 0.2);
       block.style.height = `${rawH * scaleFactor}px`;
       
-      // Block-Breite berechnen (Maximal 110px, damit es noch in die 130px Spalte passt)
       let blockW = 40 + (drink.volume_ml / 500) * 70;
       blockW = Math.max(Math.min(blockW, 110), 40); 
       block.style.width = `${blockW}px`;
