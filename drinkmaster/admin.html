@@ -12,7 +12,7 @@
     .container { max-width: 900px; margin: 0 auto; background: #1a1a1a; padding: 20px; border-radius: 10px; border: 1px solid #333;}
     h1 { color: var(--neon-cyan); margin-bottom: 20px; text-align: center; }
     
-    input { background: #111; border: 1px solid #444; color: white; padding: 10px; width: 100%; margin-bottom: 10px; border-radius: 5px;}
+    input, select { background: #111; border: 1px solid #444; color: white; padding: 10px; width: 100%; margin-bottom: 10px; border-radius: 5px;}
     button { background: var(--neon-pink); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 20px;}
     
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -24,6 +24,8 @@
     .data-row { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 10px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid var(--neon-cyan);}
     .data-row.reaction { border-left-color: var(--neon-pink); }
     .del-btn { background: #e53e3e; width: auto; margin: 0; padding: 5px 10px; font-size: 0.9rem;}
+    
+    .control-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px;}
   </style>
 </head>
 <body>
@@ -37,19 +39,36 @@
 
   <div class="container" id="admin-dashboard" style="display: none;">
     <h1>KONTROLLZENTRUM</h1>
-    <p style="text-align: center; margin-bottom: 20px; color: #aaa;">Lösche Fehleingaben. Der Beamer aktualisiert sich live!</p>
     
-    <div class="list-section" style="border-color: var(--neon-cyan);">
-      <h2 style="color: var(--neon-cyan);">🔄 Beamer Auto-Switch</h2>
-      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <input type="number" id="switchInterval" value="10" min="5" style="margin: 0; width: 100px; flex: none;" placeholder="Sekunden">
-        <span style="color: #aaa;">Sekunden</span>
-        <button onclick="startAutoSwitch()" style="margin: 0; background: var(--neon-cyan); color: #000; flex: 1;">START</button>
-        <button onclick="stopAutoSwitch()" style="margin: 0; background: #555; flex: 1;">STOP</button>
+    <div class="grid">
+      <div class="list-section" style="border-color: var(--neon-cyan);">
+        <h2 style="color: var(--neon-cyan);">🔄 Ansicht (Auto-Switch)</h2>
+        <div class="control-row">
+          <input type="number" id="switchInterval" value="10" min="5" style="margin: 0; width: 80px; flex: none;" placeholder="Sek">
+          <button onclick="startAutoSwitch()" style="margin: 0; background: var(--neon-cyan); color: #000; flex: 1;">START</button>
+          <button onclick="stopAutoSwitch()" style="margin: 0; background: #555; flex: 1;">STOP</button>
+        </div>
+      </div>
+      
+      <div class="list-section" style="border-color: var(--neon-pink);">
+        <h2 style="color: var(--neon-pink);">↔️ Auto-Scroll (Jenga)</h2>
+        <div class="control-row">
+          <input type="number" id="scrollSpeed" value="1" min="1" max="10" style="margin: 0; width: 80px; flex: none;" title="Speed">
+          <button onclick="startAutoScroll()" style="margin: 0; background: var(--neon-pink); flex: 1;">START</button>
+          <button onclick="stopAutoScroll()" style="margin: 0; background: #555; flex: 1;">STOP</button>
+        </div>
       </div>
     </div>
 
-    <button onclick="loadAllData()" style="width: auto; margin: 0 auto 20px auto; display: block; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink);">🔄 LISTEN AKTUALISIEREN</button>
+    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; background: #222; padding: 10px; border-radius: 8px;">
+      <span style="white-space: nowrap; color: #aaa;">Sortieren nach:</span>
+      <select id="sortSelect" onchange="loadAllData()" style="margin: 0;">
+        <option value="time">Uhrzeit (Neueste zuerst)</option>
+        <option value="name">Spieler Name (A-Z)</option>
+        <option value="alc">Alkoholmenge (Höchste zuerst)</option>
+      </select>
+      <button onclick="loadAllData()" style="width: auto; margin: 0; background: transparent; border: 1px solid #aaa; color: #fff;">🔄 RELOAD</button>
+    </div>
     
     <div class="grid">
       <div class="list-section">
@@ -67,7 +86,7 @@
   <script>
     const client = supabase.createClient('https://usihbregbanpfspblrnw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY');
     let adminRoomId = null;
-    let adminChannel = null; // NEU: Der Broadcast-Kanal
+    let adminChannel = null; 
     
     const adminUrlParams = new URLSearchParams(window.location.search);
     const prefillRoom = adminUrlParams.get('room');
@@ -84,34 +103,49 @@
       document.getElementById('login-box').style.display = 'none';
       document.getElementById('admin-dashboard').style.display = 'block';
       
-      // NEU: Mit dem Channel verbinden, um funken zu können
       adminChannel = client.channel('party_channel');
       adminChannel.subscribe();
 
       loadAllData();
     }
 
-    // NEU: Auto-Switch Funksignale senden
     function startAutoSwitch() {
       const sec = parseInt(document.getElementById('switchInterval').value) || 10;
       adminChannel.send({ type: 'broadcast', event: 'autoswitch', payload: { active: true, seconds: sec } });
-      alert(`Auto-Switch gestartet (Alle ${sec}s)`);
     }
-
     function stopAutoSwitch() {
       adminChannel.send({ type: 'broadcast', event: 'autoswitch', payload: { active: false } });
-      alert("Auto-Switch gestoppt");
+    }
+
+    // NEU: Scroll Befehle senden
+    function startAutoScroll() {
+      const spd = parseInt(document.getElementById('scrollSpeed').value) || 1;
+      adminChannel.send({ type: 'broadcast', event: 'autoscroll', payload: { active: true, speed: spd } });
+    }
+    function stopAutoScroll() {
+      adminChannel.send({ type: 'broadcast', event: 'autoscroll', payload: { active: false } });
     }
 
     function loadAllData() { loadDrinks(); loadReactions(); }
 
     async function loadDrinks() {
-      const { data: drinks } = await client.from('party_drinks').select('*, party_users(display_name)').eq('room_id', adminRoomId).order('created_at', { ascending: false });
+      const { data: drinks } = await client.from('party_drinks').select('*, party_users(display_name)').eq('room_id', adminRoomId);
       const list = document.getElementById('drink-list');
       list.innerHTML = '';
-      if(!drinks) return;
+      if(!drinks || drinks.length === 0) return;
 
-      drinks.forEach(d => {
+      const sortMode = document.getElementById('sortSelect').value;
+      let sortedDrinks = [...drinks];
+      
+      if (sortMode === 'time') {
+        sortedDrinks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      } else if (sortMode === 'name') {
+        sortedDrinks.sort((a, b) => (a.party_users?.display_name || '').localeCompare(b.party_users?.display_name || ''));
+      } else if (sortMode === 'alc') {
+        sortedDrinks.sort((a, b) => (b.volume_ml * (b.alcohol_percent/100)) - (a.volume_ml * (a.alcohol_percent/100)));
+      }
+
+      sortedDrinks.forEach(d => {
         const div = document.createElement('div');
         div.className = 'data-row';
         div.innerHTML = `<div><strong>${d.party_users?.display_name || 'Unbekannt'}</strong><br><span style="color:#aaa; font-size:0.8rem;">${d.volume_ml}ml | ${d.alcohol_percent}%</span></div><button class="del-btn" onclick="deleteEntry('party_drinks', '${d.id}')">X</button>`;
@@ -120,15 +154,26 @@
     }
 
     async function loadReactions() {
-      const { data: reactions } = await client.from('party_reactions').select('*, party_users(display_name)').eq('room_id', adminRoomId).order('created_at', { ascending: false });
+      const { data: reactions } = await client.from('party_reactions').select('*, party_users(display_name)').eq('room_id', adminRoomId);
       const list = document.getElementById('reaction-list');
       list.innerHTML = '';
-      if(!reactions) return;
+      if(!reactions || reactions.length === 0) return;
 
-      reactions.forEach(r => {
+      const sortMode = document.getElementById('sortSelect').value;
+      let sortedReactions = [...reactions];
+      
+      if (sortMode === 'time') {
+        sortedReactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      } else if (sortMode === 'name') {
+        sortedReactions.sort((a, b) => (a.party_users?.display_name || '').localeCompare(b.party_users?.display_name || ''));
+      } else if (sortMode === 'alc') {
+        sortedReactions.sort((a, b) => b.pure_alcohol_ml - a.pure_alcohol_ml);
+      }
+
+      sortedReactions.forEach(r => {
         const div = document.createElement('div');
         div.className = 'data-row reaction';
-        div.innerHTML = `<div><strong>${r.party_users?.display_name || 'Unbekannt'}</strong><br><span style="color:#aaa; font-size:0.8rem;">${r.reaction_time_ms} ms (Stufe ${r.alcohol_bucket})</span></div><button class="del-btn" onclick="deleteEntry('party_reactions', '${r.id}')">X</button>`;
+        div.innerHTML = `<div><strong>${r.party_users?.display_name || 'Unbekannt'}</strong><br><span style="color:#aaa; font-size:0.8rem;">${r.reaction_time_ms} ms (Total Reinalkohol: ${Math.round(r.pure_alcohol_ml)}ml)</span></div><button class="del-btn" onclick="deleteEntry('party_reactions', '${r.id}')">X</button>`;
         list.appendChild(div);
       });
     }
