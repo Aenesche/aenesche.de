@@ -20,18 +20,21 @@
     .btn-toggle { background: transparent; color: var(--neon-pink); border: 2px solid var(--neon-pink); padding: 10px 20px; font-size: 1rem; border-radius: 8px; cursor: pointer; text-transform: uppercase; margin-top: 40px; box-shadow: 0 0 10px rgba(255,0,234,0.3); transition: 0.3s; font-weight: bold;}
     .btn-toggle:hover { background: var(--neon-pink); color: #000; box-shadow: 0 0 20px rgba(255,0,234,0.6); }
 
-    .chart-area { 
-      flex: 1; position: relative; display: flex; flex-direction: column; 
-      justify-content: flex-end; padding: 40px; width: calc(100vw - 300px); 
-    }
+    .chart-area { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px; padding-bottom: 0px; width: calc(100vw - 300px); }
 
+    /* WICHTIG FÜR SCROLLEN & SKALIEREN */
     #live-stats { 
-      width: 100%; height: 80vh; display: flex; align-items: flex-end; 
-      justify-content: flex-start; gap: 15px; 
-      border-bottom: 2px solid #333; padding-bottom: 10px; 
-      overflow-x: auto; overflow-y: hidden; 
+      width: 100%; height: 85vh; /* Genug Höhe geben */
+      display: flex; align-items: flex-end; justify-content: flex-start; 
+      gap: 15px; 
+      border-bottom: 2px solid #333; 
+      padding-top: 50px; /* Platz nach oben für die Zahlen */
+      padding-bottom: 10px; 
+      overflow-x: auto; /* Scrollen nach rechts */
+      overflow-y: hidden;
     }
     
+    /* Neon Scrollbar OHNE Glow */
     #live-stats::-webkit-scrollbar { height: 12px; }
     #live-stats::-webkit-scrollbar-track { background: #111; border-radius: 6px; }
     #live-stats::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 6px; }
@@ -41,22 +44,21 @@
     .player-column { 
       display: flex; flex-direction: column; align-items: center; justify-content: flex-end; 
       flex: 0 0 auto; width: 130px; margin: 0 5px; height: 100%; position: relative; 
-      padding-bottom: 120px; /* DER TRICK: Macht 120px Platz IN der Box für die Namen */
+      padding-bottom: 120px; /* Platz IN der Spalte für die Namen */
     }
 
     .player-tower { display: flex; flex-direction: column-reverse; width: 100%; align-items: center; }
     
+    /* NEU: WIEDER DA! Die Zahlen oben auf dem Stapel */
     .player-score { font-size: 1.5rem; font-weight: bold; color: #fff; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
     .player-name { 
       font-weight: bold; color: #ccc; width: 130px; font-size: 1rem; 
-      position: absolute; 
-      bottom: 20px; /* Sitzt jetzt IN der Spalte, direkt über der Scrollbar */
-      left: 20px; 
-      transform: rotate(-45deg); 
-      transform-origin: left bottom; 
+      position: absolute; bottom: 20px; /* Sitzt IN der Spalte, direkt über der Scrollbar */
+      left: 20px; transform: rotate(-45deg); transform-origin: left bottom; 
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
     }
+
     #global-chart-container { display: none; width: 100%; height: 100%; padding-bottom: 20px; }
   </style>
 </head>
@@ -70,8 +72,6 @@
     <div class="qr-box">
       <h3>Join Party</h3>
       <div id="qrcode"></div>
-      <h3></h3>
-      <h3>Site hosted on Aenesche.de</h3>
     </div>
     <button id="toggleViewBtn" class="btn-toggle" onclick="toggleView()">📊 Reaktionstests</button>
   </div>
