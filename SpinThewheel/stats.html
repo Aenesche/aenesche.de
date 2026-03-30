@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monster Stats</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PASSWORT CONFIG
+   ============================================================
+   Das Passwort steht unten im JS als STATS_PASSWORD.
+   (Client-side — kein echtes Security, aber reicht um
+    Casual-User fernzuhalten.)
+   ============================================================ */
+:root {
+  --bg: #0a0a0a;
+  --surface: #111;
+  --accent: #7ed321;
+  --text: #fff;
+  --dim: #555;
+  --border: #1a1a1a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  min-height: 100vh;
+}
+
+/* ---- Login ---- */
+.login-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+.login-box {
+  text-align: center;
+}
+.login-box input {
+  background: var(--surface);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: .7rem 1.2rem;
+  color: var(--text);
+  font-family: inherit;
+  font-size: .9rem;
+  outline: none;
+  width: 220px;
+  text-align: center;
+}
+.login-box input:focus { border-color: var(--accent); }
+.login-box input::placeholder { color: var(--dim); }
+.login-error {
+  margin-top: .5rem;
+  font-size: .75rem;
+  color: #e74c3c;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.login-error.show { opacity: 1; }
+
+/* ---- Dashboard ---- */
+.dashboard {
+  display: none;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+.dashboard.active { display: block; }
+
+h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  color: var(--accent);
+  letter-spacing: .05em;
+}
+.total {
+  color: var(--dim);
+  font-size: .82rem;
+  margin: .2rem 0 2rem;
+}
+
+h2 {
+  font-size: .7rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin: 2.2rem 0 .8rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Bars */
+.row {
+  display: flex;
+  align-items: center;
+  padding: .55rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .82rem;
+}
+.row .name { min-width: 200px; }
+.bar {
+  flex: 1; height: 6px;
+  background: #1a1a1a;
+  border-radius: 3px;
+  margin: 0 14px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width .5s ease;
+}
+.ct {
+  color: var(--accent);
+  font-weight: 700;
+  min-width: 100px;
+  text-align: right;
+}
+
+/* History */
+.hrow {
+  display: flex;
+  justify-content: space-between;
+  padding: .4rem 0;
+  border-bottom: 1px solid #111;
+  font-size: .75rem;
+}
+.hrow .dim { color: var(--dim); }
+
+/* Day chart */
+.day-row {
+  display: flex;
+  align-items: center;
+  padding: .4rem 0;
+  border-bottom: 1px solid #111;
+  font-size: .75rem;
+}
+.day-row .day-label { min-width: 100px; color: var(--dim); }
+.day-row .day-bar {
+  flex: 1; height: 5px;
+  background: #151515;
+  border-radius: 3px;
+  margin: 0 12px;
+  overflow: hidden;
+}
+.day-row .day-fill {
+  height: 100%;
+  background: var(--accent);
+  opacity: .7;
+  border-radius: 3px;
+}
+.day-row .day-ct { min-width: 50px; text-align: right; color: var(--dim); }
+
+/* Sessions */
+.session-info {
+  font-size: .75rem;
+  color: var(--dim);
+  margin-top: .3rem;
+}
+
+/* Export */
+.actions {
+  margin-top: 2.5rem;
+  display: flex;
+  gap: .8rem;
+}
+.actions button {
+  padding: .6rem 1.2rem;
+  border: 1px solid #333;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--dim);
+  font-family: inherit;
+  font-size: .75rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.actions button:hover { background: #1e1e1e; color: var(--text); }
+
+.loading {
+  text-align: center;
+  padding: 4rem 0;
+  color: var(--dim);
+  font-size: .85rem;
+}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <input type="password" id="pwInput" placeholder="Passwort" autofocus>
+    <div class="login-error" id="loginError">Falsches Passwort</div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard" id="dashboard">
+  <h1>Monster Spin Stats</h1>
+  <div class="total" id="totalInfo"></div>
+
+  <h2>Verteilung</h2>
+  <div id="bars"></div>
+
+  <h2>Drehs pro Tag (letzte 30 Tage)</h2>
+  <div id="dayChart"></div>
+
+  <h2>Uhrzeit-Verteilung</h2>
+  <div id="hourChart"></div>
+
+  <h2>Unique Sessions</h2>
+  <div class="session-info" id="sessionInfo"></div>
+
+  <h2>Letzte 50 Drehs</h2>
+  <div id="history"></div>
+
+  <div class="actions">
+    <button id="exportBtn">CSV Export</button>
+    <button id="refreshBtn">Aktualisieren</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const STATS_PASSWORD = 'hoffi2026';  // <-- Hier Passwort ändern
+
+const SB_URL = 'https://usihbregbanpfspblrnw.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY';
+
+/* ============================================================
+   AUTH (client-side, simpel)
+   ============================================================ */
+const pwInput = document.getElementById('pwInput');
+const loginError = document.getElementById('loginError');
+const loginWrap = document.getElementById('loginWrap');
+const dashboard = document.getElementById('dashboard');
+
+pwInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (pwInput.value === STATS_PASSWORD) {
+      loginWrap.style.display = 'none';
+      dashboard.classList.add('active');
+      loadStats();
+    } else {
+      loginError.classList.add('show');
+      pwInput.value = '';
+      setTimeout(() => loginError.classList.remove('show'), 2000);
+    }
+  }
+});
+
+/* ============================================================
+   DATEN LADEN
+   ============================================================ */
+let allSpins = [];
+
+async function loadStats() {
+  dashboard.innerHTML = '<div class="loading">Lade Daten...</div>';
+
+  try {
+    /* Supabase paginiert bei 1000 — wir holen alles */
+    let spins = [];
+    let offset = 0;
+    const limit = 1000;
+    let done = false;
+
+    while (!done) {
+      const res = await fetch(
+        `${SB_URL}/rest/v1/monster_spins?select=*&order=spun_at.desc&offset=${offset}&limit=${limit}`,
+        {
+          headers: {
+            'apikey': SB_KEY,
+            'Authorization': `Bearer ${SB_KEY}`,
+          },
+        }
+      );
+      const batch = await res.json();
+      spins = spins.concat(batch);
+      if (batch.length < limit) done = true;
+      else offset += limit;
+    }
+
+    allSpins = spins;
+    render(spins);
+  } catch (e) {
+    dashboard.innerHTML = `<div class="loading">Fehler: ${e.message}</div>`;
+  }
+}
+
+function render(spins) {
+  const total = spins.length;
+
+  /* Counts */
+  const counts = {};
+  spins.forEach(s => counts[s.flavor] = (counts[s.flavor] || 0) + 1);
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const maxC = sorted.length ? sorted[0][1] : 1;
+
+  /* By day */
+  const byDay = {};
+  spins.forEach(s => {
+    const d = new Date(s.spun_at).toISOString().split('T')[0];
+    byDay[d] = (byDay[d] || 0) + 1;
+  });
+  const days = Object.entries(byDay).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 30).reverse();
+  const maxDay = days.length ? Math.max(...days.map(d => d[1])) : 1;
+
+  /* By hour */
+  const byHour = {};
+  for (let h = 0; h < 24; h++) byHour[h] = 0;
+  spins.forEach(s => {
+    const h = new Date(s.spun_at).getHours();
+    byHour[h]++;
+  });
+  const maxHour = Math.max(1, ...Object.values(byHour));
+
+  /* Sessions */
+  const sessions = new Set(spins.map(s => s.session_id).filter(Boolean));
+
+  /* Recent */
+  const recent = spins.slice(0, 50);
+
+  /* Render */
+  dashboard.innerHTML = `
+    <h1>Monster Spin Stats</h1>
+    <div class="total">${total} Drehs insgesamt · ${sessions.size} unique Sessions</div>
+
+    <h2>Verteilung</h2>
+    <div id="bars">${sorted.map(([name, count]) => {
+      const pct = total > 0 ? ((count / total) * 100).toFixed(1) : '0';
+      return `<div class="row">
+        <span class="name">${name}</span>
+        <div class="bar"><div class="bar-fill" style="width:${(count/maxC)*100}%"></div></div>
+        <span class="ct">${count} (${pct}%)</span>
+      </div>`;
+    }).join('')}</div>
+
+    <h2>Drehs pro Tag (letzte 30 Tage)</h2>
+    <div id="dayChart">${days.map(([day, count]) => `
+      <div class="day-row">
+        <span class="day-label">${day}</span>
+        <div class="day-bar"><div class="day-fill" style="width:${(count/maxDay)*100}%"></div></div>
+        <span class="day-ct">${count}</span>
+      </div>
+    `).join('')}</div>
+
+    <h2>Uhrzeit-Verteilung</h2>
+    <div id="hourChart">${Object.entries(byHour).map(([h, count]) => `
+      <div class="day-row">
+        <span class="day-label">${String(h).padStart(2,'0')}:00</span>
+        <div class="day-bar"><div class="day-fill" style="width:${(count/maxHour)*100}%"></div></div>
+        <span class="day-ct">${count}</span>
+      </div>
+    `).join('')}</div>
+
+    <h2>Letzte 50 Drehs</h2>
+    <div id="history">${recent.map(s => {
+      const d = new Date(s.spun_at);
+      const ts = d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+      return `<div class="hrow"><span>${s.flavor}</span><span class="dim">${ts}</span></div>`;
+    }).join('') || '<div class="dim">Noch keine Drehs.</div>'}</div>
+
+    <div class="actions">
+      <button id="exportBtn">CSV Export</button>
+      <button id="refreshBtn">Aktualisieren</button>
+    </div>
+  `;
+
+  /* Event Listener */
+  document.getElementById('exportBtn').addEventListener('click', exportCSV);
+  document.getElementById('refreshBtn').addEventListener('click', loadStats);
+}
+
+function exportCSV() {
+  if (!allSpins.length) return;
+  let csv = 'Zeitpunkt,Ergebnis,Session\n';
+  allSpins.forEach(s => csv += `${s.spun_at},"${s.flavor}","${s.session_id || ''}"\n`);
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'monster_stats.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
