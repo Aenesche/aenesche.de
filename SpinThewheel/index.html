@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HOFFI Monsters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CONFIG — Segmentfarben
+   Reihenfolge = FLAVORS Array unten
+   ============================================================ */
+:root {
+  --seg-0:  #2ecc40;  /* Paradise */
+  --seg-1:  #ff6b6b;  /* Fiesta */
+  --seg-2:  #ff8ec7;  /* Ultra Strawberry Dreams */
+  --seg-3:  #ffb347;  /* Mango Loco */
+  --seg-4:  #6b4226;  /* Monarch */
+  --seg-5:  #ff8c00;  /* Rehab Orange */
+  --seg-6:  #f0f0f0;  /* White (Zero Ultra) */
+  --seg-7:  #4cdf50;  /* Original */
+  --seg-8:  #2196f3;  /* Nitro */
+  --seg-9:  #1565c0;  /* Hamilton Blue */
+  --seg-10: #d4e157;  /* Khaotic */
+
+  --bg: #0a0a0a;
+  --accent: #7ed321;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: #fff;
+  font-family: 'Space Mono', monospace;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.wheel-wrap {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+canvas#wheel {
+  cursor: pointer;
+  max-width: 96vmin; max-height: 96vmin;
+  filter: drop-shadow(0 0 60px rgba(126,211,33,.12));
+  transition: filter .3s;
+}
+canvas#wheel:hover {
+  filter: drop-shadow(0 0 80px rgba(126,211,33,.22));
+}
+
+.pointer {
+  position: absolute; top: 50%;
+  right: calc(50% - min(48vmin,48vmin) - 18px);
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border-top: 22px solid transparent;
+  border-bottom: 22px solid transparent;
+  border-right: 36px solid var(--accent);
+  filter: drop-shadow(-3px 0 8px rgba(0,0,0,.5));
+  z-index: 10; pointer-events: none;
+}
+
+.result-overlay {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.75);
+  backdrop-filter: blur(12px);
+  z-index: 100; opacity: 0; pointer-events: none;
+  transition: opacity .4s ease;
+}
+.result-overlay.visible { opacity: 1; pointer-events: auto; cursor: pointer; }
+
+.result-card {
+  text-align: center;
+  transform: scale(.85);
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.result-overlay.visible .result-card { transform: scale(1); }
+
+.result-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem,10vw,7rem);
+  letter-spacing: .04em; line-height: 1;
+  color: var(--accent);
+  text-shadow: 0 0 40px rgba(126,211,33,.4);
+}
+.result-sub { margin-top: .6rem; font-size: .85rem; color: #666; letter-spacing: .1em; }
+
+@media (max-width:600px) {
+  .pointer { border-top-width:14px; border-bottom-width:14px; border-right-width:24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="wheel-wrap">
+  <canvas id="wheel" width="700" height="700"></canvas>
+</div>
+<div class="pointer"></div>
+
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <div class="result-label" id="resultLabel"></div>
+    <div class="result-sub">KLICK ZUM SCHLIEßEN</div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   SORTEN — Hier anpassen
+   Neue Sorte: 1) Hier eintragen  2) Farbe oben als --seg-N
+   ============================================================ */
+const FLAVORS = [
+  'Paradise',
+  'Fiesta',
+  'Ultra Strawberry Dreams',
+  'Mango Loco',
+  'Monarch',
+  'Rehab Orange',
+  'White (Zero Ultra)',
+  'Original',
+  'Nitro',
+  'Hamilton Blue',
+  'Khaotic',
+];
+
+const COLORS = [
+  '#2ecc40','#ff6b6b','#ff8ec7','#ffb347','#6b4226',
+  '#ff8c00','#f0f0f0','#4cdf50','#2196f3','#1565c0','#d4e157',
+];
+
+/* ============================================================
+   SUPABASE — Tracking-Backend
+   ============================================================ */
+const SB_URL = 'https://usihbregbanpfspblrnw.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY';
+const SESSION = crypto.randomUUID();
+
+async function trackSpin(flavor) {
+  try {
+    await fetch(`${SB_URL}/rest/v1/monster_spins`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        flavor,
+        session_id: SESSION,
+        user_agent: navigator.userAgent,
+      }),
+    });
+  } catch (e) {
+    console.warn('Track failed:', e);
+  }
+}
+
+/* ============================================================
+   RAD
+   ============================================================ */
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const N = FLAVORS.length;
+const ARC = (2 * Math.PI) / N;
+let rotation = 0, spinning = false, spinVelocity = 0, animFrame = null;
+
+function segColor(i) {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue(`--seg-${i}`).trim() || COLORS[i % COLORS.length];
+}
+
+function textColor(hex) {
+  const c = hex.replace('#','');
+  const r = parseInt(c.substring(0,2),16);
+  const g = parseInt(c.substring(2,4),16);
+  const b = parseInt(c.substring(4,6),16);
+  return (r*.299+g*.587+b*.114) > 160 ? '#111' : '#fff';
+}
+
+function draw() {
+  const W=canvas.width, H=canvas.height, cx=W/2, cy=H/2, R=Math.min(cx,cy)-8;
+  ctx.clearRect(0,0,W,H);
+  for (let i=0; i<N; i++) {
+    const sa=rotation+i*ARC, ea=sa+ARC, bg=segColor(i);
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,sa,ea); ctx.closePath();
+    ctx.fillStyle=bg; ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.lineWidth=2; ctx.stroke();
+
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(sa+ARC/2);
+    ctx.textAlign='right'; ctx.fillStyle=textColor(bg);
+    const fs = FLAVORS[i].length>18?14:FLAVORS[i].length>12?16:19;
+    ctx.font=`700 ${fs}px 'Space Mono',monospace`;
+    ctx.fillText(FLAVORS[i], R-20, fs/3);
+    ctx.restore();
+  }
+  ctx.beginPath(); ctx.arc(cx,cy,38,0,2*Math.PI);
+  ctx.fillStyle='#0a0a0a'; ctx.fill();
+  ctx.strokeStyle='#7ed321'; ctx.lineWidth=3; ctx.stroke();
+  ctx.fillStyle='#7ed321'; ctx.font="700 13px 'Bebas Neue',sans-serif";
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('SPIN',cx,cy);
+}
+
+function spin() {
+  if (spinning) return;
+  spinning = true;
+  spinVelocity = 0.25 + Math.random() * 0.35;
+  animate();
+}
+
+function animate() {
+  rotation += spinVelocity;
+  spinVelocity *= 0.985;
+  draw();
+  if (spinVelocity < 0.001) { spinning=false; cancelAnimationFrame(animFrame); onResult(); return; }
+  animFrame = requestAnimationFrame(animate);
+}
+
+function onResult() {
+  const norm = ((2*Math.PI)-(rotation%(2*Math.PI)))%(2*Math.PI);
+  const idx = Math.floor(norm/ARC)%N;
+  const flavor = FLAVORS[idx];
+  resultLabel.textContent = flavor;
+  overlay.classList.add('visible');
+  trackSpin(flavor);
+}
+
+const overlay = document.getElementById('resultOverlay');
+const resultLabel = document.getElementById('resultLabel');
+overlay.addEventListener('click', () => overlay.classList.remove('visible'));
+canvas.addEventListener('click', spin);
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter' && e.ctrlKey) spin();
+  if (e.key==='Escape') overlay.classList.remove('visible');
+});
+
+draw();
+</script>
+</body>
+</html>
