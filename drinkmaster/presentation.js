@@ -139,7 +139,7 @@ function pauseAndResumeScroll() {
 
 function renderGlobalChart() {
   const ctx = document.getElementById('globalChart').getContext('2d');
-  const CURVE_GROUPING_ML = 15; 
+  const CURVE_GROUPING_ML = 8; 
 
   const scatterData = globalReactions.map(r => ({
     x: r.pure_alcohol_ml, y: r.reaction_time_ms, name: r.party_users?.display_name || 'Unbekannt'
