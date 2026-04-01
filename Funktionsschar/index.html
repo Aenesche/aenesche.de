@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Funktionsschar fa</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d1117;
+    color: #e2e8f0;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 12px;
+    min-height: 100vh;
+  }
+  h2 {
+    font-size: 14px;
+    color: #64748b;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .formula {
+    font-size: 17px;
+    color: #e2e8f0;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  canvas {
+    border: 1px solid #1e2d3d;
+    border-radius: 8px;
+    box-shadow: 0 0 40px rgba(56,189,248,0.07);
+    max-width: 100%;
+    display: block;
+  }
+  .controls {
+    margin-top: 18px;
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .slider-label { color: #64748b; font-size: 14px; width: 14px; }
+  input[type=range] {
+    flex: 1;
+    accent-color: #38bdf8;
+    cursor: pointer;
+    height: 6px;
+  }
+  .a-value {
+    color: #38bdf8;
+    font-size: 16px;
+    font-weight: bold;
+    background: #0f1d2e;
+    padding: 3px 12px;
+    border-radius: 4px;
+    border: 1px solid #1e3a5f;
+    min-width: 64px;
+    text-align: center;
+  }
+  .toggle-btn {
+    background: #1e2533;
+    border: 1px solid #374151;
+    color: #6b7280;
+    border-radius: 4px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .toggle-btn.active {
+    background: #78350f;
+    border-color: #f59e0b;
+    color: #f59e0b;
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    max-width: 680px;
+    margin-top: 4px;
+  }
+  .info-card {
+    background: #0f1117;
+    border: 1px solid #1e2533;
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .info-card .lbl {
+    font-size: 9px;
+    color: #4b5563;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .info-card .val {
+    font-size: 13px;
+    font-weight: bold;
+    word-break: break-all;
+  }
+  .legend {
+    margin-top: 10px;
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+    color: #6b7280;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+<h2>Funktionsschar</h2>
+<div class="formula">f<sub>a</sub>(x) = (ax² + x − 5) · e<sup>ax</sup></div>
+
+<canvas id="c"></canvas>
+
+<div class="controls">
+  <div class="slider-row">
+    <span class="slider-label">a</span>
+    <input type="range" id="slider" min="-1" max="1" step="0.01" value="-0.2">
+    <span class="a-value" id="aval">−0.20</span>
+  </div>
+  <div>
+    <button class="toggle-btn active" id="derivBtn" onclick="toggleDeriv()">f′ eingeblendet</button>
+  </div>
+</div>
+
+<div class="info-grid">
+  <div class="info-card">
+    <div class="lbl">y-Achse</div>
+    <div class="val" style="color:#f472b6">S(0 | −5)</div>
+  </div>
+  <div class="info-card">
+    <div class="lbl">Nullstellen</div>
+    <div class="val" style="color:#4ade80" id="zeros">—</div>
+  </div>
+  <div class="info-card">
+    <div class="lbl">f′(0)</div>
+    <div class="val" style="color:#f59e0b" id="dval">—</div>
+  </div>
+</div>
+
+<div class="legend">
+  <span><span style="color:#38bdf8">━━</span> f<sub>a</sub>(x)</span>
+  <span><span style="color:#f59e0b">╌╌</span> f′<sub>a</sub>(x)</span>
+  <span><span style="color:#f472b6">●</span> y-Achse</span>
+  <span><span style="color:#4ade80">●</span> Nullstellen</span>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// Responsive canvas
+function resize() {
+  const maxW = Math.min(680, window.innerWidth - 24);
+  canvas.style.width = maxW + 'px';
+  canvas.style.height = (maxW * 480/700) + 'px';
+  canvas.width = maxW * devicePixelRatio;
+  canvas.height = maxW * 480/700 * devicePixelRatio;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  draw();
+}
+
+const XMIN=-4, XMAX=16, YMIN=-14, YMAX=8;
+let W=700, H=480;
+let a = -0.2;
+let showDeriv = true;
+
+function getWH() {
+  W = parseFloat(canvas.style.width);
+  H = parseFloat(canvas.style.height);
+}
+
+function toC(x, y) {
+  return [
+    ((x-XMIN)/(XMAX-XMIN))*W,
+    H - ((y-YMIN)/(YMAX-YMIN))*H
+  ];
+}
+
+function fa(a, x) { return (a*x*x + x - 5) * Math.exp(a*x); }
+function dfa(a, x) {
+  const ea = Math.exp(a*x);
+  const u = a*x*x + x - 5;
+  const du = 2*a*x + 1;
+  return (du + a*u)*ea;
+}
+
+function findZeros(a) {
+  const zeros = [];
+  const steps = 2000;
+  const dx = (XMAX-XMIN)/steps;
+  let prev = fa(a, XMIN);
+  for (let i=1; i<=steps; i++) {
+    const x = XMIN + i*dx;
+    const curr = fa(a, x);
+    if (prev*curr < 0) {
+      let lo = x-dx, hi = x;
+      for (let j=0; j<40; j++) {
+        const mid=(lo+hi)/2;
+        if (fa(a,lo)*fa(a,mid)<=0) hi=mid; else lo=mid;
+      }
+      zeros.push((lo+hi)/2);
+    }
+    prev = curr;
+  }
+  return zeros;
+}
+
+function plotCurve(fn, color, dash) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.2;
+  ctx.setLineDash(dash||[]);
+  ctx.beginPath();
+  let started = false;
+  for (let i=0; i<=1200; i++) {
+    const x = XMIN + (i/1200)*(XMAX-XMIN);
+    const y = fn(x);
+    if (!isFinite(y)||Math.abs(y)>60){ started=false; continue; }
+    const [cx,cy] = toC(x,y);
+    if (!started){ ctx.moveTo(cx,cy); started=true; } else ctx.lineTo(cx,cy);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function draw() {
+  getWH();
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d1117'; ctx.fillRect(0,0,W,H);
+
+  // grid
+  ctx.strokeStyle='#1e2533'; ctx.lineWidth=1;
+  for (let x=Math.ceil(XMIN); x<=XMAX; x++) {
+    const [cx]=toC(x,0); ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+  }
+  for (let y=Math.ceil(YMIN); y<=YMAX; y++) {
+    const [,cy]=toC(0,y); ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+  }
+
+  // axes
+  const [ox,oy]=toC(0,0);
+  ctx.strokeStyle='#4a5568'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(W,oy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox,0); ctx.lineTo(ox,H); ctx.stroke();
+
+  // labels
+  ctx.fillStyle='#6b7280'; ctx.font=`${W*0.017}px 'Courier New'`;
+  ctx.textAlign='center';
+  for (let x=XMIN+2; x<=XMAX; x+=2) {
+    if (x===0) continue;
+    const [cx]=toC(x,0); ctx.fillText(x, cx, oy+15);
+  }
+  ctx.textAlign='right';
+  for (let y=YMIN+2; y<=YMAX; y+=2) {
+    if (y===0) continue;
+    const [,cy]=toC(0,y); ctx.fillText(y, ox-5, cy+4);
+  }
+
+  if (showDeriv) plotCurve(x=>dfa(a,x), '#f59e0b', [6,4]);
+  plotCurve(x=>fa(a,x), '#38bdf8');
+
+  // y-intercept
+  const [yx,yy]=toC(0,-5);
+  ctx.fillStyle='#f472b6'; ctx.beginPath(); ctx.arc(yx,yy,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#f472b6'; ctx.font=`bold ${W*0.016}px 'Courier New'`; ctx.textAlign='left';
+  ctx.fillText('S(0|−5)', yx+8, yy-7);
+
+  // zeros
+  const zeros = findZeros(a);
+  zeros.forEach(xz=>{
+    const [zx,zy]=toC(xz,0);
+    ctx.fillStyle='#4ade80'; ctx.beginPath(); ctx.arc(zx,zy,5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#4ade80'; ctx.font=`${W*0.015}px 'Courier New'`; ctx.textAlign='center';
+    ctx.fillText(xz.toFixed(2), zx, zy-9);
+  });
+
+  // update info
+  document.getElementById('zeros').textContent = zeros.length===0 ? 'keine' : zeros.map(z=>z.toFixed(2)).join(', ');
+  document.getElementById('dval').textContent = dfa(a,0).toFixed(3);
+}
+
+document.getElementById('slider').addEventListener('input', function() {
+  a = parseFloat(this.value);
+  const display = (a >= 0 ? '+' : '') + a.toFixed(2);
+  document.getElementById('aval').textContent = display;
+  draw();
+});
+
+function toggleDeriv() {
+  showDeriv = !showDeriv;
+  const btn = document.getElementById('derivBtn');
+  btn.textContent = showDeriv ? "f′ eingeblendet" : "f′ ausgeblendet";
+  btn.classList.toggle('active', showDeriv);
+  draw();
+}
+
+window.addEventListener('resize', resize);
+resize();
+</script>
+
+</body>
+</html>
