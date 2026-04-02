@@ -152,6 +152,8 @@
           <div class="buttons">
             <button class="primary" id="playBtn">INITIALIZE CONNECTION</button>
             <button id="wikiBtn">OPEN DATABANK (WIKI)</button>
+            <button id="projectBtn">OTHER PROJECTS</button>
+
             <style>
   .dm-countdown-btn {
     background: #111;
@@ -186,40 +188,6 @@
     text-shadow: none;
   }
 </style>
-
-<a href="#" id="drinkmaster-btn" class="dm-countdown-btn">
-  DRINKMASTER LÄDT...
-</a>
-
-<script>
-  // Zieldatum festlegen: 28. März 2026 um 22:00 Uhr (CET/CEST)
-  const releaseDate = new Date("2026-03-28T22:00:00+01:00").getTime();
-  
-  const countdownTimer = setInterval(function() {
-    const now = new Date().getTime();
-    const distance = releaseDate - now;
-
-    const btn = document.getElementById("drinkmaster-btn");
-
-    // Zeitberechnungen
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    if (distance > 0) {
-      // Zeit läuft noch ab
-      btn.innerHTML = `🔒 DRINKMASTER IN:<br><span style="font-size: 0.9em; color: #aaa;">${days}t ${hours}s ${minutes}m ${seconds}s</span>`;
-    } else {
-      // TIMER ABGELAUFEN! Button aktivieren!
-      clearInterval(countdownTimer);
-      btn.innerHTML = "🎮 DRINKMASTER STARTEN";
-      btn.classList.add("live");
-      // Passe diesen Link an den echten Pfad zu deinem Spiel an!
-      btn.href = "/drinkmaster/index.html"; 
-    }
-  }, 1000);
-</script>
           </div>
         </div>
 
@@ -292,6 +260,8 @@
     // === DEINE EINSTELLUNGEN ===
     const PLAY_CURRENT_HREF = "updatedgame/index.html"; // Hier den Pfad zum Spiel rein
     const WIKI_HREF = "updatedgame/wiki/index.html";   // Hier den Pfad zum Wiki rein
+    const PROJECT_HREF = "projects/index.html";   // Hier den Pfad zum Wiki rein
+
 
     document.getElementById("lastUpdate").textContent =
       new Date().toLocaleDateString("de-DE", { year:"numeric", month:"2-digit", day:"2-digit" });
@@ -302,6 +272,10 @@
 
     document.getElementById("wikiBtn").addEventListener("click", () => {
       window.open(WIKI_HREF, '_blank'); // Öffnet das Wiki in neuem Tab
+    });
+
+    document.getElementById("projectBtn").addEventListener("click", () => {
+      window.location.href = PROJECT_HREF;
     });
   </script>
 
