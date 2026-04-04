@@ -1,48 +1,39 @@
-// entities/Building.js – Basisklasse für alle Gebäude
+// entities/Building.js
 class Building {
   constructor(scene, x, y, config) {
     this.scene = scene;
     this.config = config;
     this.id = config.id || 'building';
     this.name = config.name || 'Gebäude';
-    this.interactable = config.interactable !== false;
 
-    // Visual
     const width = config.width || 48;
     const height = config.height || 48;
-    const color = config.color || 0x666666;
+    const color = config.color || 0x3f3f46;
 
     if (scene.textures.exists(config.texture)) {
       this.sprite = scene.physics.add.staticSprite(x, y, config.texture);
     } else {
       const gfx = scene.add.graphics();
+      gfx.fillStyle(0x000000, 0.2);
+      gfx.fillRoundedRect(3, 3, width, height, 6);
       gfx.fillStyle(color, 1);
-      gfx.fillRect(0, 0, width, height);
-      gfx.lineStyle(2, 0x888888);
-      gfx.strokeRect(0, 0, width, height);
-      gfx.generateTexture(`building_${this.id}_ph`, width, height);
+      gfx.fillRoundedRect(0, 0, width, height, 6);
+      gfx.lineStyle(1.5, 0xffffff, 0.08);
+      gfx.strokeRoundedRect(0, 0, width, height, 6);
+      gfx.generateTexture(`building_${this.id}_ph`, width + 4, height + 4);
       gfx.destroy();
       this.sprite = scene.physics.add.staticSprite(x, y, `building_${this.id}_ph`);
     }
-
     this.sprite.setDepth(5);
 
-    // Label
-    this.label = scene.add.text(x, y - height / 2 - 8, this.name, {
-      fontSize: '9px',
-      fontFamily: 'Courier New',
-      color: '#ffffff',
-      backgroundColor: '#00000088',
-      padding: { x: 3, y: 1 }
+    this.label = scene.add.text(x, y - height / 2 - 10, this.name, {
+      fontSize: '11px', fontFamily: 'Arial, sans-serif', color: '#d4d4d8',
+      backgroundColor: '#18181bcc', padding: { x: 5, y: 2 }
     }).setOrigin(0.5, 1).setDepth(11);
 
-    // Interaction prompt (hidden by default)
-    this.prompt = scene.add.text(x, y + height / 2 + 4, '[E]', {
-      fontSize: '10px',
-      fontFamily: 'Courier New',
-      color: '#4ade80',
-      backgroundColor: '#000000aa',
-      padding: { x: 4, y: 2 }
+    this.prompt = scene.add.text(x, y + height / 2 + 6, '[E]', {
+      fontSize: '12px', fontFamily: 'Arial, sans-serif', color: '#4ade80',
+      backgroundColor: '#18181bcc', padding: { x: 6, y: 3 }
     }).setOrigin(0.5, 0).setDepth(11).setVisible(false);
   }
 
@@ -50,16 +41,10 @@ class Building {
   hidePrompt() { this.prompt.setVisible(false); }
 
   isNear(player, distance = 56) {
-    return Phaser.Math.Distance.Between(
-      player.sprite.x, player.sprite.y,
-      this.sprite.x, this.sprite.y
-    ) < distance;
+    return Phaser.Math.Distance.Between(player.sprite.x, player.sprite.y, this.sprite.x, this.sprite.y) < distance;
   }
 
-  // Override in subclass
-  interact(player, systems) {
-    console.log(`Interact: ${this.name}`);
-  }
+  interact(player, systems) {}
 
   destroy() {
     this.sprite.destroy();
