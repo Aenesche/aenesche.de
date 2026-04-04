@@ -3,10 +3,12 @@
 const config = {
   type: Phaser.AUTO,
   parent: 'game-container',
-  width: 960,
-  height: 640,
-  pixelArt: true,
-  backgroundColor: '#1a1a2e',
+  width: 1280,
+  height: 720,
+  pixelArt: false,
+  antialias: true,
+  roundPixels: false,
+  backgroundColor: '#0f0f1a',
   physics: {
     default: 'arcade',
     arcade: {
@@ -17,6 +19,9 @@ const config = {
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+  dom: {
+    createContainer: true
   },
   scene: [
     BootScene,
@@ -32,7 +37,6 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-// Global registries accessible from all scenes
 game.registry.set('economy', null);
 game.registry.set('upgrades', null);
 game.registry.set('audio', null);
