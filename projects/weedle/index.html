@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Weed Tycoon</title>
-  <style>
+    <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: #0a0a0a;
       overflow: hidden;
-      font-family: 'Courier New', monospace;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     }
     #game-container {
       width: 100vw;
@@ -18,7 +18,6 @@
       align-items: center;
       justify-content: center;
     }
-    /* Mobile Warning Overlay */
     #mobile-overlay {
       display: none;
       position: fixed;
@@ -49,14 +48,12 @@
       border: none;
       padding: 0.8rem 2rem;
       font-size: 1.1rem;
-      font-family: 'Courier New', monospace;
+      font-family: inherit;
       font-weight: bold;
       cursor: pointer;
-      border-radius: 4px;
+      border-radius: 8px;
     }
     #mobile-overlay button:hover { background: #22c55e; }
-
-    /* Loading screen */
     #loading-screen {
       position: fixed;
       inset: 0;
@@ -67,21 +64,23 @@
       align-items: center;
       justify-content: center;
       color: #4ade80;
-      font-family: 'Courier New', monospace;
     }
-    #loading-screen h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+    #loading-screen h1 { font-size: 2.5rem; margin-bottom: 1.2rem; font-weight: 700; }
     #loading-bar-outer {
-      width: 300px; height: 20px;
-      border: 2px solid #4ade80;
-      border-radius: 4px;
+      width: 300px; height: 12px;
+      border: 1px solid #4ade8066;
+      border-radius: 8px;
       overflow: hidden;
+      background: #1a1a2e;
     }
     #loading-bar-inner {
       width: 0%; height: 100%;
-      background: #4ade80;
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+      border-radius: 8px;
       transition: width 0.2s;
     }
   </style>
+
 </head>
 <body>
 
