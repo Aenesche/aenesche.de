@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weedle - Level Editor</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <style>
+        body { margin: 0; background: #222; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; color: white; font-family: sans-serif; }
+        #ui-layer { position: absolute; top: 10px; left: 10px; pointer-events: none; }
+        .btn { pointer-events: auto; background: #444; color: white; border: 1px solid #666; padding: 10px; cursor: pointer; margin-bottom: 5px; display: block; }
+        .btn:hover { background: #666; }
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div id="editor-ui" style="display: none;">
+            <h3>Editor Modus</h3>
+            <p>Klick auf die Karte, um einen Slot zu setzen.</p>
+            <button class="btn" onclick="exportJSON()">JSON Exportieren (Konsole)</button>
+            <button class="btn" onclick="clearSlots()">Alle Slots löschen</button>
+        </div>
+    </div>
+
+    <script>
+        // Check, ob wir im Editor-Modus sind
+        const isEditor = new URLSearchParams(window.location.search).get('edit') === 'true';
+        if(isEditor) document.getElementById('editor-ui').style.display = 'block';
+
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-container',
+            backgroundColor: '#34495e',
+            scene: { preload: preload, create: create, update: update }
+        };
+
+        const game = new Phaser.Game(config);
+        let slots = [];
+        let ghostSlot;
+
+        function preload() {
+            // HIER deine Assets verknüpfen (wenn du sie hochgeladen hast)
+            // this.load.image('background', 'assets/map.png');
+            // this.load.spritesheet('char', 'assets/character.png', { frameWidth: 64, frameHeight: 64 });
+        }
+
+        function create() {
+            const self = this;
+
+            // 1. Hintergrund (Platzhalter)
+            this.add.grid(400, 300, 800, 600, 32, 32, 0x2c3e50).setAltFillStyle(0x34495e);
+            this.add.text(10, 570, isEditor ? "MODUS: EDITOR (Slot platzieren)" : "MODUS: SPIEL", { fill: '#0f0' });
+
+            // 2. Ghost-Slot (Vorschau im Editor)
+            if (isEditor) {
+                ghostSlot = this.add.rectangle(0, 0, 40, 40, 0x00ff00, 0.3);
+                
+                this.input.on('pointerdown', (pointer) => {
+                    const newSlot = { x: Math.round(pointer.x), y: Math.round(pointer.y), id: slots.length + 1 };
+                    slots.push(newSlot);
+                    drawSlot(self, newSlot);
+                });
+            }
+        }
+
+        function update() {
+            if (isEditor && ghostSlot) {
+                ghostSlot.x = this.input.activePointer.x;
+                ghostSlot.y = this.input.activePointer.y;
+            }
+        }
+
+        function drawSlot(scene, data) {
+            const rect = scene.add.rectangle(data.x, data.y, 40, 40, 0xffffff, 0.5);
+            scene.add.text(data.x, data.y, data.id, { fontSize: '12px' }).setOrigin(0.5);
+        }
+
+        // Editor Funktionen
+        window.exportJSON = () => {
+            console.log("KOPIERE DIESE DATEN:");
+            console.log(JSON.stringify(slots, null, 2));
+            alert("JSON wurde in die Browser-Konsole (F12) gedruckt!");
+        };
+
+        window.clearSlots = () => {
+            location.reload();
+        };
+
+    </script>
+</body>
+</html>
