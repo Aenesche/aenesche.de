@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revolution 1848/49 — Zeitstrahl</title>
+<style>
+  :root {
+    --bg: #fafaf8;
+    --fg: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #c4c4be;
+    --card: #ffffff;
+    --border: #e5e5e0;
+    --hover: #f0efeb;
+    --c-vorgeschichte: #6b8e9e;
+    --c-maerz: #c97a3a;
+    --c-paulskirche: #8b6fb0;
+    --c-hoehepunkt: #b04545;
+    --c-ende: #5a7a5a;
+  }
+  [data-theme="dark"] {
+    --bg: #161614;
+    --fg: #f0efeb;
+    --muted: #9a9a95;
+    --line: #3a3a38;
+    --card: #242422;
+    --border: #333330;
+    --hover: #2a2a28;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.5;
+    transition: background 0.2s, color 0.2s;
+  }
+  .header {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  h1 { font-size: 1.6rem; margin: 0 0 0.25rem; font-weight: 600; }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin: 0; }
+  .theme-toggle {
+    background: none; border: 1px solid var(--border); color: var(--fg);
+    padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+  }
+  .theme-toggle:hover { background: var(--hover); }
+
+  .legend {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 1.5rem 1rem;
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    font-size: 0.78rem; color: var(--muted);
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .scroll-hint {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 1.5rem 0.5rem;
+    font-size: 0.75rem; color: var(--muted); text-align: center;
+  }
+
+  .timeline-wrapper {
+    overflow-x: auto; overflow-y: visible;
+    padding: 1rem 0 1.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  .timeline-wrapper::-webkit-scrollbar { height: 8px; }
+  .timeline-wrapper::-webkit-scrollbar-track { background: transparent; }
+  .timeline-wrapper::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .timeline {
+    position: relative;
+    width: 2800px;
+    height: 440px;
+    margin: 0 auto;
+  }
+  .axis {
+    position: absolute;
+    left: 60px; right: 60px;
+    top: 220px; height: 2px;
+    background: var(--line);
+  }
+  .month-tick {
+    position: absolute; top: 215px;
+    width: 1px; height: 12px; background: var(--line);
+  }
+  .month-label {
+    position: absolute; top: 230px;
+    transform: translateX(-50%);
+    font-size: 0.7rem; color: var(--muted); white-space: nowrap;
+  }
+  .year-marker {
+    position: absolute; top: 248px;
+    transform: translateX(-50%);
+    font-size: 0.95rem; color: var(--fg); font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .event { position: absolute; cursor: pointer; }
+  .event-line {
+    position: absolute; left: 0;
+    width: 1px; background: var(--dot-color); opacity: 0.5;
+  }
+  .event.above .event-line { bottom: 0; height: var(--line-h); }
+  .event.below .event-line { top: 0; height: var(--line-h); }
+
+  .event-dot {
+    position: absolute;
+    left: -5px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--dot-color);
+    transition: all 0.15s;
+    z-index: 2;
+  }
+  .event.above .event-dot { bottom: -6px; }
+  .event.below .event-dot { top: -6px; }
+  .event:hover .event-dot,
+  .event.active .event-dot {
+    transform: scale(1.5);
+    background: var(--dot-color);
+  }
+
+  .event-label {
+    position: absolute;
+    left: -90px;
+    width: 180px;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--fg);
+    line-height: 1.3;
+    pointer-events: none;
+    transition: color 0.15s;
+  }
+  .event.above .event-label { bottom: calc(var(--line-h) + 6px); }
+  .event.below .event-label { top: calc(var(--line-h) + 6px); }
+  .event-label .date {
+    display: block;
+    color: var(--dot-color);
+    font-weight: 600;
+    font-size: 0.68rem;
+    margin-bottom: 2px;
+  }
+  .event:hover .event-label,
+  .event.active .event-label { color: var(--dot-color); }
+
+  .detail-panel {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem 3rem;
+  }
+  .detail-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--dot-color, var(--line));
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    min-height: 130px;
+  }
+  .detail-card.empty {
+    color: var(--muted); font-size: 0.9rem; text-align: center;
+    border-left-color: var(--line);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .detail-phase {
+    display: inline-block;
+    font-size: 0.7rem; color: var(--muted);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .detail-date {
+    font-size: 0.75rem; color: var(--dot-color);
+    font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; margin-bottom: 0.25rem;
+  }
+  .detail-title { font-size: 1.15rem; font-weight: 600; margin: 0 0 0.5rem; }
+  .detail-body { color: var(--fg); font-size: 0.92rem; line-height: 1.6; }
+  .detail-body strong { font-weight: 600; }
+
+  @media (max-width: 700px) {
+    h1 { font-size: 1.3rem; }
+    .header { padding: 1.5rem 1rem 0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Revolution 1848/49</h1>
+    <p class="subtitle">Zeitstrahl der wichtigsten Ereignisse</p>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">◐</button>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-vorgeschichte)"></span>Vorgeschichte</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-maerz)"></span>Märzrevolution</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-paulskirche)"></span>Paulskirche</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-hoehepunkt)"></span>Höhepunkt &amp; Scheitern</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-ende)"></span>Ende</div>
+</div>
+
+<div class="scroll-hint">← horizontal scrollen · Ereignis anklicken für Details →</div>
+
+<div class="timeline-wrapper" id="wrapper">
+  <div class="timeline" id="timeline">
+    <div class="axis"></div>
+  </div>
+</div>
+
+<div class="detail-panel">
+  <div class="detail-card empty" id="detail">
+    Klicke auf ein Ereignis im Zeitstrahl, um die Details anzuzeigen.
+  </div>
+</div>
+
+<script>
+const events = [
+  { phase: "vorgeschichte", phaseLabel: "Vorgeschichte", date: "1848-02-22", dateLabel: "22. Februar 1848", title: "Februarrevolution Frankreich",
+    body: "Sturz von König <strong>Louis-Philippe</strong> in Paris und Ausrufung der Zweiten Republik. Der revolutionäre Funke springt rasch auf die deutschen Staaten über und löst die Märzrevolution aus." },
+  { phase: "maerz", phaseLabel: "Märzrevolution", date: "1848-02-27", dateLabel: "27. Februar 1848", title: "Mannheimer Volksversammlung",
+    body: "Formulierung der <strong>Märzforderungen</strong>: Pressefreiheit, Versammlungsfreiheit, Volksbewaffnung mit freier Wahl der Offiziere, Schwurgerichte nach englischem Vorbild und ein deutsches Nationalparlament." },
+  { phase: "maerz", phaseLabel: "Märzrevolution", date: "1848-03-13", dateLabel: "13. März 1848", title: "Wiener Aufstand · Metternich tritt zurück",
+    body: "Studenten und Bürger gehen in Wien auf die Straße. Der konservative Staatskanzler <strong>Klemens von Metternich</strong>, Symbol der Restauration seit 1815, tritt zurück und flieht nach London." },
+  { phase: "maerz", phaseLabel: "Märzrevolution", date: "1848-03-18", dateLabel: "18./19. März 1848", title: "Barrikadenkämpfe in Berlin",
+    body: "Nach blutigen Barrikadenkämpfen zieht <strong>Friedrich Wilhelm IV.</strong> die Truppen aus Berlin ab und verneigt sich vor den Märzgefallenen. Seine Proklamation 'An mein Volk und an die deutsche Nation' verspricht Reformen." },
+  { phase: "maerz", phaseLabel: "Märzrevolution", date: "1848-03-31", dateLabel: "31. März – 3. April 1848", title: "Vorparlament in Frankfurt",
+    body: "574 liberale und demokratische Abgeordnete tagen in der Paulskirche und beschließen die Wahl einer verfassunggebenden Nationalversammlung für ganz Deutschland." },
+  { phase: "paulskirche", phaseLabel: "Paulskirche", date: "1848-05-18", dateLabel: "18. Mai 1848", title: "Eröffnung der Nationalversammlung",
+    body: "Die erste frei gewählte gesamtdeutsche Nationalversammlung tritt in der <strong>Frankfurter Paulskirche</strong> zusammen. Präsident wird <strong>Heinrich von Gagern</strong>. Beiname: 'Professorenparlament'." },
+  { phase: "paulskirche", phaseLabel: "Paulskirche", date: "1848-06-29", dateLabel: "29. Juni 1848", title: "Reichsverweser Erzherzog Johann",
+    body: "Wahl des österreichischen Erzherzogs Johann zum Reichsverweser als provisorische Zentralgewalt. Problem: Er hat keine eigene Exekutivmacht und ist auf die Einzelstaaten angewiesen." },
+  { phase: "paulskirche", phaseLabel: "Paulskirche", date: "1848-09-16", dateLabel: "September 1848", title: "Septemberunruhen nach Malmö",
+    body: "Der <strong>Waffenstillstand von Malmö</strong> beendet den Krieg um Schleswig-Holstein zugunsten Dänemarks — Preußen handelt ohne Zustimmung der Nationalversammlung. Diese muss den Vertrag akzeptieren, was massive Vertrauensverluste auslöst. In Frankfurt eskalieren Unruhen, zwei konservative Abgeordnete werden ermordet." },
+  { phase: "hoehepunkt", phaseLabel: "Höhepunkt & Scheitern", date: "1848-11-09", dateLabel: "9. November 1848", title: "Hinrichtung Robert Blums",
+    body: "Kaiserliche Truppen schlagen den zweiten Wiener Aufstand brutal nieder. Der demokratische Abgeordnete <strong>Robert Blum</strong>, Mitglied der Nationalversammlung, wird trotz Immunität standrechtlich erschossen — Symbol für die Ohnmacht der Paulskirche." },
+  { phase: "hoehepunkt", phaseLabel: "Höhepunkt & Scheitern", date: "1848-12-05", dateLabel: "5. Dezember 1848", title: "Oktroyierte Verfassung in Preußen",
+    body: "Friedrich Wilhelm IV. löst die preußische Nationalversammlung auf und erlässt eine eigene Verfassung 'von oben' (oktroyiert). Die konservative Wende in Preußen ist eingeläutet." },
+  { phase: "paulskirche", phaseLabel: "Paulskirche", date: "1848-12-21", dateLabel: "21. Dezember 1848", title: "Grundrechte des deutschen Volkes",
+    body: "Verabschiedung der <strong>Grundrechte des deutschen Volkes</strong> — wegweisender Katalog mit Gleichheit vor dem Gesetz, Pressefreiheit, Versammlungsfreiheit, Aufhebung der Adelsprivilegien. Vorbild für die Weimarer Verfassung und das Grundgesetz 1949." },
+  { phase: "hoehepunkt", phaseLabel: "Höhepunkt & Scheitern", date: "1849-03-27", dateLabel: "27. März 1849", title: "Paulskirchenverfassung verabschiedet",
+    body: "Die Nationalversammlung beschließt die <strong>Paulskirchenverfassung</strong>: kleindeutsche Lösung (ohne Österreich), konstitutionelle Monarchie mit erblichem Kaiser, Reichstag mit Volkshaus und Staatenhaus, Grundrechtekatalog. 28 Einzelstaaten erkennen sie an — die Großmächte Preußen, Österreich, Bayern, Sachsen und Hannover lehnen ab." },
+  { phase: "hoehepunkt", phaseLabel: "Höhepunkt & Scheitern", date: "1849-03-28", dateLabel: "28. März 1849", title: "Kaiserwahl Friedrich Wilhelms IV.",
+    body: "Die Nationalversammlung wählt den preußischen König mit 290 zu 248 Stimmen zum 'Kaiser der Deutschen'. Eine Delegation reist nach Berlin." },
+  { phase: "hoehepunkt", phaseLabel: "Höhepunkt & Scheitern", date: "1849-04-03", dateLabel: "3. April 1849", title: "Ablehnung der Kaiserkrone",
+    body: "Friedrich Wilhelm IV. lehnt die Kaiserkrone ab — sie sei eine 'Krone aus der Gosse' bzw. ein 'Reif aus Dreck und Letten'. Er will die Krone nicht aus den Händen einer Volksversammlung empfangen, sondern nur von gleichrangigen Fürsten. Damit ist die Verfassung faktisch gescheitert." },
+  { phase: "ende", phaseLabel: "Ende", date: "1849-05-15", dateLabel: "Mai – Juli 1849", title: "Reichsverfassungskampagne",
+    body: "Letzte Aufstände zur Durchsetzung der Paulskirchenverfassung in <strong>Sachsen (Dresden)</strong>, der <strong>Pfalz</strong> und vor allem in <strong>Baden</strong>. Preußische Truppen schlagen die Aufstände militärisch nieder." },
+  { phase: "ende", phaseLabel: "Ende", date: "1849-05-30", dateLabel: "30. Mai 1849", title: "Auflösung der Nationalversammlung",
+    body: "Die meisten Abgeordneten ziehen sich zurück oder werden abberufen. Der Rest verlegt den Sitz nach Stuttgart und tagt als <strong>'Rumpfparlament'</strong>." },
+  { phase: "ende", phaseLabel: "Ende", date: "1849-06-18", dateLabel: "18. Juni 1849", title: "Auflösung des Rumpfparlaments",
+    body: "Württembergisches Militär löst das Rumpfparlament gewaltsam auf." },
+  { phase: "ende", phaseLabel: "Ende", date: "1849-07-23", dateLabel: "23. Juli 1849", title: "Kapitulation der Festung Rastatt",
+    body: "Mit der Kapitulation der letzten Revolutionsfestung in Baden endet die Revolution endgültig. Es folgen Standgerichte, Hinrichtungen und eine Auswanderungswelle der '<strong>Forty-Eighters</strong>' in die USA." }
+];
+
+const phaseColors = {
+  vorgeschichte: "var(--c-vorgeschichte)",
+  maerz: "var(--c-maerz)",
+  paulskirche: "var(--c-paulskirche)",
+  hoehepunkt: "var(--c-hoehepunkt)",
+  ende: "var(--c-ende)"
+};
+
+const timeline = document.getElementById("timeline");
+const detail = document.getElementById("detail");
+
+const startDate = new Date("1848-02-15");
+const endDate = new Date("1849-08-05");
+const totalMs = endDate - startDate;
+const TL_WIDTH = 2800;
+const PADDING = 60;
+const innerWidth = TL_WIDTH - PADDING * 2;
+const AXIS_TOP = 220;
+
+function dateToX(dateStr) {
+  const d = new Date(dateStr);
+  const ratio = (d - startDate) / totalMs;
+  return PADDING + ratio * innerWidth;
+}
+
+const months = [
+  ["Feb", "1848-02-01"], ["Mär", "1848-03-01"], ["Apr", "1848-04-01"],
+  ["Mai", "1848-05-01"], ["Jun", "1848-06-01"], ["Jul", "1848-07-01"],
+  ["Aug", "1848-08-01"], ["Sep", "1848-09-01"], ["Okt", "1848-10-01"],
+  ["Nov", "1848-11-01"], ["Dez", "1848-12-01"],
+  ["Jan", "1849-01-01"], ["Feb", "1849-02-01"], ["Mär", "1849-03-01"],
+  ["Apr", "1849-04-01"], ["Mai", "1849-05-01"], ["Jun", "1849-06-01"],
+  ["Jul", "1849-07-01"], ["Aug", "1849-08-01"]
+];
+
+months.forEach(([label, dateStr]) => {
+  const x = dateToX(dateStr);
+  const tick = document.createElement("div");
+  tick.className = "month-tick";
+  tick.style.left = x + "px";
+  timeline.appendChild(tick);
+  const lab = document.createElement("div");
+  lab.className = "month-label";
+  lab.style.left = x + "px";
+  lab.textContent = label;
+  timeline.appendChild(lab);
+});
+
+[["1848", "1848-07-15"], ["1849", "1849-04-15"]].forEach(([year, dateStr]) => {
+  const x = dateToX(dateStr);
+  const ym = document.createElement("div");
+  ym.className = "year-marker";
+  ym.style.left = x + "px";
+  ym.textContent = year;
+  timeline.appendChild(ym);
+});
+
+// Sortieren und Stagger zuweisen, um Überlappungen zu vermeiden
+const sorted = events.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+
+let aboveIdx = 0, belowIdx = 0;
+sorted.forEach((e, i) => {
+  e.position = i % 2 === 0 ? "above" : "below";
+  if (e.position === "above") {
+    e.lineHeight = 40 + (aboveIdx % 4) * 38;
+    aboveIdx++;
+  } else {
+    e.lineHeight = 40 + (belowIdx % 4) * 38;
+    belowIdx++;
+  }
+});
+
+sorted.forEach(e => {
+  const x = dateToX(e.date);
+  const el = document.createElement("div");
+  el.className = "event " + e.position;
+  el.style.left = x + "px";
+  if (e.position === "above") {
+    el.style.top = (AXIS_TOP - e.lineHeight) + "px";
+    el.style.height = e.lineHeight + "px";
+  } else {
+    el.style.top = (AXIS_TOP + 2) + "px";
+    el.style.height = e.lineHeight + "px";
+  }
+  el.style.width = "2px";
+  el.style.setProperty("--line-h", e.lineHeight + "px");
+  el.style.setProperty("--dot-color", phaseColors[e.phase]);
+  el.innerHTML = `
+    <div class="event-line"></div>
+    <div class="event-dot"></div>
+    <div class="event-label">
+      <span class="date">${e.dateLabel}</span>
+      ${e.title}
+    </div>
+  `;
+  el.addEventListener("click", () => showDetail(e, el));
+  timeline.appendChild(el);
+});
+
+function showDetail(e, el) {
+  document.querySelectorAll(".event.active").forEach(x => x.classList.remove("active"));
+  el.classList.add("active");
+  detail.classList.remove("empty");
+  detail.style.setProperty("--dot-color", phaseColors[e.phase]);
+  detail.innerHTML = `
+    <div class="detail-phase">${e.phaseLabel}</div>
+    <div class="detail-date">${e.dateLabel}</div>
+    <h2 class="detail-title">${e.title}</h2>
+    <div class="detail-body">${e.body}</div>
+  `;
+}
+
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute("data-theme");
+  document.documentElement.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+}
+if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+  document.documentElement.setAttribute("data-theme", "dark");
+}
+</script>
+</body>
+</html>
