@@ -13,7 +13,9 @@
     --card: #ffffff;
     --border: #e5e5e0;
     --hover: #f0efeb;
-    --c-vorgeschichte: #6b8e9e;
+    --c-vormaerz: #5a7a8e;
+    --c-burschenschaften: #b8923a;
+    --c-sozial: #8b5a3c;
     --c-maerz: #c97a3a;
     --c-paulskirche: #8b6fb0;
     --c-hoehepunkt: #b04545;
@@ -57,21 +59,37 @@
   .legend {
     max-width: 1100px; margin: 0 auto;
     padding: 0 1.5rem 1rem;
-    display: flex; flex-wrap: wrap; gap: 1rem;
+    display: flex; flex-wrap: wrap; gap: 0.6rem 1rem;
     font-size: 0.78rem; color: var(--muted);
   }
   .legend-item { display: flex; align-items: center; gap: 0.4rem; }
   .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 
+  .section-header {
+    max-width: 1100px;
+    margin: 1.5rem auto 0;
+    padding: 0 1.5rem;
+  }
+  .section-header h2 {
+    font-size: 1.05rem;
+    margin: 0 0 0.15rem;
+    font-weight: 600;
+    color: var(--fg);
+  }
+  .section-header p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
   .scroll-hint {
     max-width: 1100px; margin: 0 auto;
-    padding: 0 1.5rem 0.5rem;
-    font-size: 0.75rem; color: var(--muted); text-align: center;
+    padding: 0.25rem 1.5rem 0;
+    font-size: 0.72rem; color: var(--muted); text-align: center;
   }
 
   .timeline-wrapper {
     overflow-x: auto; overflow-y: visible;
-    padding: 1rem 0 1.5rem;
+    padding: 0.5rem 0 1rem;
     -webkit-overflow-scrolling: touch;
   }
   .timeline-wrapper::-webkit-scrollbar { height: 8px; }
@@ -80,13 +98,11 @@
 
   .timeline {
     position: relative;
-    width: 2800px;
-    height: 440px;
+    height: 460px;
     margin: 0 auto;
   }
   .axis {
     position: absolute;
-    left: 60px; right: 60px;
     top: 220px; height: 2px;
     background: var(--line);
   }
@@ -94,6 +110,7 @@
     position: absolute; top: 215px;
     width: 1px; height: 12px; background: var(--line);
   }
+  .month-tick.major { height: 16px; top: 213px; background: var(--muted); }
   .month-label {
     position: absolute; top: 230px;
     transform: translateX(-50%);
@@ -109,11 +126,10 @@
   .event { position: absolute; cursor: pointer; }
   .event-line {
     position: absolute; left: 0;
-    width: 1px; background: var(--dot-color); opacity: 0.5;
+    width: 1px; background: var(--dot-color); opacity: 0.55;
   }
   .event.above .event-line { bottom: 0; height: var(--line-h); }
   .event.below .event-line { top: 0; height: var(--line-h); }
-
   .event-dot {
     position: absolute;
     left: -5px;
@@ -131,11 +147,10 @@
     transform: scale(1.5);
     background: var(--dot-color);
   }
-
   .event-label {
     position: absolute;
-    left: -90px;
-    width: 180px;
+    left: -80px;
+    width: 160px;
     text-align: center;
     font-size: 0.72rem;
     color: var(--fg);
@@ -157,8 +172,8 @@
 
   .detail-panel {
     max-width: 1100px;
-    margin: 0 auto;
-    padding: 1rem 1.5rem 3rem;
+    margin: 1.5rem auto 0;
+    padding: 0 1.5rem 3rem;
   }
   .detail-card {
     background: var(--card);
@@ -167,11 +182,13 @@
     border-radius: 8px;
     padding: 1.25rem 1.5rem;
     min-height: 130px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
   }
   .detail-card.empty {
     color: var(--muted); font-size: 0.9rem; text-align: center;
     border-left-color: var(--line);
     display: flex; align-items: center; justify-content: center;
+    box-shadow: none;
   }
   .detail-phase {
     display: inline-block;
@@ -184,13 +201,17 @@
     font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.05em; margin-bottom: 0.25rem;
   }
-  .detail-title { font-size: 1.15rem; font-weight: 600; margin: 0 0 0.5rem; }
-  .detail-body { color: var(--fg); font-size: 0.92rem; line-height: 1.6; }
+  .detail-title { font-size: 1.2rem; font-weight: 600; margin: 0 0 0.6rem; }
+  .detail-body { color: var(--fg); font-size: 0.92rem; line-height: 1.65; }
   .detail-body strong { font-weight: 600; }
+  .detail-body ul { margin-top: 0.5rem; margin-bottom: 0.5rem; padding-left: 1.5rem; }
+  .detail-body .abi-tipp { margin-top: 1rem; padding: 0.75rem; background: rgba(0,0,0,0.03); border-radius: 6px; border-left: 3px solid var(--dot-color); }
+  [data-theme="dark"] .detail-body .abi-tipp { background: rgba(255,255,255,0.03); }
 
   @media (max-width: 700px) {
     h1 { font-size: 1.3rem; }
     .header { padding: 1.5rem 1rem 0.5rem; }
+    .detail-title { font-size: 1.05rem; }
   }
 </style>
 </head>
@@ -199,23 +220,41 @@
 <div class="header">
   <div>
     <h1>Revolution 1848/49</h1>
-    <p class="subtitle">Zeitstrahl der wichtigsten Ereignisse</p>
+    <p class="subtitle">Vormärz, Märzrevolution, Paulskirche und das Scheitern</p>
   </div>
   <button class="theme-toggle" onclick="toggleTheme()">◐</button>
 </div>
 
 <div class="legend">
-  <div class="legend-item"><span class="legend-dot" style="background:var(--c-vorgeschichte)"></span>Vorgeschichte</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-vormaerz)"></span>Vormärz</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-burschenschaften)"></span>Burschenschaften</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--c-sozial)"></span>Soziale Frage</div>
   <div class="legend-item"><span class="legend-dot" style="background:var(--c-maerz)"></span>Märzrevolution</div>
   <div class="legend-item"><span class="legend-dot" style="background:var(--c-paulskirche)"></span>Paulskirche</div>
   <div class="legend-item"><span class="legend-dot" style="background:var(--c-hoehepunkt)"></span>Höhepunkt &amp; Scheitern</div>
   <div class="legend-item"><span class="legend-dot" style="background:var(--c-ende)"></span>Ende</div>
 </div>
 
+<div class="section-header">
+  <h2>Vormärz · 1814–1847</h2>
+  <p>Restauration, Burschenschaften und die soziale Frage als Wegbereiter</p>
+</div>
 <div class="scroll-hint">← horizontal scrollen · Ereignis anklicken für Details →</div>
 
-<div class="timeline-wrapper" id="wrapper">
-  <div class="timeline" id="timeline">
+<div class="timeline-wrapper">
+  <div class="timeline" id="vormaerz-timeline" style="width:2200px">
+    <div class="axis"></div>
+  </div>
+</div>
+
+<div class="section-header">
+  <h2>Revolution · 1848/49</h2>
+  <p>Von der Mannheimer Volksversammlung bis zur Festung Rastatt</p>
+</div>
+<div class="scroll-hint">← horizontal scrollen · Ereignis anklicken für Details →</div>
+
+<div class="timeline-wrapper">
+  <div class="timeline" id="revolution-timeline" style="width:3400px">
     <div class="axis"></div>
   </div>
 </div>
@@ -227,143 +266,377 @@
 </div>
 
 <script>
-const events = [
-  { phase: "vorgeschichte", phaseLabel: "Vorgeschichte", date: "1848-02-22", dateLabel: "22. Februar 1848", title: "Februarrevolution Frankreich",
-    body: "Sturz von König <strong>Louis-Philippe</strong> in Paris und Ausrufung der Zweiten Republik. Der revolutionäre Funke springt rasch auf die deutschen Staaten über und löst die Märzrevolution aus." },
-  { phase: "maerz", phaseLabel: "Märzrevolution", date: "1848-02-27", dateLabel: "27. Februar 1848", title: "Mannheimer Volksversammlung",
-    body: "Formulierung der <strong>Märzforderungen</strong>: Pressefreiheit, Versammlungsfreiheit, Volksbewaffnung mit freier Wahl der Offiziere, Schwurgerichte nach englischem Vorbild und ein deutsches Nationalparlament." },
-  { phase: "maerz", phaseLabel: "Märzrevolution", date: "1848-03-13", dateLabel: "13. März 1848", title: "Wiener Aufstand · Metternich tritt zurück",
-    body: "Studenten und Bürger gehen in Wien auf die Straße. Der konservative Staatskanzler <strong>Klemens von Metternich</strong>, Symbol der Restauration seit 1815, tritt zurück und flieht nach London." },
-  { phase: "maerz", phaseLabel: "Märzrevolution", date: "1848-03-18", dateLabel: "18./19. März 1848", title: "Barrikadenkämpfe in Berlin",
-    body: "Nach blutigen Barrikadenkämpfen zieht <strong>Friedrich Wilhelm IV.</strong> die Truppen aus Berlin ab und verneigt sich vor den Märzgefallenen. Seine Proklamation 'An mein Volk und an die deutsche Nation' verspricht Reformen." },
-  { phase: "maerz", phaseLabel: "Märzrevolution", date: "1848-03-31", dateLabel: "31. März – 3. April 1848", title: "Vorparlament in Frankfurt",
-    body: "574 liberale und demokratische Abgeordnete tagen in der Paulskirche und beschließen die Wahl einer verfassunggebenden Nationalversammlung für ganz Deutschland." },
-  { phase: "paulskirche", phaseLabel: "Paulskirche", date: "1848-05-18", dateLabel: "18. Mai 1848", title: "Eröffnung der Nationalversammlung",
-    body: "Die erste frei gewählte gesamtdeutsche Nationalversammlung tritt in der <strong>Frankfurter Paulskirche</strong> zusammen. Präsident wird <strong>Heinrich von Gagern</strong>. Beiname: 'Professorenparlament'." },
-  { phase: "paulskirche", phaseLabel: "Paulskirche", date: "1848-06-29", dateLabel: "29. Juni 1848", title: "Reichsverweser Erzherzog Johann",
-    body: "Wahl des österreichischen Erzherzogs Johann zum Reichsverweser als provisorische Zentralgewalt. Problem: Er hat keine eigene Exekutivmacht und ist auf die Einzelstaaten angewiesen." },
-  { phase: "paulskirche", phaseLabel: "Paulskirche", date: "1848-09-16", dateLabel: "September 1848", title: "Septemberunruhen nach Malmö",
-    body: "Der <strong>Waffenstillstand von Malmö</strong> beendet den Krieg um Schleswig-Holstein zugunsten Dänemarks — Preußen handelt ohne Zustimmung der Nationalversammlung. Diese muss den Vertrag akzeptieren, was massive Vertrauensverluste auslöst. In Frankfurt eskalieren Unruhen, zwei konservative Abgeordnete werden ermordet." },
-  { phase: "hoehepunkt", phaseLabel: "Höhepunkt & Scheitern", date: "1848-11-09", dateLabel: "9. November 1848", title: "Hinrichtung Robert Blums",
-    body: "Kaiserliche Truppen schlagen den zweiten Wiener Aufstand brutal nieder. Der demokratische Abgeordnete <strong>Robert Blum</strong>, Mitglied der Nationalversammlung, wird trotz Immunität standrechtlich erschossen — Symbol für die Ohnmacht der Paulskirche." },
-  { phase: "hoehepunkt", phaseLabel: "Höhepunkt & Scheitern", date: "1848-12-05", dateLabel: "5. Dezember 1848", title: "Oktroyierte Verfassung in Preußen",
-    body: "Friedrich Wilhelm IV. löst die preußische Nationalversammlung auf und erlässt eine eigene Verfassung 'von oben' (oktroyiert). Die konservative Wende in Preußen ist eingeläutet." },
-  { phase: "paulskirche", phaseLabel: "Paulskirche", date: "1848-12-21", dateLabel: "21. Dezember 1848", title: "Grundrechte des deutschen Volkes",
-    body: "Verabschiedung der <strong>Grundrechte des deutschen Volkes</strong> — wegweisender Katalog mit Gleichheit vor dem Gesetz, Pressefreiheit, Versammlungsfreiheit, Aufhebung der Adelsprivilegien. Vorbild für die Weimarer Verfassung und das Grundgesetz 1949." },
-  { phase: "hoehepunkt", phaseLabel: "Höhepunkt & Scheitern", date: "1849-03-27", dateLabel: "27. März 1849", title: "Paulskirchenverfassung verabschiedet",
-    body: "Die Nationalversammlung beschließt die <strong>Paulskirchenverfassung</strong>: kleindeutsche Lösung (ohne Österreich), konstitutionelle Monarchie mit erblichem Kaiser, Reichstag mit Volkshaus und Staatenhaus, Grundrechtekatalog. 28 Einzelstaaten erkennen sie an — die Großmächte Preußen, Österreich, Bayern, Sachsen und Hannover lehnen ab." },
-  { phase: "hoehepunkt", phaseLabel: "Höhepunkt & Scheitern", date: "1849-03-28", dateLabel: "28. März 1849", title: "Kaiserwahl Friedrich Wilhelms IV.",
-    body: "Die Nationalversammlung wählt den preußischen König mit 290 zu 248 Stimmen zum 'Kaiser der Deutschen'. Eine Delegation reist nach Berlin." },
-  { phase: "hoehepunkt", phaseLabel: "Höhepunkt & Scheitern", date: "1849-04-03", dateLabel: "3. April 1849", title: "Ablehnung der Kaiserkrone",
-    body: "Friedrich Wilhelm IV. lehnt die Kaiserkrone ab — sie sei eine 'Krone aus der Gosse' bzw. ein 'Reif aus Dreck und Letten'. Er will die Krone nicht aus den Händen einer Volksversammlung empfangen, sondern nur von gleichrangigen Fürsten. Damit ist die Verfassung faktisch gescheitert." },
-  { phase: "ende", phaseLabel: "Ende", date: "1849-05-15", dateLabel: "Mai – Juli 1849", title: "Reichsverfassungskampagne",
-    body: "Letzte Aufstände zur Durchsetzung der Paulskirchenverfassung in <strong>Sachsen (Dresden)</strong>, der <strong>Pfalz</strong> und vor allem in <strong>Baden</strong>. Preußische Truppen schlagen die Aufstände militärisch nieder." },
-  { phase: "ende", phaseLabel: "Ende", date: "1849-05-30", dateLabel: "30. Mai 1849", title: "Auflösung der Nationalversammlung",
-    body: "Die meisten Abgeordneten ziehen sich zurück oder werden abberufen. Der Rest verlegt den Sitz nach Stuttgart und tagt als <strong>'Rumpfparlament'</strong>." },
-  { phase: "ende", phaseLabel: "Ende", date: "1849-06-18", dateLabel: "18. Juni 1849", title: "Auflösung des Rumpfparlaments",
-    body: "Württembergisches Militär löst das Rumpfparlament gewaltsam auf." },
-  { phase: "ende", phaseLabel: "Ende", date: "1849-07-23", dateLabel: "23. Juli 1849", title: "Kapitulation der Festung Rastatt",
-    body: "Mit der Kapitulation der letzten Revolutionsfestung in Baden endet die Revolution endgültig. Es folgen Standgerichte, Hinrichtungen und eine Auswanderungswelle der '<strong>Forty-Eighters</strong>' in die USA." }
-];
-
 const phaseColors = {
-  vorgeschichte: "var(--c-vorgeschichte)",
+  vormaerz: "var(--c-vormaerz)",
+  burschenschaften: "var(--c-burschenschaften)",
+  sozial: "var(--c-sozial)",
   maerz: "var(--c-maerz)",
   paulskirche: "var(--c-paulskirche)",
   hoehepunkt: "var(--c-hoehepunkt)",
   ende: "var(--c-ende)"
 };
 
-const timeline = document.getElementById("timeline");
-const detail = document.getElementById("detail");
+const phaseLabels = {
+  vormaerz: "Vormärz",
+  burschenschaften: "Burschenschaften",
+  sozial: "Soziale Frage",
+  maerz: "Märzrevolution",
+  paulskirche: "Paulskirche",
+  hoehepunkt: "Höhepunkt & Scheitern",
+  ende: "Ende"
+};
 
-const startDate = new Date("1848-02-15");
-const endDate = new Date("1849-08-05");
-const totalMs = endDate - startDate;
-const TL_WIDTH = 2800;
-const PADDING = 60;
-const innerWidth = TL_WIDTH - PADDING * 2;
-const AXIS_TOP = 220;
-
-function dateToX(dateStr) {
-  const d = new Date(dateStr);
-  const ratio = (d - startDate) / totalMs;
-  return PADDING + ratio * innerWidth;
-}
-
-const months = [
-  ["Feb", "1848-02-01"], ["Mär", "1848-03-01"], ["Apr", "1848-04-01"],
-  ["Mai", "1848-05-01"], ["Jun", "1848-06-01"], ["Jul", "1848-07-01"],
-  ["Aug", "1848-08-01"], ["Sep", "1848-09-01"], ["Okt", "1848-10-01"],
-  ["Nov", "1848-11-01"], ["Dez", "1848-12-01"],
-  ["Jan", "1849-01-01"], ["Feb", "1849-02-01"], ["Mär", "1849-03-01"],
-  ["Apr", "1849-04-01"], ["Mai", "1849-05-01"], ["Jun", "1849-06-01"],
-  ["Jul", "1849-07-01"], ["Aug", "1849-08-01"]
+// Nutze Backticks ` für mehrzeilige Strings, das macht das HTML im JS viel robuster!
+const vormaerzEvents = [
+  {
+    phase: "vormaerz", date: "1815-01-01", dateLabel: "Sept. 1814 – Juni 1815",
+    title: "Wiener Kongress",
+    body: `Anlass: Neuordnung Europas nach den Napoleonischen Kriegen.
+    <br><br>
+    <strong>Hauptakteure:</strong>
+    <ul>
+      <li><strong>Klemens von Metternich (Österreich)</strong> — der dominierende Kopf</li>
+      <li>Talleyrand (Frankreich) — etablierte F trotz Niederlage als Großmacht</li>
+      <li>Hardenberg (Preußen), Castlereagh (GB), Zar Alexander I. (Russland)</li>
+    </ul>
+    <strong>Leitprinzipien:</strong>
+    <ul>
+      <li><strong>Restauration:</strong> Wiederherstellung der vorrevolutionären Verhältnisse</li>
+      <li><strong>Legitimität:</strong> Nur Herrschaft "von Gottes Gnaden" ist rechtmäßig</li>
+      <li><strong>Solidarität der Fürsten</strong> gegen revolutionäre Bewegungen</li>
+      <li><strong>Gleichgewicht der Mächte</strong> (Pentarchie)</li>
+    </ul>
+    <strong>Ergebnisse für Deutschland:</strong> Gründung des <strong>Deutschen Bundes</strong> (lockerer Staatenbund aus 39 Mitgliedern unter österreichischem Vorsitz). Der Bundestag in Frankfurt ist reine Gesandtenversammlung, kein Parlament! Preußen erhält Rheinland und Westfalen (Grundlage für späteren Dualismus).
+    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Der Wiener Kongress ist der Ausgangspunkt für die Spannungen, die 1848 explodieren. Die nationale und liberale Bewegung richtet sich gegen genau diese Ordnung.</div>`
+  },
+  {
+    phase: "burschenschaften", date: "1815-06-12", dateLabel: "12. Juni 1815",
+    title: "Gründung der Urburschenschaft Jena",
+    body: `Gründung durch Studenten, die in den Befreiungskriegen gegen Napoleon gekämpft hatten.
+    <br><br>
+    Ihre Farben: <strong>schwarz-rot-gold</strong> (angeblich von den Uniformen des Lützowschen Freikorps) — daraus wurden später die Nationalfarben.
+    <br><br>
+    <strong>Ziele:</strong> nationale Einheit Deutschlands, liberale Verfassung, Pressefreiheit, Abschaffung der Kleinstaaterei.<br>
+    <strong>Wahlspruch:</strong> "Ehre, Freiheit, Vaterland".
+    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Burschenschaften sind die Wurzel der nationalen und liberalen Bewegung in Deutschland. Viele spätere Paulskirchen-Abgeordnete waren ehemalige Burschenschaftler.</div>`
+  },
+  {
+    phase: "burschenschaften", date: "1817-10-18", dateLabel: "18. Oktober 1817",
+    title: "Wartburgfest",
+    body: `Ca. 500 Studenten treffen sich auf der Wartburg bei Eisenach. Anlass: 300 Jahre Reformation und 4 Jahre Völkerschlacht bei Leipzig.<br><br>
+    Erste große öffentliche Demonstration für nationale Einheit und bürgerliche Freiheiten in Deutschland. Es kommt zur symbolischen <strong>Bücherverbrennung</strong> von "undeutschen" und reaktionären Schriften (z. B. der Code Napoléon). Zum ersten Mal werden die schwarz-rot-goldenen Farben einer breiten Öffentlichkeit gezeigt.`
+  },
+  {
+    phase: "vormaerz", date: "1819-09-20", dateLabel: "20. September 1819",
+    title: "Karlsbader Beschlüsse",
+    body: `Auslöser: Der Burschenschaftler Karl Ludwig Sand ermordet 1819 den konservativen Schriftsteller August von Kotzebue.
+    <br><br>
+    <strong>Metternich</strong> nutzt das als Vorwand für systematische Unterdrückung:
+    <ul>
+      <li>Verbot der Burschenschaften</li>
+      <li>Pressezensur</li>
+      <li>Universitätsüberwachung</li>
+      <li>Demagogenverfolgung (Verfolgung liberaler Aktivisten)</li>
+    </ul>
+    Dies markiert den Beginn des repressiven Metternich-Systems und prägt die Zensur in der Literatur ("Zwischen den Zeilen lesen").`
+  },
+  {
+    phase: "vormaerz", date: "1830-07-01", dateLabel: "1815 – 1848",
+    title: "Die Epoche des Vormärz",
+    body: `Zeitraum: ca. 1815–1848 (vom Wiener Kongress bis zur Märzrevolution). Charakterisiert durch die Spannung zwischen restaurativer Politik (Metternich-System) und wachsender liberal-nationaler Opposition.
+    <br><br>
+    <strong>Gesellschaftlich:</strong> Aufstieg des Bildungs- und Wirtschaftsbürgertums, das politische Mitsprache fordert. Die Industrialisierung beginnt und die soziale Frage entsteht.<br>
+    <strong>Kulturell:</strong> Spaltung in <em>Biedermeier</em> (Rückzug ins Private, Apolitik) und <em>Junges Deutschland</em> (literarisch-politische Opposition wie Heine, Börne, Büchner).`
+  },
+  {
+    phase: "burschenschaften", date: "1832-05-27", dateLabel: "27.–30. Mai 1832",
+    title: "Hambacher Fest",
+    body: `Größte politische Demonstration des Vormärz: ca. <strong>30.000 Menschen</strong> versammeln sich am Hambacher Schloss in der Pfalz. 
+    <br><br>
+    Die schwarz-rot-goldene Fahne wird hier endgültig zum Nationalsymbol. Die Masse besteht nicht mehr nur aus Studenten, sondern auch aus Bürgern, Handwerkern und Bauern aus ganz Süddeutschland und dem Elsass, was zeigt, dass die Bewegung enorm gewachsen ist.`
+  },
+  {
+    phase: "vormaerz", date: "1834-01-01", dateLabel: "1. Januar 1834",
+    title: "Deutscher Zollverein",
+    body: `Unter preußischer Führung gegründeter Zoll- und Handelsverbund. 
+    <br><br>
+    Bedeutung: Wirtschaftliche Einheit als <strong>Vorstufe zur politischen Einheit</strong>. Der Zollverein schafft einen einheitlichen Wirtschaftsraum, fördert die Industrialisierung und beschleunigt das Bewusstsein nationaler Zusammengehörigkeit. 
+    <br><br>
+    Da Österreich nicht Teil des Zollvereins ist, ist dies bereits wegweisend für die spätere <strong>kleindeutsche Lösung</strong>.`
+  },
+  {
+    phase: "sozial", date: "1844-06-04", dateLabel: "4.–6. Juni 1844",
+    title: "Schlesischer Weberaufstand",
+    body: `Aufstand der schlesischen Leinenweber gegen Hungerlöhne und die Konkurrenz aus mechanisierten englischen Webereien. 
+    <br><br>
+    Symbol für die <strong>soziale Frage</strong> und den <strong>Pauperismus</strong> (Massenarmut durch Bevölkerungswachstum und beginnende Industrialisierung). Handwerker werden zunehmend durch Fabriken verdrängt.`
+  },
+  {
+    phase: "sozial", date: "1846-08-01", dateLabel: "1845 – 1847",
+    title: "Kartoffelfäule & Hungerkrise",
+    body: `Die direkte soziale Ursache der Revolution (oft unterschätzt!).
+    <ul>
+      <li><strong>1845/46:</strong> Massiver Befall durch die Kartoffelfäule (Phytophthora infestans), zuerst in Irland, dann ganz Europa. Kartoffeln waren Grundnahrungsmittel der Unterschichten.</li>
+      <li><strong>1846:</strong> Zusätzlich katastrophale Getreideernte durch trockenen Sommer.</li>
+      <li><strong>1847:</strong> Brotpreise verdoppeln/verdreifachen sich. Verschärft durch eine Wirtschaftskrise (Banken brechen zusammen, Arbeitslosigkeit steigt).</li>
+    </ul>
+    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Die Hungerkrise erklärt, warum sich 1848 nicht nur Bürger, sondern auch Bauern und Arbeiter den Revolutionären anschlossen. Ohne diese soziale Sprengkraft wären die liberalen Forderungen nie auf der Straße durchgesetzt worden.</div>`
+  },
+  {
+    phase: "sozial", date: "1847-04-21", dateLabel: "21.–22. April 1847",
+    title: "Berliner Kartoffelrevolution",
+    body: `Höhepunkt der Hungerkrise in Berlin: Verzweifelte Menschen plündern Marktstände, Bäckereien und Kartoffellager. Auslöser sind die explodierenden Preise für Grundnahrungsmittel. 
+    <br><br>
+    Wird vom Militär niedergeschlagen, zeigt aber deutlich die explosive Stimmung, die nur ein Jahr später in die Barrikadenkämpfe mündet.`
+  }
 ];
 
-months.forEach(([label, dateStr]) => {
-  const x = dateToX(dateStr);
-  const tick = document.createElement("div");
-  tick.className = "month-tick";
-  tick.style.left = x + "px";
-  timeline.appendChild(tick);
-  const lab = document.createElement("div");
-  lab.className = "month-label";
-  lab.style.left = x + "px";
-  lab.textContent = label;
-  timeline.appendChild(lab);
-});
-
-[["1848", "1848-07-15"], ["1849", "1849-04-15"]].forEach(([year, dateStr]) => {
-  const x = dateToX(dateStr);
-  const ym = document.createElement("div");
-  ym.className = "year-marker";
-  ym.style.left = x + "px";
-  ym.textContent = year;
-  timeline.appendChild(ym);
-});
-
-// Sortieren und Stagger zuweisen, um Überlappungen zu vermeiden
-const sorted = events.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
-
-let aboveIdx = 0, belowIdx = 0;
-sorted.forEach((e, i) => {
-  e.position = i % 2 === 0 ? "above" : "below";
-  if (e.position === "above") {
-    e.lineHeight = 40 + (aboveIdx % 4) * 38;
-    aboveIdx++;
-  } else {
-    e.lineHeight = 40 + (belowIdx % 4) * 38;
-    belowIdx++;
+const revolutionEvents = [
+  {
+    phase: "maerz", date: "1848-02-22", dateLabel: "22.–24. Februar 1848",
+    title: "Februarrevolution in Frankreich",
+    body: `Sturz von König Louis-Philippe in Paris und Ausrufung der Zweiten Republik. Der revolutionäre Funke springt rasch auf die deutschen Staaten über und löst die Märzrevolution aus.`
+  },
+  {
+    phase: "maerz", date: "1848-02-27", dateLabel: "27. Februar 1848",
+    title: "Märzforderungen (Mannheim)",
+    body: `Formuliert auf der Mannheimer Volksversammlung, dann in zahlreichen Petitionen wiederholt. Sie sind das <strong>gemeinsame Programm der Märzrevolution</strong>:
+    <ol>
+      <li><strong>Pressefreiheit</strong> — Abschaffung der Zensur</li>
+      <li><strong>Versammlungs- und Vereinsfreiheit</strong></li>
+      <li><strong>Volksbewaffnung</strong> mit freier Wahl der Offiziere (Bürgerwehr statt stehendes Heer der Fürsten)</li>
+      <li><strong>Schwurgerichte</strong> nach englischem Vorbild (öffentliche Gerichtsverhandlungen)</li>
+      <li><strong>Deutsches Nationalparlament</strong></li>
+    </ol>
+    <div class="abi-tipp"><strong>Bedeutung:</strong> Diese Forderungen sind im Kern liberale Grundrechte — keine sozialistischen Positionen. Genau deshalb konnten sich Bürgertum, Handwerker und Bauern darauf einigen. Die Fürsten gaben formal nach ("Märzministerien"), nahmen dies aber später zurück.</div>`
+  },
+  {
+    phase: "maerz", date: "1848-03-13", dateLabel: "13. März 1848",
+    title: "Wiener Aufstand · Metternich flieht",
+    body: `Studenten und Bürger gehen in Wien auf die Straße. Der konservative Staatskanzler <strong>Klemens von Metternich</strong>, Symbol der Restauration, tritt zurück und flieht nach London. Damit fällt das Schlüsselsymbol des "Metternich-Systems".`
+  },
+  {
+    phase: "maerz", date: "1848-03-18", dateLabel: "18./19. März 1848",
+    title: "Barrikadenkämpfe in Berlin",
+    body: `Nach Tagen der Demonstrationen verkündet Friedrich Wilhelm IV. am 18. März Reformen. Eine jubelnde Menge steht vor dem Schloss.
+    <br><br>
+    <strong>Eskalation:</strong> Aus ungeklärten Gründen lösen sich zwei Schüsse aus den Reihen des Militärs. Die Menge deutet das als Verrat. Innerhalb von Stunden entstehen über 900 Barrikaden. In Straßenkämpfen zwischen Aufständischen (Handwerker, Studenten, Arbeiter) und preußischem Militär sterben ca. 270–300 Zivilisten und 20 Soldaten.
+    <br><br>
+    <strong>Wende (19. März):</strong> Der König befiehlt den Truppenabzug. Am Morgen werden ihm die Leichen der Märzgefallenen im Schlosshof präsentiert — er muss sich entblößten Hauptes verneigen. Bürgerwehr übernimmt die Sicherheit. Ein liberales Ministerium (Camphausen-Hansemann) wird eingesetzt.`
+  },
+  {
+    phase: "maerz", date: "1848-03-21", dateLabel: "19. & 21. März 1848",
+    title: "Friedrich Wilhelm IV. — Die Reden",
+    body: `Zwei historisch entscheidende Auftritte nach den Barrikadenkämpfen:
+    <br><br>
+    <strong>1. "An meine lieben Berliner" (19. März):</strong> Nach dem Vorführen der Leichen erkennt der König die Opfer an und verspricht Reformen.<br>
+    <strong>2. "An mein Volk und an die deutsche Nation" (21. März):</strong> Er reitet mit schwarz-rot-goldener Schärpe durch Berlin und erklärt: <em>"Preußen geht fortan in Deutschland auf."</em> Zitat: <em>"Ich will Freiheit und Einheit Deutschlands, und ich will Ordnung. Das schwöre ich vor Gott."</em>
+    <br><br>
+    Ein opportunistischer Schachzug, um die Initiative zurückzugewinnen. Tatsächlich wartet er nur ab, bis sich die Revolution erschöpft.`
+  },
+  {
+    phase: "maerz", date: "1848-03-31", dateLabel: "31. März – 3. April 1848",
+    title: "Vorparlament in Frankfurt",
+    body: `574 liberale und demokratische Abgeordnete beschließen die Wahl einer verfassunggebenden Nationalversammlung für ganz Deutschland.`
+  },
+  {
+    phase: "maerz", date: "1848-04-07", dateLabel: "7. April 1848",
+    title: "Wahlrecht zur Nationalversammlung",
+    body: `Beschluss des Bundestags: Wahl durch "allgemeine" Wahlen. Die Ausgestaltung blieb den Einzelstaaten überlassen.
+    <br><br>
+    <strong>Grundsätze (theoretisch):</strong> Allgemein (alle volljährigen Männer), gleich, indirekt (über Wahlmänner).<br>
+    <strong>Die Einschränkung ("Selbständigkeit"):</strong> Wahlberechtigt waren nur "selbständige" Männer. Dadurch wurden Knechte, Dienstboten, Handwerksgesellen ohne eigenen Hausstand und Tagelöhner ausgeschlossen. In manchen Staaten fielen so 15–25 % der Männer weg. Frauen sowieso.
+    <div class="abi-tipp"><strong>Bedeutung:</strong> Trotz Einschränkungen war es das freieste Wahlrecht, das es bis dahin auf deutschem Boden gegeben hatte. Ein vergleichbar freies gab es erst wieder 1871 unter Bismarck.</div>`
+  },
+  {
+    phase: "maerz", date: "1848-04-12", dateLabel: "12.–27. April 1848",
+    title: "Heckerzug",
+    body: `Friedrich Hecker und Gustav Struve rufen in Konstanz die deutsche Republik aus, werden jedoch rasch militärisch geschlagen. Erste offene Spaltung zwischen Liberalen und Radikaldemokraten.`
+  },
+  {
+    phase: "paulskirche", date: "1848-05-18", dateLabel: "18. Mai 1848",
+    title: "Eröffnung der Paulskirche & Parteiungen",
+    body: `Die erste frei gewählte gesamtdeutsche Nationalversammlung ("Professorenparlament") tritt zusammen. Es gab noch keine Parteien, sondern <strong>Fraktionen (benannt nach Gasthäusern)</strong>:
+    <ul>
+      <li><strong>Café Milani (Rechte/Konservative):</strong> ca. 40, Erhalt der Fürstenrechte, großdeutsch. (z. B. Radowitz)</li>
+      <li><strong>Casino (Rechtes Zentrum/Liberale):</strong> ca. 120, stärkste Fraktion. Konstitutionelle Monarchie, kleindeutsch. (z. B. Gagern)</li>
+      <li><strong>Württemberger Hof (Linkes Zentrum):</strong> ca. 100, parlamentarischer, demokratischer. (z. B. Mohl)</li>
+      <li><strong>Deutscher Hof (Linke/Demokraten):</strong> ca. 60, Republik, Volkssouveränität. (z. B. Blum)</li>
+      <li><strong>Donnersberg (Äußerste Linke/Radikale):</strong> ca. 40, Republik, teils sozialrevolutionär. (z. B. Hecker, Struve)</li>
+    </ul>
+    Die liberale Mitte hatte die Mehrheit, war aber zerrissen zwischen Kompromiss mit Fürsten und Druck der Linken (lähmte die Versammlung).`
+  },
+  {
+    phase: "paulskirche", date: "1848-07-15", dateLabel: "Sommer 1848",
+    title: "Nationale Einheit & Territoriale Fragen",
+    body: `Eine der schwierigsten Fragen: <strong>Wo endet "Deutschland"?</strong> "Nation" wurde als Sprach- und Kulturgemeinschaft verstanden.
+    <br><br>
+    Das brachte die Paulskirche in Konflikte mit anderen Völkern:
+    <ul>
+      <li><strong>Schleswig-Holstein:</strong> Holstein war im Bund, Schleswig dänisch-deutsch. Preußen kämpft, schließt aber eigenmächtig den Waffenstillstand von Malmö.</li>
+      <li><strong>Posen:</strong> Polnische Mehrheit, aber die Paulskirche entschied zugunsten deutscher Siedler (Bruch mit eigener Völkerfreiheit).</li>
+      <li><strong>Böhmen:</strong> Tschechen lehnten die Wahl nach Frankfurt ab (Palacký: "Ich bin kein Deutscher").</li>
+    </ul>
+    Das untergrub die moralische Autorität der Versammlung ("Freiheit für uns, aber nicht für die anderen").`
+  },
+  {
+    phase: "paulskirche", date: "1848-09-16", dateLabel: "September 1848",
+    title: "Waffenstillstand von Malmö",
+    body: `Preußen schließt eigenmächtig (ohne die Paulskirche) einen Waffenstillstand mit Dänemark über Schleswig-Holstein. Die Versammlung muss notgedrungen zustimmen — ein massiver Vertrauensverlust und Beweis ihrer Machtlosigkeit. Es folgen die blutigen Septemberunruhen.`
+  },
+  {
+    phase: "hoehepunkt", date: "1848-11-09", dateLabel: "9. November 1848",
+    title: "Hinrichtung Robert Blums",
+    body: `Der demokratische Abgeordnete Robert Blum (Fraktion Deutscher Hof) wird bei der Niederschlagung des Wiener Aufstands trotz parlamentarischer Immunität standrechtlich erschossen. Schockierende Demonstration der Ohnmacht der Paulskirche.`
+  },
+  {
+    phase: "hoehepunkt", date: "1848-12-05", dateLabel: "5. Dezember 1848",
+    title: "Oktroyierte Verfassung in Preußen",
+    body: `Friedrich Wilhelm IV. löst die preußische Nationalversammlung auf und erlässt eine Verfassung "von oben" (oktroyiert). Die konservative Wende ist eingeläutet.`
+  },
+  {
+    phase: "paulskirche", date: "1848-12-27", dateLabel: "27. Dezember 1848",
+    title: "Grundrechte des deutschen Volkes",
+    body: `Erster umfassender Grundrechtekatalog auf deutschem Boden! Trat politisch nie in Kraft, ist aber die direkte Vorlage für Weimar (1919) und das heutige Grundgesetz (1949).
+    <br><br>
+    <strong>Direkter Vergleich mit heute:</strong>
+    <ul>
+      <li>Gleichheit vor dem Gesetz (§137) ➔ Art. 3 GG (Adel aufgehoben)</li>
+      <li>Meinungs-/Pressefreiheit (§143) ➔ Art. 5 GG ("Eine Zensur findet nicht statt" = gleicher Wortlaut!)</li>
+      <li>Glaubensfreiheit (§144) ➔ Art. 4 GG</li>
+      <li>Todesstrafe abgeschafft (§139) ➔ Art. 102 GG</li>
+      <li>Briefgeheimnis (§142) ➔ Art. 10 GG</li>
+      <li>Berufsfreiheit (§158) ➔ Art. 12 GG</li>
+    </ul>
+    <strong>Was damals fehlte:</strong> Menschenwürde (Art. 1 GG, erst nach dem NS), Gleichberechtigung von Mann und Frau, soziale Grundrechte.
+    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Der Parlamentarische Rat 1948/49 bezog sich explizit auf die Paulskirche. Die Revolution scheiterte zwar politisch, aber ihre Ideen (Grundrechte) setzten sich mit 100 Jahren Verspätung durch.</div>`
+  },
+  {
+    phase: "hoehepunkt", date: "1849-03-27", dateLabel: "27. März 1849",
+    title: "Paulskirchenverfassung",
+    body: `Verabschiedung der Verfassung mit zwei zentralen Entscheidungen:
+    <br><br>
+    <strong>1. Kleindeutsche Lösung:</strong> Ohne das Vielvölkerreich Österreich, stattdessen Führung durch Preußen. (Großdeutsch wäre mit Österreich gewesen, scheiterte aber an Österreichs Weigerung, sich aufzuteilen).
+    <br>
+    <strong>2. Konstitutionelle Monarchie:</strong> Kaiser als Staatsoberhaupt, Macht aber begrenzt durch Verfassung, Gewaltenteilung und Parlament. Regierung dem Parlament verantwortlich. (Kompromiss zwischen Erhalt der Monarchie und Volkssouveränität).
+    <br><br>
+    28 Staaten erkennen sie an, aber die Großmächte Preußen, Österreich, Bayern etc. lehnen ab.`
+  },
+  {
+    phase: "hoehepunkt", date: "1849-04-03", dateLabel: "3. April 1849",
+    title: "Ablehnung der Kaiserkrone",
+    body: `Als die Delegation aus Frankfurt (unter Eduard Simson) Friedrich Wilhelm IV. die Krone anbietet, lehnt dieser ab.
+    <br><br>
+    <strong>Öffentliche Begründung:</strong> Er könne die Krone nur mit "Zustimmung der gekrönten Häupter" annehmen (nur von Fürsten, nicht vom Volk).<br>
+    <strong>In Briefen:</strong> Er nennt sie einen "Reif aus Dreck und Letten" und "aus Schmutz und Schweinekot, gebacken aus Dreck und Revolution".
+    <br><br>
+    Dahinter steht sein Weltbild vom "Gottesgnadentum". Mit der Ablehnung ist die Verfassung und damit die Revolution politisch endgültig gescheitert.`
+  },
+  {
+    phase: "ende", date: "1849-05-15", dateLabel: "Mai – Juli 1849",
+    title: "Reichsverfassungskampagne",
+    body: `Letzte verzweifelte Aufstände (v. a. in Baden und Sachsen) zur Durchsetzung der Verfassung. Werden von preußischen Truppen unter Prinz Wilhelm ("Kartätschenprinz") niedergeschlagen.`
+  },
+  {
+    phase: "ende", date: "1849-05-30", dateLabel: "30. Mai 1849",
+    title: "Auflösung der Nationalversammlung",
+    body: `Die meisten Abgeordneten ziehen sich zurück. Ein linker Rest tagt als "Rumpfparlament" in Stuttgart weiter, wird aber am 18. Juni vom württembergischen Militär zerschlagen.`
+  },
+  {
+    phase: "ende", date: "1849-07-23", dateLabel: "23. Juli 1849",
+    title: "Kapitulation der Festung Rastatt",
+    body: `Mit der Aufgabe der letzten badischen Festung endet die Revolution endgültig. Standgerichte erschießen Aufständische. Es folgt eine massive Auswanderungswelle in die USA ("Forty-Eighters").`
   }
-});
+];
 
-sorted.forEach(e => {
-  const x = dateToX(e.date);
-  const el = document.createElement("div");
-  el.className = "event " + e.position;
-  el.style.left = x + "px";
-  if (e.position === "above") {
-    el.style.top = (AXIS_TOP - e.lineHeight) + "px";
-    el.style.height = e.lineHeight + "px";
-  } else {
-    el.style.top = (AXIS_TOP + 2) + "px";
-    el.style.height = e.lineHeight + "px";
-  }
-  el.style.width = "2px";
-  el.style.setProperty("--line-h", e.lineHeight + "px");
-  el.style.setProperty("--dot-color", phaseColors[e.phase]);
-  el.innerHTML = `
-    <div class="event-line"></div>
-    <div class="event-dot"></div>
-    <div class="event-label">
-      <span class="date">${e.dateLabel}</span>
-      ${e.title}
-    </div>
-  `;
-  el.addEventListener("click", () => showDetail(e, el));
-  timeline.appendChild(el);
-});
+const detail = document.getElementById("detail");
+
+function dateToX(dateStr, startDate, totalMs, padding, innerWidth) {
+  const d = new Date(dateStr);
+  const ratio = (d - startDate) / totalMs;
+  return padding + ratio * innerWidth;
+}
+
+function renderTimeline(containerId, events, startStr, endStr, ticks, yearMarkers) {
+  const timeline = document.getElementById(containerId);
+  const startDate = new Date(startStr);
+  const endDate = new Date(endStr);
+  const totalMs = endDate - startDate;
+  const padding = 60;
+  const totalWidth = parseInt(timeline.style.width);
+  const innerWidth = totalWidth - padding * 2;
+  const AXIS_TOP = 220;
+
+  const axis = timeline.querySelector(".axis");
+  axis.style.left = padding + "px";
+  axis.style.right = padding + "px";
+
+  ticks.forEach(({ label, date, major }) => {
+    const x = dateToX(date, startDate, totalMs, padding, innerWidth);
+    const tick = document.createElement("div");
+    tick.className = "month-tick" + (major ? " major" : "");
+    tick.style.left = x + "px";
+    timeline.appendChild(tick);
+    if (label) {
+      const lab = document.createElement("div");
+      lab.className = "month-label";
+      lab.style.left = x + "px";
+      lab.textContent = label;
+      timeline.appendChild(lab);
+    }
+  });
+
+  yearMarkers.forEach(({ label, date }) => {
+    const x = dateToX(date, startDate, totalMs, padding, innerWidth);
+    const ym = document.createElement("div");
+    ym.className = "year-marker";
+    ym.style.left = x + "px";
+    ym.textContent = label;
+    timeline.appendChild(ym);
+  });
+
+  const sorted = events.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+  let aboveIdx = 0, belowIdx = 0;
+  const STAGGER = 42;
+  const BASE_H = 45;
+  sorted.forEach((e, i) => {
+    e.position = i % 2 === 0 ? "above" : "below";
+    if (e.position === "above") {
+      e.lineHeight = BASE_H + (aboveIdx % 4) * STAGGER;
+      aboveIdx++;
+    } else {
+      e.lineHeight = BASE_H + (belowIdx % 4) * STAGGER;
+      belowIdx++;
+    }
+  });
+
+  sorted.forEach(e => {
+    const x = dateToX(e.date, startDate, totalMs, padding, innerWidth);
+    const el = document.createElement("div");
+    el.className = "event " + e.position;
+    el.style.left = x + "px";
+    el.style.width = "2px";
+    if (e.position === "above") {
+      el.style.top = (AXIS_TOP - e.lineHeight) + "px";
+      el.style.height = e.lineHeight + "px";
+    } else {
+      el.style.top = (AXIS_TOP + 2) + "px";
+      el.style.height = e.lineHeight + "px";
+    }
+    el.style.setProperty("--line-h", e.lineHeight + "px");
+    el.style.setProperty("--dot-color", phaseColors[e.phase]);
+    el.innerHTML = `
+      <div class="event-line"></div>
+      <div class="event-dot"></div>
+      <div class="event-label">
+        <span class="date">${e.dateLabel}</span>
+        ${e.title}
+      </div>
+    `;
+    el.addEventListener("click", () => showDetail(e, el));
+    timeline.appendChild(el);
+  });
+}
 
 function showDetail(e, el) {
   document.querySelectorAll(".event.active").forEach(x => x.classList.remove("active"));
@@ -371,12 +644,44 @@ function showDetail(e, el) {
   detail.classList.remove("empty");
   detail.style.setProperty("--dot-color", phaseColors[e.phase]);
   detail.innerHTML = `
-    <div class="detail-phase">${e.phaseLabel}</div>
+    <div class="detail-phase">${phaseLabels[e.phase]}</div>
     <div class="detail-date">${e.dateLabel}</div>
     <h2 class="detail-title">${e.title}</h2>
     <div class="detail-body">${e.body}</div>
   `;
+  detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
+
+// Vormärz: jährliche Ticks, alle 5 Jahre als Hauptmarker mit Label
+const vormaerzTicks = [];
+for (let y = 1815; y <= 1847; y++) {
+  const isMajor = y % 5 === 0;
+  vormaerzTicks.push({
+    label: isMajor ? String(y) : null,
+    date: `${y}-01-01`,
+    major: isMajor
+  });
+}
+
+// Revolution: monatliche Ticks
+const revolutionTicks = [
+  ["Feb", "1848-02-01"], ["Mär", "1848-03-01"], ["Apr", "1848-04-01"],
+  ["Mai", "1848-05-01"], ["Jun", "1848-06-01"], ["Jul", "1848-07-01"],
+  ["Aug", "1848-08-01"], ["Sep", "1848-09-01"], ["Okt", "1848-10-01"],
+  ["Nov", "1848-11-01"], ["Dez", "1848-12-01"],
+  ["Jan", "1849-01-01"], ["Feb", "1849-02-01"], ["Mär", "1849-03-01"],
+  ["Apr", "1849-04-01"], ["Mai", "1849-05-01"], ["Jun", "1849-06-01"],
+  ["Jul", "1849-07-01"], ["Aug", "1849-08-01"]
+].map(([label, date]) => ({ label, date, major: false }));
+
+const revolutionYearMarkers = [
+  { label: "1848", date: "1848-08-01" },
+  { label: "1849", date: "1849-04-15" }
+];
+
+renderTimeline("vormaerz-timeline", vormaerzEvents, "1814-09-01", "1848-01-15", vormaerzTicks, []);
+// Habe den Revolutions-Zeitstrahl etwas breiter gemacht (3400px), damit die vielen neuen Events Platz haben!
+renderTimeline("revolution-timeline", revolutionEvents, "1848-02-15", "1849-08-05", revolutionTicks, revolutionYearMarkers);
 
 function toggleTheme() {
   const cur = document.documentElement.getAttribute("data-theme");
