@@ -196,94 +196,122 @@
   }
 
   .rail-wrap{
-    overflow-x:auto;
-    padding-bottom:.4rem;
-  }
-  .rail{
-    min-width:1500px;
-    position:relative;
-    height:220px;
-    margin-top:.4rem;
-    border-radius:16px;
-    background:linear-gradient(180deg, rgba(0,0,0,0.01), transparent);
-  }
-  .rail-line{
-    position:absolute;
-    left:60px;
-    right:60px;
-    top:110px;
-    height:3px;
-    background:var(--line);
-    border-radius:2px;
-  }
-  .tick{
-    position:absolute;
-    top:101px;
-    width:2px;
-    height:20px;
-    background:var(--line);
-  }
-  .tick.major{
-    height:28px;
-    top:97px;
-    background:var(--muted);
-  }
-  .tick-label{
-    position:absolute;
-    top:128px;
-    transform:translateX(-50%);
-    font-size:.78rem;
-    color:var(--muted);
-    white-space:nowrap;
-  }
-  .node{
-    position:absolute;
-    transform:translateX(-50%);
-    cursor:pointer;
-  }
-  .node .dot{
-    width:14px;height:14px;border-radius:50%;
-    border:2px solid var(--node-color);
-    background:var(--card);
-    position:absolute;
-    left:50%;
-    transform:translateX(-50%);
-    top:103px;
-    z-index:2;
-    transition:.15s;
-  }
-  .node:hover .dot,.node.active .dot{
-    transform:translateX(-50%) scale(1.35);
-    background:var(--node-color);
-  }
-  .node .stem{
-    position:absolute;
-    left:50%;
-    transform:translateX(-50%);
-    width:2px;
-    background:var(--node-color);
-    opacity:.55;
-  }
-  .node.top .stem{top:30px;height:73px}
-  .node.bottom .stem{top:117px;height:73px}
-  .node .label{
-    position:absolute;
-    width:170px;
-    left:50%;
-    transform:translateX(-50%);
-    text-align:center;
-    font-size:.78rem;
-    line-height:1.25;
-  }
-  .node.top .label{top:0}
-  .node.bottom .label{top:190px}
-  .node .date{
-    display:block;
-    color:var(--node-color);
-    font-size:.7rem;
-    font-weight:700;
-    margin-bottom:2px;
-  }
+  overflow-x:auto;
+  padding-bottom:.4rem;
+}
+
+.rail{
+  min-width:1700px;
+  position:relative;
+  height:340px;
+  margin-top:.4rem;
+  border-radius:16px;
+  background:linear-gradient(180deg, rgba(0,0,0,0.01), transparent);
+}
+
+.rail-line{
+  position:absolute;
+  left:60px;
+  right:60px;
+  top:170px;
+  height:3px;
+  background:var(--line);
+  border-radius:2px;
+}
+
+.tick{
+  position:absolute;
+  top:160px;
+  width:2px;
+  height:20px;
+  background:var(--line);
+}
+
+.tick.major{
+  height:28px;
+  top:156px;
+  background:var(--muted);
+}
+
+.tick-label{
+  position:absolute;
+  top:188px;
+  transform:translateX(-50%);
+  font-size:.78rem;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.node{
+  position:absolute;
+  transform:translateX(-50%);
+  cursor:pointer;
+}
+
+.node .dot{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  border:2px solid var(--node-color);
+  background:var(--card);
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  top:163px;
+  z-index:2;
+  transition:.15s;
+}
+
+.node:hover .dot,
+.node.active .dot{
+  transform:translateX(-50%) scale(1.35);
+  background:var(--node-color);
+}
+
+.node .stem{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  width:2px;
+  background:var(--node-color);
+  opacity:.55;
+}
+
+.node .label{
+  position:absolute;
+  width:160px;
+  left:50%;
+  transform:translateX(-50%);
+  text-align:center;
+  font-size:.76rem;
+  line-height:1.25;
+}
+
+.node.top .stem{
+  top:calc(170px - var(--stem-h));
+  height:var(--stem-h);
+}
+
+.node.top .label{
+  top:calc(170px - var(--stem-h) - 54px);
+}
+
+.node.bottom .stem{
+  top:177px;
+  height:var(--stem-h);
+}
+
+.node.bottom .label{
+  top:calc(177px + var(--stem-h) + 6px);
+}
+
+.node .date{
+  display:block;
+  color:var(--node-color);
+  font-size:.7rem;
+  font-weight:700;
+  margin-bottom:2px;
+}
 
   .detail{
     margin-top:1rem;
@@ -1187,7 +1215,7 @@ const start = new Date("1945-01-01");
 const end = new Date("1992-01-01");
 const total = end - start;
 const pad = 60;
-const width = 1500 - pad * 2;
+const width = 1700 - pad * 2;
 
 function xPos(dateString){
   const d = new Date(dateString);
@@ -1209,11 +1237,21 @@ yearMarks.forEach((y,i)=>{
   rail.appendChild(label);
 });
 
-events.forEach((e,i)=>{
+let topCount = 0;
+let bottomCount = 0;
+const stemLevels = [52, 92, 132]; // 3 Ebenen pro Seite
+
+events.forEach((e, i) => {
+  const isTop = i % 2 === 0;
+  const laneIndex = isTop ? (topCount++ % 3) : (bottomCount++ % 3);
+  const stemHeight = stemLevels[laneIndex];
+
   const node = document.createElement("div");
-  node.className = "node " + (i % 2 === 0 ? "top" : "bottom");
+  node.className = "node " + (isTop ? "top" : "bottom");
   node.style.left = `${xPos(e.date)}px`;
   node.style.setProperty("--node-color", e.color);
+  node.style.setProperty("--stem-h", `${stemHeight}px`);
+
   node.innerHTML = `
     <div class="stem"></div>
     <div class="dot"></div>
@@ -1222,8 +1260,9 @@ events.forEach((e,i)=>{
       ${e.title}
     </div>
   `;
-  node.addEventListener("click", ()=>{
-    document.querySelectorAll(".node.active").forEach(n=>n.classList.remove("active"));
+
+  node.addEventListener("click", () => {
+    document.querySelectorAll(".node.active").forEach(n => n.classList.remove("active"));
     node.classList.add("active");
     detail.classList.remove("empty");
     detail.style.borderLeftColor = e.color;
@@ -1234,6 +1273,7 @@ events.forEach((e,i)=>{
       <div class="detail-body">${e.body}</div>
     `;
   });
+
   rail.appendChild(node);
 });
 
