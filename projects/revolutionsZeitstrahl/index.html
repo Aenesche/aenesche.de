@@ -204,7 +204,7 @@
   .detail-title { font-size: 1.2rem; font-weight: 600; margin: 0 0 0.6rem; }
   .detail-body { color: var(--fg); font-size: 0.92rem; line-height: 1.65; }
   .detail-body strong { font-weight: 600; }
-  .detail-body ul { margin-top: 0.5rem; margin-bottom: 0.5rem; padding-left: 1.5rem; }
+  .detail-body ul, .detail-body ol { margin-top: 0.5rem; margin-bottom: 0.5rem; padding-left: 1.5rem; }
   .detail-body .abi-tipp { margin-top: 1rem; padding: 0.75rem; background: rgba(0,0,0,0.03); border-radius: 6px; border-left: 3px solid var(--dot-color); }
   [data-theme="dark"] .detail-body .abi-tipp { background: rgba(255,255,255,0.03); }
 
@@ -286,7 +286,6 @@ const phaseLabels = {
   ende: "Ende"
 };
 
-// Nutze Backticks ` für mehrzeilige Strings, das macht das HTML im JS viel robuster!
 const vormaerzEvents = [
   {
     phase: "vormaerz", date: "1815-01-01", dateLabel: "Sept. 1814 – Juni 1815",
@@ -296,98 +295,98 @@ const vormaerzEvents = [
     <strong>Hauptakteure:</strong>
     <ul>
       <li><strong>Klemens von Metternich (Österreich)</strong> — der dominierende Kopf</li>
-      <li>Talleyrand (Frankreich) — etablierte F trotz Niederlage als Großmacht</li>
-      <li>Hardenberg (Preußen), Castlereagh (GB), Zar Alexander I. (Russland)</li>
+      <li>Talleyrand (Frankreich) — etablierte Frankreich trotz Niederlage wieder als Großmacht</li>
+      <li>Hardenberg (Preußen), Castlereagh (Großbritannien), Zar Alexander I. (Russland)</li>
     </ul>
     <strong>Leitprinzipien:</strong>
     <ul>
       <li><strong>Restauration:</strong> Wiederherstellung der vorrevolutionären Verhältnisse</li>
-      <li><strong>Legitimität:</strong> Nur Herrschaft "von Gottes Gnaden" ist rechtmäßig</li>
+      <li><strong>Legitimität:</strong> Herrschaft dynastischer Fürsten gilt als rechtmäßig</li>
       <li><strong>Solidarität der Fürsten</strong> gegen revolutionäre Bewegungen</li>
       <li><strong>Gleichgewicht der Mächte</strong> (Pentarchie)</li>
     </ul>
-    <strong>Ergebnisse für Deutschland:</strong> Gründung des <strong>Deutschen Bundes</strong> (lockerer Staatenbund aus 39 Mitgliedern unter österreichischem Vorsitz). Der Bundestag in Frankfurt ist reine Gesandtenversammlung, kein Parlament! Preußen erhält Rheinland und Westfalen (Grundlage für späteren Dualismus).
-    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Der Wiener Kongress ist der Ausgangspunkt für die Spannungen, die 1848 explodieren. Die nationale und liberale Bewegung richtet sich gegen genau diese Ordnung.</div>`
+    <strong>Ergebnisse für Deutschland:</strong> Gründung des <strong>Deutschen Bundes</strong> als lockerer Staatenbund aus 39 Mitgliedern unter österreichischem Vorsitz. Der Bundestag in Frankfurt ist eine Gesandtenversammlung, kein vom Volk gewähltes Parlament. Preußen erhält unter anderem Rheinland und Westfalen — eine wichtige Grundlage für den späteren preußisch-österreichischen Dualismus.
+    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Der Wiener Kongress ist der Ausgangspunkt für die Spannungen, die 1848 offen ausbrechen. Die nationale und liberale Bewegung richtet sich gegen genau diese restaurative Ordnung.</div>`
   },
   {
     phase: "burschenschaften", date: "1815-06-12", dateLabel: "12. Juni 1815",
     title: "Gründung der Urburschenschaft Jena",
     body: `Gründung durch Studenten, die in den Befreiungskriegen gegen Napoleon gekämpft hatten.
     <br><br>
-    Ihre Farben: <strong>schwarz-rot-gold</strong> (angeblich von den Uniformen des Lützowschen Freikorps) — daraus wurden später die Nationalfarben.
+    Ihre Farben: <strong>schwarz-rot-gold</strong> (oft auf die Uniformen des Lützowschen Freikorps zurückgeführt) — daraus wurden später die Nationalfarben.
     <br><br>
     <strong>Ziele:</strong> nationale Einheit Deutschlands, liberale Verfassung, Pressefreiheit, Abschaffung der Kleinstaaterei.<br>
     <strong>Wahlspruch:</strong> "Ehre, Freiheit, Vaterland".
-    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Burschenschaften sind die Wurzel der nationalen und liberalen Bewegung in Deutschland. Viele spätere Paulskirchen-Abgeordnete waren ehemalige Burschenschaftler.</div>`
+    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Die Burschenschaften gehören zu den frühen Trägern der nationalen und liberalen Bewegung in Deutschland. Viele spätere Paulskirchen-Abgeordnete standen diesen Ideen nahe oder waren selbst früh politisch davon geprägt.</div>`
   },
   {
     phase: "burschenschaften", date: "1817-10-18", dateLabel: "18. Oktober 1817",
     title: "Wartburgfest",
     body: `Ca. 500 Studenten treffen sich auf der Wartburg bei Eisenach. Anlass: 300 Jahre Reformation und 4 Jahre Völkerschlacht bei Leipzig.<br><br>
-    Erste große öffentliche Demonstration für nationale Einheit und bürgerliche Freiheiten in Deutschland. Es kommt zur symbolischen <strong>Bücherverbrennung</strong> von "undeutschen" und reaktionären Schriften (z. B. der Code Napoléon). Zum ersten Mal werden die schwarz-rot-goldenen Farben einer breiten Öffentlichkeit gezeigt.`
+    Erste große öffentliche Demonstration für nationale Einheit und bürgerliche Freiheiten in Deutschland. Es kommt zur symbolischen Verbrennung einiger als reaktionär oder "undeutsch" betrachteter Schriften und Gegenstände. Zum ersten Mal werden die schwarz-rot-goldenen Farben einer breiteren Öffentlichkeit gezeigt.`
   },
   {
     phase: "vormaerz", date: "1819-09-20", dateLabel: "20. September 1819",
     title: "Karlsbader Beschlüsse",
     body: `Auslöser: Der Burschenschaftler Karl Ludwig Sand ermordet 1819 den konservativen Schriftsteller August von Kotzebue.
     <br><br>
-    <strong>Metternich</strong> nutzt das als Vorwand für systematische Unterdrückung:
+    <strong>Metternich</strong> nutzt das als Anlass für systematische Unterdrückung:
     <ul>
       <li>Verbot der Burschenschaften</li>
       <li>Pressezensur</li>
       <li>Universitätsüberwachung</li>
       <li>Demagogenverfolgung (Verfolgung liberaler Aktivisten)</li>
     </ul>
-    Dies markiert den Beginn des repressiven Metternich-Systems und prägt die Zensur in der Literatur ("Zwischen den Zeilen lesen").`
+    Dies markiert den Beginn des repressiven Metternich-Systems und prägt auch das geistige Klima der Zeit, etwa in Literatur und Publizistik.`
   },
   {
     phase: "vormaerz", date: "1830-07-01", dateLabel: "1815 – 1848",
     title: "Die Epoche des Vormärz",
-    body: `Zeitraum: ca. 1815–1848 (vom Wiener Kongress bis zur Märzrevolution). Charakterisiert durch die Spannung zwischen restaurativer Politik (Metternich-System) und wachsender liberal-nationaler Opposition.
+    body: `Zeitraum: ca. 1815–1848 (vom Wiener Kongress bis zur Märzrevolution). Charakterisiert durch die Spannung zwischen restaurativer Politik und wachsender liberal-nationaler Opposition.
     <br><br>
     <strong>Gesellschaftlich:</strong> Aufstieg des Bildungs- und Wirtschaftsbürgertums, das politische Mitsprache fordert. Die Industrialisierung beginnt und die soziale Frage entsteht.<br>
-    <strong>Kulturell:</strong> Spaltung in <em>Biedermeier</em> (Rückzug ins Private, Apolitik) und <em>Junges Deutschland</em> (literarisch-politische Opposition wie Heine, Börne, Büchner).`
+    <strong>Kulturell:</strong> Spaltung in <em>Biedermeier</em> (Rückzug ins Private, politische Zurückhaltung) und <em>Junges Deutschland</em> (literarisch-politische Opposition, z. B. Heine, Börne, Büchner).`
   },
   {
     phase: "burschenschaften", date: "1832-05-27", dateLabel: "27.–30. Mai 1832",
     title: "Hambacher Fest",
-    body: `Größte politische Demonstration des Vormärz: ca. <strong>30.000 Menschen</strong> versammeln sich am Hambacher Schloss in der Pfalz. 
+    body: `Größte politische Demonstration des Vormärz: ca. <strong>30.000 Menschen</strong> versammeln sich am Hambacher Schloss in der Pfalz.
     <br><br>
-    Die schwarz-rot-goldene Fahne wird hier endgültig zum Nationalsymbol. Die Masse besteht nicht mehr nur aus Studenten, sondern auch aus Bürgern, Handwerkern und Bauern aus ganz Süddeutschland und dem Elsass, was zeigt, dass die Bewegung enorm gewachsen ist.`
+    Die schwarz-rot-goldene Fahne wird hier endgültig zum Nationalsymbol. Die Masse besteht nicht mehr nur aus Studenten, sondern auch aus Bürgern, Handwerkern und Bauern aus ganz Süddeutschland und dem Elsass. Das zeigt, wie stark die nationale und liberale Bewegung inzwischen angewachsen ist.`
   },
   {
     phase: "vormaerz", date: "1834-01-01", dateLabel: "1. Januar 1834",
     title: "Deutscher Zollverein",
-    body: `Unter preußischer Führung gegründeter Zoll- und Handelsverbund. 
+    body: `Unter preußischer Führung gegründeter Zoll- und Handelsverbund.
     <br><br>
-    Bedeutung: Wirtschaftliche Einheit als <strong>Vorstufe zur politischen Einheit</strong>. Der Zollverein schafft einen einheitlichen Wirtschaftsraum, fördert die Industrialisierung und beschleunigt das Bewusstsein nationaler Zusammengehörigkeit. 
+    Bedeutung: Wirtschaftliche Einheit als <strong>Vorstufe zur politischen Einheit</strong>. Der Zollverein schafft einen einheitlichen Wirtschaftsraum, fördert die Industrialisierung und stärkt das Bewusstsein nationaler Zusammengehörigkeit.
     <br><br>
-    Da Österreich nicht Teil des Zollvereins ist, ist dies bereits wegweisend für die spätere <strong>kleindeutsche Lösung</strong>.`
+    Da Österreich nicht Teil des Zollvereins ist, weist dies bereits in Richtung der späteren <strong>kleindeutschen Lösung</strong>.`
   },
   {
     phase: "sozial", date: "1844-06-04", dateLabel: "4.–6. Juni 1844",
     title: "Schlesischer Weberaufstand",
-    body: `Aufstand der schlesischen Leinenweber gegen Hungerlöhne und die Konkurrenz aus mechanisierten englischen Webereien. 
+    body: `Aufstand der schlesischen Leinenweber gegen Hungerlöhne und die Konkurrenz durch mechanisierte Produktion.
     <br><br>
-    Symbol für die <strong>soziale Frage</strong> und den <strong>Pauperismus</strong> (Massenarmut durch Bevölkerungswachstum und beginnende Industrialisierung). Handwerker werden zunehmend durch Fabriken verdrängt.`
+    Symbol für die <strong>soziale Frage</strong> und den <strong>Pauperismus</strong> (Massenarmut im frühen Industrialisierungsprozess). Handwerker geraten zunehmend unter Druck, traditionelle Erwerbsformen brechen weg.`
   },
   {
     phase: "sozial", date: "1846-08-01", dateLabel: "1845 – 1847",
     title: "Kartoffelfäule & Hungerkrise",
-    body: `Die direkte soziale Ursache der Revolution (oft unterschätzt!).
+    body: `Die direkte soziale Ursache der Revolution wird oft unterschätzt.
     <ul>
-      <li><strong>1845/46:</strong> Massiver Befall durch die Kartoffelfäule (Phytophthora infestans), zuerst in Irland, dann ganz Europa. Kartoffeln waren Grundnahrungsmittel der Unterschichten.</li>
-      <li><strong>1846:</strong> Zusätzlich katastrophale Getreideernte durch trockenen Sommer.</li>
-      <li><strong>1847:</strong> Brotpreise verdoppeln/verdreifachen sich. Verschärft durch eine Wirtschaftskrise (Banken brechen zusammen, Arbeitslosigkeit steigt).</li>
+      <li><strong>1845/46:</strong> Massiver Befall durch die Kartoffelfäule (Phytophthora infestans), zuerst in Irland, dann in weiten Teilen Europas. Kartoffeln waren Grundnahrungsmittel vieler Unterschichten.</li>
+      <li><strong>1846:</strong> Zusätzlich schlechte Getreideernten.</li>
+      <li><strong>1847:</strong> Brotpreise steigen massiv. Verschärft wird die Lage durch Wirtschaftskrise, Arbeitslosigkeit und soziale Unsicherheit.</li>
     </ul>
-    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Die Hungerkrise erklärt, warum sich 1848 nicht nur Bürger, sondern auch Bauern und Arbeiter den Revolutionären anschlossen. Ohne diese soziale Sprengkraft wären die liberalen Forderungen nie auf der Straße durchgesetzt worden.</div>`
+    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Die Hungerkrise erklärt, warum sich 1848 nicht nur Bürger, sondern auch Bauern, Handwerker und Arbeiter an der Bewegung beteiligten. Ohne diese soziale Zuspitzung hätte die liberale Bewegung vermutlich deutlich weniger Massenwirkung entfaltet.</div>`
   },
   {
     phase: "sozial", date: "1847-04-21", dateLabel: "21.–22. April 1847",
     title: "Berliner Kartoffelrevolution",
-    body: `Höhepunkt der Hungerkrise in Berlin: Verzweifelte Menschen plündern Marktstände, Bäckereien und Kartoffellager. Auslöser sind die explodierenden Preise für Grundnahrungsmittel. 
+    body: `Höhepunkt der Hungerkrise in Berlin: Verzweifelte Menschen plündern Marktstände, Bäckereien und Kartoffellager. Auslöser sind die explodierenden Preise für Grundnahrungsmittel.
     <br><br>
-    Wird vom Militär niedergeschlagen, zeigt aber deutlich die explosive Stimmung, die nur ein Jahr später in die Barrikadenkämpfe mündet.`
+    Der Aufruhr wird vom Militär niedergeschlagen, zeigt aber bereits deutlich die explosive soziale Stimmung, die nur ein Jahr später in die Barrikadenkämpfe mündet.`
   }
 ];
 
@@ -400,153 +399,152 @@ const revolutionEvents = [
   {
     phase: "maerz", date: "1848-02-27", dateLabel: "27. Februar 1848",
     title: "Märzforderungen (Mannheim)",
-    body: `Formuliert auf der Mannheimer Volksversammlung, dann in zahlreichen Petitionen wiederholt. Sie sind das <strong>gemeinsame Programm der Märzrevolution</strong>:
+    body: `Formuliert auf der Mannheimer Volksversammlung und dann in zahlreichen Petitionen wiederholt. Sie bilden das <strong>gemeinsame Programm der Märzbewegung</strong>:
     <ol>
       <li><strong>Pressefreiheit</strong> — Abschaffung der Zensur</li>
       <li><strong>Versammlungs- und Vereinsfreiheit</strong></li>
-      <li><strong>Volksbewaffnung</strong> mit freier Wahl der Offiziere (Bürgerwehr statt stehendes Heer der Fürsten)</li>
-      <li><strong>Schwurgerichte</strong> nach englischem Vorbild (öffentliche Gerichtsverhandlungen)</li>
-      <li><strong>Deutsches Nationalparlament</strong></li>
+      <li><strong>Volksbewaffnung</strong> mit freier Wahl der Offiziere</li>
+      <li><strong>Schwurgerichte</strong> nach englischem Vorbild</li>
+      <li><strong>Ein deutsches Nationalparlament</strong></li>
     </ol>
-    <div class="abi-tipp"><strong>Bedeutung:</strong> Diese Forderungen sind im Kern liberale Grundrechte — keine sozialistischen Positionen. Genau deshalb konnten sich Bürgertum, Handwerker und Bauern darauf einigen. Die Fürsten gaben formal nach ("Märzministerien"), nahmen dies aber später zurück.</div>`
+    <div class="abi-tipp"><strong>Bedeutung:</strong> Diese Forderungen sind im Kern liberale Grundrechte und keine sozialrevolutionären Maximalforderungen. Gerade deshalb konnten sich Bürgertum, Handwerker und weitere Gruppen zunächst darauf einigen.</div>`
   },
   {
     phase: "maerz", date: "1848-03-13", dateLabel: "13. März 1848",
     title: "Wiener Aufstand · Metternich flieht",
-    body: `Studenten und Bürger gehen in Wien auf die Straße. Der konservative Staatskanzler <strong>Klemens von Metternich</strong>, Symbol der Restauration, tritt zurück und flieht nach London. Damit fällt das Schlüsselsymbol des "Metternich-Systems".`
+    body: `Studenten und Bürger gehen in Wien auf die Straße. Der konservative Staatskanzler <strong>Klemens von Metternich</strong>, Symbol der Restauration, tritt zurück und flieht nach London. Damit fällt das Schlüsselsymbol des restaurativen Systems.`
   },
   {
     phase: "maerz", date: "1848-03-18", dateLabel: "18./19. März 1848",
     title: "Barrikadenkämpfe in Berlin",
     body: `Nach Tagen der Demonstrationen verkündet Friedrich Wilhelm IV. am 18. März Reformen. Eine jubelnde Menge steht vor dem Schloss.
     <br><br>
-    <strong>Eskalation:</strong> Aus ungeklärten Gründen lösen sich zwei Schüsse aus den Reihen des Militärs. Die Menge deutet das als Verrat. Innerhalb von Stunden entstehen über 900 Barrikaden. In Straßenkämpfen zwischen Aufständischen (Handwerker, Studenten, Arbeiter) und preußischem Militär sterben ca. 270–300 Zivilisten und 20 Soldaten.
+    <strong>Eskalation:</strong> Aus ungeklärten Gründen lösen sich zwei Schüsse aus den Reihen des Militärs. Die Menge deutet das als Verrat. Innerhalb von Stunden entstehen Hunderte Barrikaden. In Straßenkämpfen zwischen Aufständischen und preußischem Militär sterben zahlreiche Menschen.
     <br><br>
-    <strong>Wende (19. März):</strong> Der König befiehlt den Truppenabzug. Am Morgen werden ihm die Leichen der Märzgefallenen im Schlosshof präsentiert — er muss sich entblößten Hauptes verneigen. Bürgerwehr übernimmt die Sicherheit. Ein liberales Ministerium (Camphausen-Hansemann) wird eingesetzt.`
+    <strong>Wende (19. März):</strong> Der König befiehlt den Truppenabzug. Ihm werden die Leichen der Märzgefallenen gezeigt — er muss öffentlich reagieren. Eine Bürgerwehr übernimmt zeitweise Sicherheitsaufgaben, und ein liberales Ministerium wird eingesetzt.`
   },
   {
     phase: "maerz", date: "1848-03-21", dateLabel: "19. & 21. März 1848",
     title: "Friedrich Wilhelm IV. — Die Reden",
-    body: `Zwei historisch entscheidende Auftritte nach den Barrikadenkämpfen:
+    body: `Zwei politisch wichtige Auftritte nach den Barrikadenkämpfen:
     <br><br>
-    <strong>1. "An meine lieben Berliner" (19. März):</strong> Nach dem Vorführen der Leichen erkennt der König die Opfer an und verspricht Reformen.<br>
-    <strong>2. "An mein Volk und an die deutsche Nation" (21. März):</strong> Er reitet mit schwarz-rot-goldener Schärpe durch Berlin und erklärt: <em>"Preußen geht fortan in Deutschland auf."</em> Zitat: <em>"Ich will Freiheit und Einheit Deutschlands, und ich will Ordnung. Das schwöre ich vor Gott."</em>
+    <strong>1. "An meine lieben Berliner" (19. März):</strong> Nach den Kämpfen erkennt der König die Opfer an und verspricht Reformen.<br>
+    <strong>2. "An mein Volk und an die deutsche Nation" (21. März):</strong> Er zeigt sich mit schwarz-rot-goldener Schärpe und erklärt: <em>"Preußen geht fortan in Deutschland auf."</em>
     <br><br>
-    Ein opportunistischer Schachzug, um die Initiative zurückzugewinnen. Tatsächlich wartet er nur ab, bis sich die Revolution erschöpft.`
+    Dies war vor allem ein taktischer Schritt, um die politische Initiative wiederzugewinnen und die revolutionäre Bewegung zu beruhigen.`
   },
   {
     phase: "maerz", date: "1848-03-31", dateLabel: "31. März – 3. April 1848",
     title: "Vorparlament in Frankfurt",
-    body: `574 liberale und demokratische Abgeordnete beschließen die Wahl einer verfassunggebenden Nationalversammlung für ganz Deutschland.`
+    body: `574 liberale und demokratische Politiker beraten in Frankfurt und beschließen die Wahl einer verfassunggebenden Nationalversammlung für ganz Deutschland.`
   },
   {
     phase: "maerz", date: "1848-04-07", dateLabel: "7. April 1848",
     title: "Wahlrecht zur Nationalversammlung",
-    body: `Beschluss des Bundestags: Wahl durch "allgemeine" Wahlen. Die Ausgestaltung blieb den Einzelstaaten überlassen.
+    body: `Beschluss des Bundestags: Wahl durch "allgemeine" Wahlen. Die konkrete Ausgestaltung blieb jedoch den Einzelstaaten überlassen.
     <br><br>
-    <strong>Grundsätze (theoretisch):</strong> Allgemein (alle volljährigen Männer), gleich, indirekt (über Wahlmänner).<br>
-    <strong>Die Einschränkung ("Selbständigkeit"):</strong> Wahlberechtigt waren nur "selbständige" Männer. Dadurch wurden Knechte, Dienstboten, Handwerksgesellen ohne eigenen Hausstand und Tagelöhner ausgeschlossen. In manchen Staaten fielen so 15–25 % der Männer weg. Frauen sowieso.
-    <div class="abi-tipp"><strong>Bedeutung:</strong> Trotz Einschränkungen war es das freieste Wahlrecht, das es bis dahin auf deutschem Boden gegeben hatte. Ein vergleichbar freies gab es erst wieder 1871 unter Bismarck.</div>`
+    <strong>Grundsätze:</strong> allgemein für Männer, gleich und indirekt (über Wahlmänner).<br>
+    <strong>Einschränkung:</strong> In vielen Staaten waren nur "selbständige" Männer wahlberechtigt. Dadurch wurden Knechte, Dienstboten, viele Gesellen und Tagelöhner ausgeschlossen. Frauen waren grundsätzlich vom Wahlrecht ausgeschlossen.
+    <div class="abi-tipp"><strong>Bedeutung:</strong> Trotz dieser Einschränkungen war es das freieste Wahlrecht, das es bis dahin auf deutschem Boden gegeben hatte. Ein ähnlich weitgehendes allgemeines Männerwahlrecht wurde erst im Norddeutschen Bund ab 1867 und danach im Deutschen Reich ab 1871 dauerhaft verwirklicht.</div>`
   },
   {
     phase: "maerz", date: "1848-04-12", dateLabel: "12.–27. April 1848",
     title: "Heckerzug",
-    body: `Friedrich Hecker und Gustav Struve rufen in Konstanz die deutsche Republik aus, werden jedoch rasch militärisch geschlagen. Erste offene Spaltung zwischen Liberalen und Radikaldemokraten.`
+    body: `Friedrich Hecker und Gustav Struve rufen in Konstanz die deutsche Republik aus, werden jedoch rasch militärisch geschlagen. Dies zeigt früh die Spaltung zwischen gemäßigten Liberalen und radikalen Demokraten.`
   },
   {
     phase: "paulskirche", date: "1848-05-18", dateLabel: "18. Mai 1848",
     title: "Eröffnung der Paulskirche & Parteiungen",
-    body: `Die erste frei gewählte gesamtdeutsche Nationalversammlung ("Professorenparlament") tritt zusammen. Es gab noch keine Parteien, sondern <strong>Fraktionen (benannt nach Gasthäusern)</strong>:
+    body: `Die erste frei gewählte gesamtdeutsche Nationalversammlung tritt in Frankfurt zusammen. Zeitgenossen nannten sie wegen des hohen Anteils an Akademikern auch das "Professorenparlament". Es gab noch keine modernen Parteien, sondern <strong>Fraktionen</strong>, oft nach ihren Versammlungsorten benannt:
     <ul>
-      <li><strong>Café Milani (Rechte/Konservative):</strong> ca. 40, Erhalt der Fürstenrechte, großdeutsch. (z. B. Radowitz)</li>
-      <li><strong>Casino (Rechtes Zentrum/Liberale):</strong> ca. 120, stärkste Fraktion. Konstitutionelle Monarchie, kleindeutsch. (z. B. Gagern)</li>
-      <li><strong>Württemberger Hof (Linkes Zentrum):</strong> ca. 100, parlamentarischer, demokratischer. (z. B. Mohl)</li>
-      <li><strong>Deutscher Hof (Linke/Demokraten):</strong> ca. 60, Republik, Volkssouveränität. (z. B. Blum)</li>
-      <li><strong>Donnersberg (Äußerste Linke/Radikale):</strong> ca. 40, Republik, teils sozialrevolutionär. (z. B. Hecker, Struve)</li>
+      <li><strong>Café Milani (Rechte/Konservative):</strong> eher für Erhalt der Fürstenrechte, oft großdeutsch orientiert</li>
+      <li><strong>Casino (Rechtes Zentrum/Liberale):</strong> stärkste Richtung; konstitutionelle Monarchie, meist kleindeutsch</li>
+      <li><strong>Württemberger Hof (Linkes Zentrum):</strong> stärker parlamentarisch und demokratisch</li>
+      <li><strong>Deutscher Hof (Linke/Demokraten):</strong> republikanischer und volkssouveräner</li>
+      <li><strong>Donnersberg (Äußerste Linke/Radikale):</strong> republikanisch, teils sozialrevolutionär</li>
     </ul>
-    Die liberale Mitte hatte die Mehrheit, war aber zerrissen zwischen Kompromiss mit Fürsten und Druck der Linken (lähmte die Versammlung).`
+    Die liberale Mitte war stark, blieb aber innerlich gespalten zwischen Kompromiss mit den Fürsten und Druck von links.`
   },
   {
     phase: "paulskirche", date: "1848-07-15", dateLabel: "Sommer 1848",
     title: "Nationale Einheit & Territoriale Fragen",
-    body: `Eine der schwierigsten Fragen: <strong>Wo endet "Deutschland"?</strong> "Nation" wurde als Sprach- und Kulturgemeinschaft verstanden.
+    body: `Eine der schwierigsten Fragen lautete: <strong>Wo endet "Deutschland"?</strong> Nation wurde oft als Sprach- und Kulturgemeinschaft verstanden.
     <br><br>
-    Das brachte die Paulskirche in Konflikte mit anderen Völkern:
+    Das brachte die Paulskirche in Konflikt mit anderen Völkern:
     <ul>
-      <li><strong>Schleswig-Holstein:</strong> Holstein war im Bund, Schleswig dänisch-deutsch. Preußen kämpft, schließt aber eigenmächtig den Waffenstillstand von Malmö.</li>
-      <li><strong>Posen:</strong> Polnische Mehrheit, aber die Paulskirche entschied zugunsten deutscher Siedler (Bruch mit eigener Völkerfreiheit).</li>
-      <li><strong>Böhmen:</strong> Tschechen lehnten die Wahl nach Frankfurt ab (Palacký: "Ich bin kein Deutscher").</li>
+      <li><strong>Schleswig-Holstein:</strong> komplizierter Konflikt zwischen dänischen und deutschen Ansprüchen</li>
+      <li><strong>Posen:</strong> Die Nationalversammlung stellte sich weitgehend gegen polnische Autonomieansprüche und folgte eher deutschen nationalen Interessen</li>
+      <li><strong>Böhmen:</strong> Viele Tschechen lehnten die Einbindung in ein deutsches Nationalprojekt ab</li>
     </ul>
-    Das untergrub die moralische Autorität der Versammlung ("Freiheit für uns, aber nicht für die anderen").`
+    Das schwächte die moralische Glaubwürdigkeit der Versammlung, weil sie das Selbstbestimmungsrecht nicht allen Völkern gleichermaßen zugestand.`
   },
   {
     phase: "paulskirche", date: "1848-09-16", dateLabel: "September 1848",
     title: "Waffenstillstand von Malmö",
-    body: `Preußen schließt eigenmächtig (ohne die Paulskirche) einen Waffenstillstand mit Dänemark über Schleswig-Holstein. Die Versammlung muss notgedrungen zustimmen — ein massiver Vertrauensverlust und Beweis ihrer Machtlosigkeit. Es folgen die blutigen Septemberunruhen.`
+    body: `Preußen schließt im Konflikt um Schleswig-Holstein eigenmächtig einen Waffenstillstand mit Dänemark, ohne sich der Nationalversammlung unterzuordnen. Die Paulskirche muss letztlich zustimmen — ein deutlicher Beweis ihrer Machtlosigkeit. Danach kommt es zu den Septemberunruhen.`
   },
   {
     phase: "hoehepunkt", date: "1848-11-09", dateLabel: "9. November 1848",
     title: "Hinrichtung Robert Blums",
-    body: `Der demokratische Abgeordnete Robert Blum (Fraktion Deutscher Hof) wird bei der Niederschlagung des Wiener Aufstands trotz parlamentarischer Immunität standrechtlich erschossen. Schockierende Demonstration der Ohnmacht der Paulskirche.`
+    body: `Der demokratische Abgeordnete Robert Blum wird bei der Niederschlagung des Wiener Aufstands trotz seiner parlamentarischen Stellung erschossen. Das ist eine schockierende Demonstration der Ohnmacht der Nationalversammlung.`
   },
   {
     phase: "hoehepunkt", date: "1848-12-05", dateLabel: "5. Dezember 1848",
     title: "Oktroyierte Verfassung in Preußen",
-    body: `Friedrich Wilhelm IV. löst die preußische Nationalversammlung auf und erlässt eine Verfassung "von oben" (oktroyiert). Die konservative Wende ist eingeläutet.`
+    body: `Friedrich Wilhelm IV. löst die preußische Nationalversammlung auf und erlässt eine Verfassung "von oben" (oktroyiert). Damit setzt in Preußen eine deutliche konservative Wende ein.`
   },
   {
     phase: "paulskirche", date: "1848-12-27", dateLabel: "27. Dezember 1848",
     title: "Grundrechte des deutschen Volkes",
-    body: `Erster umfassender Grundrechtekatalog auf deutschem Boden! Trat politisch nie in Kraft, ist aber die direkte Vorlage für Weimar (1919) und das heutige Grundgesetz (1949).
+    body: `Erster umfassender <strong>gesamtdeutscher</strong> Grundrechtekatalog auf deutschem Boden. Politisch trat er nicht dauerhaft in Kraft, wirkte aber stark nach und wurde zu einem wichtigen Bezugspunkt für spätere Verfassungen.
     <br><br>
-    <strong>Direkter Vergleich mit heute:</strong>
+    <strong>Vergleich mit heute:</strong>
     <ul>
-      <li>Gleichheit vor dem Gesetz (§137) ➔ Art. 3 GG (Adel aufgehoben)</li>
-      <li>Meinungs-/Pressefreiheit (§143) ➔ Art. 5 GG ("Eine Zensur findet nicht statt" = gleicher Wortlaut!)</li>
-      <li>Glaubensfreiheit (§144) ➔ Art. 4 GG</li>
-      <li>Todesstrafe abgeschafft (§139) ➔ Art. 102 GG</li>
-      <li>Briefgeheimnis (§142) ➔ Art. 10 GG</li>
-      <li>Berufsfreiheit (§158) ➔ Art. 12 GG</li>
+      <li>Gleichheit vor dem Gesetz ➔ später Art. 3 GG</li>
+      <li>Meinungs- und Pressefreiheit ➔ später Art. 5 GG</li>
+      <li>Glaubensfreiheit ➔ später Art. 4 GG</li>
+      <li>Abschaffung der Todesstrafe ➔ später Art. 102 GG</li>
+      <li>Briefgeheimnis ➔ später Art. 10 GG</li>
+      <li>Berufsfreiheit ➔ später Art. 12 GG</li>
     </ul>
-    <strong>Was damals fehlte:</strong> Menschenwürde (Art. 1 GG, erst nach dem NS), Gleichberechtigung von Mann und Frau, soziale Grundrechte.
-    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Der Parlamentarische Rat 1948/49 bezog sich explizit auf die Paulskirche. Die Revolution scheiterte zwar politisch, aber ihre Ideen (Grundrechte) setzten sich mit 100 Jahren Verspätung durch.</div>`
+    <strong>Was damals fehlte:</strong> etwa die heutige Idee der unantastbaren Menschenwürde, die Gleichberechtigung von Mann und Frau und moderne soziale Grundrechte.
+    <div class="abi-tipp"><strong>Bedeutung fürs Abi:</strong> Die Revolution scheiterte politisch, aber viele ihrer Grundideen wirkten langfristig weiter. Darin liegt ihre historische Bedeutung.</div>`
   },
   {
     phase: "hoehepunkt", date: "1849-03-27", dateLabel: "27. März 1849",
     title: "Paulskirchenverfassung",
     body: `Verabschiedung der Verfassung mit zwei zentralen Entscheidungen:
     <br><br>
-    <strong>1. Kleindeutsche Lösung:</strong> Ohne das Vielvölkerreich Österreich, stattdessen Führung durch Preußen. (Großdeutsch wäre mit Österreich gewesen, scheiterte aber an Österreichs Weigerung, sich aufzuteilen).
+    <strong>1. Kleindeutsche Lösung:</strong> Ein deutscher Nationalstaat ohne Österreich unter preußischer Führung. Die großdeutsche Lösung scheiterte daran, dass die Habsburgermonarchie ihre nichtdeutschen Gebiete nicht abtrennen wollte.
     <br>
-    <strong>2. Konstitutionelle Monarchie:</strong> Kaiser als Staatsoberhaupt, Macht aber begrenzt durch Verfassung, Gewaltenteilung und Parlament. Regierung dem Parlament verantwortlich. (Kompromiss zwischen Erhalt der Monarchie und Volkssouveränität).
+    <strong>2. Konstitutionelle Monarchie:</strong> Ein Kaiser als Staatsoberhaupt, gebunden an Verfassung, Gewaltenteilung und ein gewähltes Parlament. Die Minister waren verantwortlich und konnten nicht völlig unabhängig vom Parlament regieren.
     <br><br>
-    28 Staaten erkennen sie an, aber die Großmächte Preußen, Österreich, Bayern etc. lehnen ab.`
+    Viele kleinere und mittlere Staaten akzeptieren die Verfassung, die entscheidenden Großmächte wie Preußen und Österreich jedoch nicht.`
   },
   {
     phase: "hoehepunkt", date: "1849-04-03", dateLabel: "3. April 1849",
     title: "Ablehnung der Kaiserkrone",
-    body: `Als die Delegation aus Frankfurt (unter Eduard Simson) Friedrich Wilhelm IV. die Krone anbietet, lehnt dieser ab.
+    body: `Als eine Deputation aus Frankfurt Friedrich Wilhelm IV. die Kaiserkrone anbietet, lehnt dieser ab.
     <br><br>
-    <strong>Öffentliche Begründung:</strong> Er könne die Krone nur mit "Zustimmung der gekrönten Häupter" annehmen (nur von Fürsten, nicht vom Volk).<br>
-    <strong>In Briefen:</strong> Er nennt sie einen "Reif aus Dreck und Letten" und "aus Schmutz und Schweinekot, gebacken aus Dreck und Revolution".
+    <strong>Politische Begründung:</strong> Er wolle eine solche Krone nicht ohne Zustimmung der Fürsten annehmen.<br>
+    <strong>Hintergrund:</strong> Dahinter steht sein monarchisches Weltbild, nach dem legitime Herrschaft nicht vom Volk ausgehen soll.
     <br><br>
-    Dahinter steht sein Weltbild vom "Gottesgnadentum". Mit der Ablehnung ist die Verfassung und damit die Revolution politisch endgültig gescheitert.
-    <strong>ENDGÜLTIGE ABLEHNUNG: 28.April</strong>`
+    Mit dieser Entscheidung verliert die Revolution ihre entscheidende Chance auf eine gesamtdeutsche staatliche Verwirklichung. Die formelle endgültige Ablehnung erfolgte am 28. April 1849.`
   },
   {
     phase: "ende", date: "1849-05-15", dateLabel: "Mai – Juli 1849",
     title: "Reichsverfassungskampagne",
-    body: `Letzte verzweifelte Aufstände (v. a. in Baden und Sachsen) zur Durchsetzung der Verfassung. Werden von preußischen Truppen unter Prinz Wilhelm ("Kartätschenprinz") niedergeschlagen.`
+    body: `Letzte Aufstände, vor allem in Baden, der Pfalz und in Sachsen, sollen die Reichsverfassung doch noch durchsetzen. Sie werden jedoch von preußischen und anderen Truppen niedergeschlagen.`
   },
   {
     phase: "ende", date: "1849-05-30", dateLabel: "30. Mai 1849",
     title: "Auflösung der Nationalversammlung",
-    body: `Die meisten Abgeordneten ziehen sich zurück. Ein linker Rest tagt als "Rumpfparlament" in Stuttgart weiter, wird aber am 18. Juni vom württembergischen Militär zerschlagen.`
+    body: `Die meisten Abgeordneten ziehen sich zurück. Ein linker Rest tagt als sogenanntes "Rumpfparlament" in Stuttgart weiter, wird dort aber am 18. Juni 1849 militärisch aufgelöst.`
   },
   {
     phase: "ende", date: "1849-07-23", dateLabel: "23. Juli 1849",
     title: "Kapitulation der Festung Rastatt",
-    body: `Mit der Aufgabe der letzten badischen Festung endet die Revolution endgültig. Standgerichte erschießen Aufständische. Es folgt eine massive Auswanderungswelle in die USA ("Forty-Eighters").`
+    body: `Mit der Aufgabe der letzten badischen Festung endet die Revolution endgültig. Es folgen Verfolgung, Bestrafung vieler Beteiligter und eine starke Auswanderungsbewegung, besonders in die USA.`
   }
 ];
 
@@ -600,6 +598,7 @@ function renderTimeline(containerId, events, startStr, endStr, ticks, yearMarker
   let aboveIdx = 0, belowIdx = 0;
   const STAGGER = 42;
   const BASE_H = 45;
+
   sorted.forEach((e, i) => {
     e.position = i % 2 === 0 ? "above" : "below";
     if (e.position === "above") {
@@ -617,6 +616,7 @@ function renderTimeline(containerId, events, startStr, endStr, ticks, yearMarker
     el.className = "event " + e.position;
     el.style.left = x + "px";
     el.style.width = "2px";
+
     if (e.position === "above") {
       el.style.top = (AXIS_TOP - e.lineHeight) + "px";
       el.style.height = e.lineHeight + "px";
@@ -624,8 +624,10 @@ function renderTimeline(containerId, events, startStr, endStr, ticks, yearMarker
       el.style.top = (AXIS_TOP + 2) + "px";
       el.style.height = e.lineHeight + "px";
     }
+
     el.style.setProperty("--line-h", e.lineHeight + "px");
     el.style.setProperty("--dot-color", phaseColors[e.phase]);
+
     el.innerHTML = `
       <div class="event-line"></div>
       <div class="event-dot"></div>
@@ -634,6 +636,7 @@ function renderTimeline(containerId, events, startStr, endStr, ticks, yearMarker
         ${e.title}
       </div>
     `;
+
     el.addEventListener("click", () => showDetail(e, el));
     timeline.appendChild(el);
   });
@@ -653,7 +656,6 @@ function showDetail(e, el) {
   detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-// Vormärz: jährliche Ticks, alle 5 Jahre als Hauptmarker mit Label
 const vormaerzTicks = [];
 for (let y = 1815; y <= 1847; y++) {
   const isMajor = y % 5 === 0;
@@ -664,7 +666,6 @@ for (let y = 1815; y <= 1847; y++) {
   });
 }
 
-// Revolution: monatliche Ticks
 const revolutionTicks = [
   ["Feb", "1848-02-01"], ["Mär", "1848-03-01"], ["Apr", "1848-04-01"],
   ["Mai", "1848-05-01"], ["Jun", "1848-06-01"], ["Jul", "1848-07-01"],
@@ -681,13 +682,13 @@ const revolutionYearMarkers = [
 ];
 
 renderTimeline("vormaerz-timeline", vormaerzEvents, "1814-09-01", "1848-01-15", vormaerzTicks, []);
-// Habe den Revolutions-Zeitstrahl etwas breiter gemacht (3400px), damit die vielen neuen Events Platz haben!
 renderTimeline("revolution-timeline", revolutionEvents, "1848-02-15", "1849-08-05", revolutionTicks, revolutionYearMarkers);
 
 function toggleTheme() {
   const cur = document.documentElement.getAttribute("data-theme");
   document.documentElement.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
 }
+
 if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
   document.documentElement.setAttribute("data-theme", "dark");
 }
