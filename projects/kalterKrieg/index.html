@@ -1,1 +1,1298 @@
-lul
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kalter Krieg — Abi-Navigator 2026</title>
+<style>
+  :root{
+    --bg:#f7f7f4;
+    --fg:#171717;
+    --muted:#666962;
+    --card:#ffffff;
+    --line:#d8d8d2;
+    --border:#e6e6df;
+    --hover:#f0f0ea;
+    --accent:#385f8a;
+    --usa:#4f79c7;
+    --udssr:#c94f4f;
+    --de:#8d6cc9;
+    --crisis:#b06c2d;
+    --detente:#4d8b68;
+    --end:#6f7c8a;
+    --chip:#efefe9;
+    --shadow:0 10px 30px rgba(0,0,0,0.05);
+  }
+  [data-theme="dark"]{
+    --bg:#121311;
+    --fg:#f1f0ea;
+    --muted:#a1a39c;
+    --card:#1d1f1c;
+    --line:#33352f;
+    --border:#2b2d29;
+    --hover:#232622;
+    --chip:#262925;
+    --shadow:0 10px 30px rgba(0,0,0,0.25);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--fg);
+    line-height:1.5;
+    transition:background .2s,color .2s;
+  }
+
+  .shell{
+    max-width:1200px;
+    margin:0 auto;
+    padding:0 1rem 3rem;
+  }
+
+  .header{
+    padding:2rem 0 1rem;
+    display:flex;
+    justify-content:space-between;
+    gap:1rem;
+    align-items:flex-start;
+  }
+  .title-wrap h1{
+    margin:0 0 .35rem;
+    font-size:1.9rem;
+    font-weight:700;
+    letter-spacing:-0.02em;
+  }
+  .subtitle{
+    margin:0;
+    color:var(--muted);
+    max-width:800px;
+    font-size:.97rem;
+  }
+
+  .theme-toggle{
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--fg);
+    border-radius:10px;
+    padding:.55rem .8rem;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+  }
+  .theme-toggle:hover{background:var(--hover)}
+
+  .hero{
+    display:grid;
+    grid-template-columns:1.2fr .8fr;
+    gap:1rem;
+    margin-top:.5rem;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+  }
+
+  .hero-main{
+    padding:1.2rem 1.2rem 1rem;
+  }
+  .hero-main h2{
+    margin:0 0 .5rem;
+    font-size:1.15rem;
+  }
+  .hero-main p{
+    margin:.2rem 0 0;
+    color:var(--muted);
+    font-size:.94rem;
+  }
+
+  .focus-list{
+    margin:.9rem 0 0;
+    padding-left:1.2rem;
+    font-size:.95rem;
+  }
+  .focus-list li{margin:.35rem 0}
+
+  .hero-side{
+    padding:1.2rem;
+  }
+  .hero-side h3{
+    margin:0 0 .7rem;
+    font-size:1rem;
+  }
+  .exam-box{
+    background:var(--chip);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:.85rem .9rem;
+    margin-bottom:.7rem;
+    font-size:.92rem;
+  }
+  .exam-box strong{display:block;margin-bottom:.2rem}
+  .mini-note{
+    color:var(--muted);
+    font-size:.84rem;
+    margin-top:.5rem;
+  }
+
+  .tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.55rem;
+    margin:1.2rem 0 1rem;
+  }
+  .tab-btn{
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--fg);
+    border-radius:999px;
+    padding:.55rem .9rem;
+    font-size:.9rem;
+    cursor:pointer;
+  }
+  .tab-btn.active{
+    background:var(--fg);
+    color:var(--bg);
+    border-color:var(--fg);
+  }
+
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+
+  .section-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:1rem;
+    margin:1rem 0 .65rem;
+  }
+  .section-title h2{
+    margin:0;
+    font-size:1.1rem;
+  }
+  .section-title p{
+    margin:0;
+    color:var(--muted);
+    font-size:.88rem;
+  }
+
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.45rem;
+    margin-top:.7rem;
+  }
+  .chip{
+    background:var(--chip);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:.35rem .65rem;
+    font-size:.78rem;
+    color:var(--muted);
+  }
+
+  .rail-wrap{
+    overflow-x:auto;
+    padding-bottom:.4rem;
+  }
+  .rail{
+    min-width:1500px;
+    position:relative;
+    height:220px;
+    margin-top:.4rem;
+    border-radius:16px;
+    background:linear-gradient(180deg, rgba(0,0,0,0.01), transparent);
+  }
+  .rail-line{
+    position:absolute;
+    left:60px;
+    right:60px;
+    top:110px;
+    height:3px;
+    background:var(--line);
+    border-radius:2px;
+  }
+  .tick{
+    position:absolute;
+    top:101px;
+    width:2px;
+    height:20px;
+    background:var(--line);
+  }
+  .tick.major{
+    height:28px;
+    top:97px;
+    background:var(--muted);
+  }
+  .tick-label{
+    position:absolute;
+    top:128px;
+    transform:translateX(-50%);
+    font-size:.78rem;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+  .node{
+    position:absolute;
+    transform:translateX(-50%);
+    cursor:pointer;
+  }
+  .node .dot{
+    width:14px;height:14px;border-radius:50%;
+    border:2px solid var(--node-color);
+    background:var(--card);
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    top:103px;
+    z-index:2;
+    transition:.15s;
+  }
+  .node:hover .dot,.node.active .dot{
+    transform:translateX(-50%) scale(1.35);
+    background:var(--node-color);
+  }
+  .node .stem{
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    width:2px;
+    background:var(--node-color);
+    opacity:.55;
+  }
+  .node.top .stem{top:30px;height:73px}
+  .node.bottom .stem{top:117px;height:73px}
+  .node .label{
+    position:absolute;
+    width:170px;
+    left:50%;
+    transform:translateX(-50%);
+    text-align:center;
+    font-size:.78rem;
+    line-height:1.25;
+  }
+  .node.top .label{top:0}
+  .node.bottom .label{top:190px}
+  .node .date{
+    display:block;
+    color:var(--node-color);
+    font-size:.7rem;
+    font-weight:700;
+    margin-bottom:2px;
+  }
+
+  .detail{
+    margin-top:1rem;
+    padding:1rem 1.1rem;
+    border-left:4px solid var(--accent);
+  }
+  .detail.empty{
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:140px;
+    border-left-color:var(--line);
+  }
+  .detail-phase{
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-size:.72rem;
+    color:var(--muted);
+    margin-bottom:.35rem;
+  }
+  .detail-date{
+    color:var(--accent);
+    font-size:.78rem;
+    font-weight:700;
+    margin-bottom:.2rem;
+  }
+  .detail h3{
+    margin:.1rem 0 .55rem;
+    font-size:1.18rem;
+  }
+  .detail-body{
+    font-size:.94rem;
+    line-height:1.65;
+  }
+  .detail-body ul{
+    margin:.45rem 0;
+    padding-left:1.25rem;
+  }
+  .detail-body .abi{
+    margin-top:.85rem;
+    background:var(--chip);
+    border:1px solid var(--border);
+    border-left:4px solid var(--accent);
+    border-radius:10px;
+    padding:.75rem .8rem;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(12,1fr);
+    gap:1rem;
+  }
+
+  .matrix{
+    grid-column:span 12;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1rem;
+  }
+  .matrix-card{
+    padding:1rem 1rem .9rem;
+  }
+  .matrix-card h3{
+    margin:0 0 .45rem;
+    font-size:1rem;
+  }
+  .matrix-card p{
+    margin:0;
+    color:var(--muted);
+    font-size:.9rem;
+  }
+  .matrix-card ul{
+    margin:.65rem 0 0;
+    padding-left:1.15rem;
+    font-size:.92rem;
+  }
+
+  .crisis-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:1rem;
+  }
+  .crisis-card{
+    padding:1rem;
+    border-left:4px solid var(--crisis);
+  }
+  .crisis-top{
+    display:flex;
+    justify-content:space-between;
+    gap:.75rem;
+    align-items:flex-start;
+  }
+  .crisis-card h3{
+    margin:0;
+    font-size:1rem;
+  }
+  .year{
+    font-size:.76rem;
+    color:var(--crisis);
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .crisis-card p{
+    margin:.5rem 0 0;
+    font-size:.92rem;
+    color:var(--fg);
+  }
+  .triad{
+    margin-top:.7rem;
+    display:grid;
+    gap:.45rem;
+  }
+  .triad div{
+    background:var(--chip);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:.55rem .65rem;
+    font-size:.88rem;
+  }
+
+  .de-layout{
+    display:grid;
+    grid-template-columns:1.05fr .95fr;
+    gap:1rem;
+  }
+  .stack{
+    display:grid;
+    gap:1rem;
+  }
+  .block{
+    padding:1rem;
+  }
+  .block h3{
+    margin:0 0 .45rem;
+    font-size:1rem;
+  }
+  .block ul{
+    margin:.45rem 0 0;
+    padding-left:1.15rem;
+    font-size:.92rem;
+  }
+  .compare{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.9rem;
+    margin-top:.35rem;
+  }
+  .compare th,.compare td{
+    text-align:left;
+    padding:.7rem .6rem;
+    border-bottom:1px solid var(--border);
+    vertical-align:top;
+  }
+  .compare th{
+    font-size:.78rem;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+
+  .terms{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1rem;
+  }
+  .term{
+    padding:1rem;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .term:hover{transform:translateY(-2px)}
+  .term h3{
+    margin:0 0 .3rem;
+    font-size:.98rem;
+  }
+  .term p{
+    margin:0;
+    color:var(--muted);
+    font-size:.9rem;
+  }
+  .term-detail{
+    margin-top:1rem;
+    padding:1rem;
+    border-left:4px solid var(--detente);
+  }
+  .term-detail.empty{
+    min-height:120px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--muted);
+    border-left-color:var(--line);
+  }
+
+  .essay-box{
+    padding:1rem;
+  }
+  .essay-box h3{
+    margin:0 0 .5rem;
+  }
+  .essay-list{
+    display:grid;
+    gap:.6rem;
+    margin-top:.8rem;
+  }
+  .essay-item{
+    padding:.75rem .8rem;
+    border-radius:12px;
+    background:var(--chip);
+    border:1px solid var(--border);
+    font-size:.92rem;
+  }
+
+  .footer-note{
+    margin-top:1.2rem;
+    color:var(--muted);
+    font-size:.84rem;
+  }
+
+  @media (max-width: 980px){
+    .hero,.matrix,.crisis-grid,.de-layout,.terms{
+      grid-template-columns:1fr;
+    }
+  }
+  @media (max-width:700px){
+    .header{padding:1.3rem 0 .7rem}
+    .title-wrap h1{font-size:1.45rem}
+    .rail{min-width:1350px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="header">
+    <div class="title-wrap">
+      <h1>Kalter Krieg — Abi-Navigator</h1>
+      <p class="subtitle">Interaktive Lernkarte für Geschichte Abitur: Strukturen, Krisen, Deutschlandbezug, Wettrüsten, Entspannung und Ende des Ost-West-Konflikts.</p>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">◐</button>
+  </div>
+
+  <div class="hero">
+    <div class="card hero-main">
+      <h2>So ist diese Seite aufgebaut</h2>
+      <p>Statt nur Jahreszahlen auswendig zu lernen, ordnet diese Seite den Kalten Krieg in <strong>Phasen, Konfliktfelder, Krisenbeispiele, Deutschlandbezug und Fachbegriffe</strong>. Genau das hilft im Abi, weil du dann nicht nur Daten kennst, sondern <strong>Zusammenhänge erklären</strong> kannst.</p>
+      <ul class="focus-list">
+        <li><strong>Chronologie:</strong> von 1945 bis 1991 mit Schlüsselereignissen</li>
+        <li><strong>Konfliktmatrix:</strong> Ideologie, Blockbildung, Wettrüsten, Stellvertreterkriege, Entspannung, Ende</li>
+        <li><strong>Krisenfälle:</strong> Fälle, die man im Abi gut als Beispiele einsetzen kann</li>
+        <li><strong>Deutschland im Kalten Krieg:</strong> Berlin, BRD, DDR, Ostpolitik, NATO-Doppelbeschluss, Friedensbewegung</li>
+        <li><strong>Begriffs-Trainer:</strong> zentrale Fachbegriffe mit abiturfähigen Kurzdefinitionen</li>
+      </ul>
+      <div class="chips">
+        <span class="chip">1945–1991</span>
+        <span class="chip">USA vs. UdSSR</span>
+        <span class="chip">Bipolare Welt</span>
+        <span class="chip">Deutschland als Frontstaat</span>
+        <span class="chip">Wettrüsten</span>
+        <span class="chip">Entspannung</span>
+      </div>
+    </div>
+
+    <div class="card hero-side">
+      <h3>Abi-Fokus Berlin 2026</h3>
+      <div class="exam-box">
+        <strong>Explizit genannt</strong>
+        Wettrüsten
+      </div>
+      <div class="exam-box">
+        <strong>Explizit genannt</strong>
+        Atomare Bedrohung und Abrüstungsverhandlungen zwischen USA und UdSSR 1972–1991
+      </div>
+      <div class="exam-box">
+        <strong>Explizit genannt</strong>
+        NATO-Doppelbeschluss und Friedensbewegung der BRD
+      </div>
+      <div class="mini-note">Darum tauchen diese Punkte hier besonders ausführlich auf.</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="chronologie">Chronologie</button>
+    <button class="tab-btn" data-tab="struktur">Konfliktstruktur</button>
+    <button class="tab-btn" data-tab="krisen">Krisenfälle</button>
+    <button class="tab-btn" data-tab="deutschland">Deutschland</button>
+    <button class="tab-btn" data-tab="begriffe">Begriffe</button>
+    <button class="tab-btn" data-tab="abi">Abi-Modus</button>
+  </div>
+
+  <section class="tab-panel active" id="chronologie">
+    <div class="section-title">
+      <div>
+        <h2>Chronologie-Leiste</h2>
+        <p>Klick auf ein Ereignis für Ursachen, Verlauf, Folgen und Abi-Bedeutung.</p>
+      </div>
+    </div>
+    <div class="card" style="padding:1rem">
+      <div class="rail-wrap">
+        <div class="rail" id="rail">
+          <div class="rail-line"></div>
+        </div>
+      </div>
+      <div class="card detail empty" id="event-detail">
+        Klicke auf einen Punkt in der Chronologie.
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-panel" id="struktur">
+    <div class="section-title">
+      <div>
+        <h2>Konfliktstruktur des Kalten Krieges</h2>
+        <p>So lässt sich der Stoff für Klausuren und Lernzettel logisch ordnen.</p>
+      </div>
+    </div>
+    <div class="matrix">
+      <div class="card matrix-card">
+        <h3>1. Grundkonflikt</h3>
+        <p>Kein direkter heißer Krieg zwischen USA und UdSSR, sondern ein globaler Macht- und Systemkonflikt.</p>
+        <ul>
+          <li>Liberale Demokratie und Marktwirtschaft vs. kommunistische Einparteienherrschaft und Planwirtschaft</li>
+          <li>Misstrauen seit 1945 trotz Anti-Hitler-Koalition</li>
+          <li>Einflusszonen statt gemeinsamer Friedensordnung</li>
+        </ul>
+      </div>
+
+      <div class="card matrix-card">
+        <h3>2. Blockbildung</h3>
+        <p>Die Welt wird in zwei Lager gegliedert.</p>
+        <ul>
+          <li>Westblock: Truman-Doktrin, Marshallplan, NATO</li>
+          <li>Ostblock: Sowjetisierung Osteuropas, Kominform, Warschauer Pakt</li>
+          <li>Deutschland und Berlin werden zu Symbolorten der Teilung</li>
+        </ul>
+      </div>
+
+      <div class="card matrix-card">
+        <h3>3. Abschreckung</h3>
+        <p>Das atomare Gleichgewicht verhindert den direkten Großkrieg, macht die Welt aber ständig krisenanfällig.</p>
+        <ul>
+          <li>Atombombe, Wasserstoffbombe, Interkontinentalraketen</li>
+          <li>Gleichgewicht des Schreckens</li>
+          <li>Mutual Assured Destruction (MAD)</li>
+        </ul>
+      </div>
+
+      <div class="card matrix-card">
+        <h3>4. Stellvertreterkriege</h3>
+        <p>Die Supermächte kämpfen indirekt in regionalen Konflikten.</p>
+        <ul>
+          <li>Korea</li>
+          <li>Vietnam</li>
+          <li>Afghanistan</li>
+          <li>Unterstützung verbündeter Regime und Bewegungen weltweit</li>
+        </ul>
+      </div>
+
+      <div class="card matrix-card">
+        <h3>5. Krisen und Entspannung</h3>
+        <p>Der Kalte Krieg verläuft nicht gleichmäßig, sondern in Schüben von Verschärfung und Entspannung.</p>
+        <ul>
+          <li>Berlin-Blockade, Kuba-Krise, Mauerbau, Prager Frühling</li>
+          <li>Danach Phasen von Rüstungskontrolle und Annäherung</li>
+          <li>Helsinki, SALT, INF</li>
+        </ul>
+      </div>
+
+      <div class="card matrix-card">
+        <h3>6. Ende des Kalten Krieges</h3>
+        <p>Der Ostblock zerfällt nicht durch eine einzige Niederlage, sondern durch eine Kombination aus innerer Krise und Reformdruck.</p>
+        <ul>
+          <li>Wirtschaftliche Schwäche der UdSSR</li>
+          <li>Gorbatschows Reformpolitik</li>
+          <li>Opposition in Osteuropa und 1989</li>
+          <li>Zerfall der Sowjetunion 1991</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-panel" id="krisen">
+    <div class="section-title">
+      <div>
+        <h2>Krisenfälle und Prüfungsbeispiele</h2>
+        <p>Jeder Fall ist als Mini-Analyse aufgebaut: Ursache, Wendepunkt, Folge.</p>
+      </div>
+    </div>
+    <div class="crisis-grid" id="crisis-grid"></div>
+  </section>
+
+  <section class="tab-panel" id="deutschland">
+    <div class="section-title">
+      <div>
+        <h2>Deutschland im Kalten Krieg</h2>
+        <p>Besonders wichtig, weil Berlin und Deutschland oft das konkrete Scharnier zwischen globalem Konflikt und europäischer Geschichte bilden.</p>
+      </div>
+    </div>
+    <div class="de-layout">
+      <div class="stack">
+        <div class="card block">
+          <h3>Deutschland als Brennpunkt</h3>
+          <ul>
+            <li><strong>1945:</strong> Besatzungszonen und Viermächte-Status Berlins</li>
+            <li><strong>1948/49:</strong> Berlin-Blockade und Luftbrücke als erste große Kalte-Kriegs-Krise</li>
+            <li><strong>1949:</strong> Gründung von BRD und DDR</li>
+            <li><strong>1953:</strong> Volksaufstand in der DDR</li>
+            <li><strong>1961:</strong> Mauerbau stabilisiert die DDR nach innen, verschärft aber die Teilung</li>
+            <li><strong>ab 1969:</strong> Neue Ostpolitik — Wandel durch Annäherung</li>
+            <li><strong>1979–1983:</strong> NATO-Doppelbeschluss, Nachrüstung, Friedensbewegung</li>
+            <li><strong>1989/90:</strong> Friedliche Revolution, Mauerfall, deutsche Einheit</li>
+          </ul>
+        </div>
+
+        <div class="card block">
+          <h3>NATO-Doppelbeschluss</h3>
+          <p style="margin:0 0 .6rem;font-size:.92rem">Abi-relevant, weil hier <strong>atomare Bedrohung, Abschreckung, Abrüstung und gesellschaftlicher Protest</strong> zusammenkommen.</p>
+          <ul>
+            <li><strong>Ausgangslage:</strong> Die UdSSR stationiert SS-20-Mittelstreckenraketen</li>
+            <li><strong>Beschluss 1979:</strong> Die NATO bietet Verhandlungen an, kündigt aber zugleich die Stationierung neuer Raketen im Westen an, falls es keine Einigung gibt</li>
+            <li><strong>Doppelte Logik:</strong> Gesprächsbereitschaft + militärischer Druck</li>
+            <li><strong>Folge:</strong> massive Proteste, besonders in der BRD</li>
+            <li><strong>Langfristig:</strong> INF-Vertrag 1987 beseitigt eine ganze Klasse landgestützter Mittelstreckenraketen</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card block">
+        <h3>BRD und DDR im Vergleich</h3>
+        <table class="compare">
+          <thead>
+            <tr>
+              <th>Aspekt</th>
+              <th>BRD</th>
+              <th>DDR</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>System</td>
+              <td>parlamentarische Demokratie</td>
+              <td>sozialistische Diktatur unter SED-Führung</td>
+            </tr>
+            <tr>
+              <td>Einbindung</td>
+              <td>Westintegration, NATO, EWG/EG</td>
+              <td>Ostblock, Warschauer Pakt, RGW</td>
+            </tr>
+            <tr>
+              <td>Legitimation</td>
+              <td>freie Wahlen, Grundgesetz, Wohlstandsversprechen</td>
+              <td>antifaschistischer Anspruch, sozialistische Ideologie, Kontrolle</td>
+            </tr>
+            <tr>
+              <td>Konfliktpunkt</td>
+              <td>deutsche Einheit und Sicherheit im Westen</td>
+              <td>Abwanderung, Grenzsicherung, Abhängigkeit von Moskau</td>
+            </tr>
+            <tr>
+              <td>Symbol</td>
+              <td>Berlin als Schaufenster des Westens</td>
+              <td>Mauer als Symbol von Zwang und Abschottung</td>
+            </tr>
+            <tr>
+              <td>Wendepunkt</td>
+              <td>Ostpolitik, KSZE, Friedensbewegung</td>
+              <td>Opposition, Reformdruck, 1989</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="chips" style="margin-top:1rem">
+          <span class="chip">Frontstaat</span>
+          <span class="chip">Mauer</span>
+          <span class="chip">Ostpolitik</span>
+          <span class="chip">Friedensbewegung</span>
+          <span class="chip">1989</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-panel" id="begriffe">
+    <div class="section-title">
+      <div>
+        <h2>Fachbegriffe</h2>
+        <p>Klick auf einen Begriff für eine kurze, klausurtaugliche Definition.</p>
+      </div>
+    </div>
+    <div class="terms" id="terms-grid"></div>
+    <div class="card term-detail empty" id="term-detail">
+      Klicke auf einen Begriff.
+    </div>
+  </section>
+
+  <section class="tab-panel" id="abi">
+    <div class="section-title">
+      <div>
+        <h2>Abi-Modus</h2>
+        <p>Typische Denkbewegungen, die du aus dem Stoff können solltest.</p>
+      </div>
+    </div>
+    <div class="card essay-box">
+      <h3>Typische Leitfragen</h3>
+      <div class="essay-list">
+        <div class="essay-item"><strong>Ursachenfrage:</strong> Warum entstand aus dem Bündnis gegen Hitler nach 1945 so schnell ein Ost-West-Konflikt?</div>
+        <div class="essay-item"><strong>Strukturfrage:</strong> Inwiefern war der Kalte Krieg ein globaler Systemkonflikt und nicht nur ein Gegensatz zweier Staaten?</div>
+        <div class="essay-item"><strong>Krisenfrage:</strong> Warum gilt die Kuba-Krise als Höhepunkt der atomaren Bedrohung?</div>
+        <div class="essay-item"><strong>Deutschlandfrage:</strong> Inwiefern war Deutschland zugleich Objekt und Akteur im Kalten Krieg?</div>
+        <div class="essay-item"><strong>Urteilsfrage:</strong> War der NATO-Doppelbeschluss eher ein Beitrag zur Eskalation oder zur späteren Abrüstung?</div>
+        <div class="essay-item"><strong>Ende-Frage:</strong> Warum endete der Kalte Krieg 1989–1991 relativ friedlich, obwohl er jahrzehntelang so gefährlich war?</div>
+      </div>
+
+      <h3 style="margin-top:1rem">Mini-Merkschema für Aufsätze</h3>
+      <div class="essay-list">
+        <div class="essay-item"><strong>1. Ausgangslage</strong> — politische Interessen, Ideologien, Sicherheitsdenken</div>
+        <div class="essay-item"><strong>2. Zuspitzung</strong> — Blockbildung, Rüstung, Krisen, Stellvertreterkonflikte</div>
+        <div class="essay-item"><strong>3. Wendepunkte</strong> — Entspannung, Verträge, Reformpolitik</div>
+        <div class="essay-item"><strong>4. Bewertung</strong> — Folgen für Europa, Deutschland und die internationale Ordnung</div>
+      </div>
+
+      <div class="footer-note">
+        Lern-Tipp: Nutze in Klausuren immer eine Mischung aus <strong>Strukturwissen</strong> und <strong>konkreten Beispielen</strong>. Also nicht nur „Wettrüsten“, sondern z. B. „Kuba-Krise“, „SALT“, „INF“, „NATO-Doppelbeschluss“.
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const events = [
+  {
+    phase: "Beginn",
+    color: "var(--usa)",
+    date: "1945-02-04",
+    labelDate: "Feb.–Aug. 1945",
+    title: "Jalta & Potsdam",
+    body: `Die Anti-Hitler-Koalition plant die Nachkriegsordnung, doch schon hier zeigen sich Interessengegensätze.
+    <ul>
+      <li><strong>Kernproblem:</strong> Wie soll Europa nach dem Krieg politisch und sicherheitspolitisch geordnet werden?</li>
+      <li><strong>Spannung:</strong> Die UdSSR will Sicherheitszonen in Osteuropa, die USA betonen Selbstbestimmung und offene Märkte.</li>
+      <li><strong>Deutschland:</strong> Besatzungszonen und Viermächte-Status Berlins schaffen ein dauerhaftes Konfliktfeld.</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Hier liegt die Vorgeschichte des Kalten Krieges: gemeinsamer Sieg, aber keine gemeinsame Friedensordnung.</div>`
+  },
+  {
+    phase: "Blockbildung",
+    color: "var(--usa)",
+    date: "1947-03-12",
+    labelDate: "1947",
+    title: "Truman-Doktrin & Marshallplan",
+    body: `Die USA reagieren auf sowjetischen Einfluss mit einer Politik der Eindämmung (<em>Containment</em>).
+    <ul>
+      <li><strong>Truman-Doktrin:</strong> Unterstützung „freier Völker“ gegen äußeren Druck und innere Unterwanderung.</li>
+      <li><strong>Marshallplan:</strong> Wirtschaftshilfe für Westeuropa, zugleich politisches Bindungsmittel des Westens.</li>
+      <li><strong>Folge:</strong> Der Gegensatz wird offen systemisch und global gedacht.</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Typischer Wendepunkt vom Nachkriegsbündnis zur offenen Blockbildung.</div>`
+  },
+  {
+    phase: "Deutschlandkrise",
+    color: "var(--de)",
+    date: "1948-06-24",
+    labelDate: "1948/49",
+    title: "Berlin-Blockade & Luftbrücke",
+    body: `Die Sowjetunion sperrt die Landwege nach West-Berlin. Die Westmächte versorgen die Stadt aus der Luft.
+    <ul>
+      <li><strong>Auslöser:</strong> Zuspitzung im Streit um Währungsreform und Westintegration.</li>
+      <li><strong>Symbolik:</strong> Berlin wird zum Schauplatz des Ost-West-Konflikts.</li>
+      <li><strong>Folge:</strong> Die Teilung Deutschlands vertieft sich weiter.</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Berlin eignet sich immer als Beispiel dafür, wie globaler Konflikt konkret in Deutschland sichtbar wurde.</div>`
+  },
+  {
+    phase: "Blockbildung",
+    color: "var(--usa)",
+    date: "1949-04-04",
+    labelDate: "1949",
+    title: "NATO / BRD / DDR",
+    body: `1949 entsteht mit der NATO das zentrale westliche Militärbündnis; im selben Jahr werden BRD und DDR gegründet.
+    <ul>
+      <li><strong>Westen:</strong> institutionelle Integration von Sicherheit und Politik</li>
+      <li><strong>Deutschland:</strong> aus Besatzungszonen werden zwei Staaten</li>
+      <li><strong>Folge:</strong> Die bipolare Ordnung wird dauerhaft verfestigt.</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> 1949 ist das Schlüsseljahr der politischen und militärischen Festschreibung der Teilung.</div>`
+  },
+  {
+    phase: "Stellvertreterkrieg",
+    color: "var(--crisis)",
+    date: "1950-06-25",
+    labelDate: "1950–1953",
+    title: "Koreakrieg",
+    body: `Erster großer heißer Krieg im Kalten Krieg.
+    <ul>
+      <li><strong>Struktur:</strong> regionaler Krieg mit globaler Systembedeutung</li>
+      <li><strong>Beteiligung:</strong> UNO/USA gegen Nordkorea mit Unterstützung Chinas und der UdSSR</li>
+      <li><strong>Folge:</strong> Militarisierung des Kalten Krieges nimmt stark zu.</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Musterbeispiel für einen Stellvertreterkrieg.</div>`
+  },
+  {
+    phase: "Ostblock",
+    color: "var(--udssr)",
+    date: "1953-06-17",
+    labelDate: "17. Juni 1953",
+    title: "Volksaufstand in der DDR",
+    body: `Aus Protest gegen Normerhöhungen und politische Unterdrückung kommt es in der DDR zu einem Aufstand.
+    <ul>
+      <li><strong>Charakter:</strong> soziale, politische und nationale Dimension</li>
+      <li><strong>Niederschlagung:</strong> sowjetische Panzer und DDR-Sicherheitsapparat</li>
+      <li><strong>Folge:</strong> Die SED-Herrschaft stabilisiert sich mit Gewalt.</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Zeigt, dass der Ostblock nicht nur nach außen, sondern auch nach innen ein Herrschaftssystem war.</div>`
+  },
+  {
+    phase: "Abschreckung",
+    color: "var(--udssr)",
+    date: "1955-05-14",
+    labelDate: "1955",
+    title: "Warschauer Pakt",
+    body: `Antwort des Ostblocks auf die westliche Militärintegration.
+    <ul>
+      <li><strong>Funktion:</strong> Bündnissystem unter sowjetischer Führung</li>
+      <li><strong>Logik:</strong> Sicherheitsgemeinschaft und Machtinstrument zugleich</li>
+      <li><strong>Folge:</strong> Europa ist nun auch militärisch fest in zwei Blöcke geteilt.</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Zusammen mit der NATO zentral für jede Darstellung der bipolaren Welt.</div>`
+  },
+  {
+    phase: "Deutschlandkrise",
+    color: "var(--de)",
+    date: "1961-08-13",
+    labelDate: "13. Aug. 1961",
+    title: "Bau der Berliner Mauer",
+    body: `Die DDR schließt die Grenze in Berlin.
+    <ul>
+      <li><strong>Ursache:</strong> Massenflucht aus der DDR</li>
+      <li><strong>Funktion:</strong> Stabilisierung der DDR durch Abschottung</li>
+      <li><strong>Symbol:</strong> sichtbarstes Zeichen der deutschen und europäischen Teilung</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Die Mauer ist das zentrale Symbolbild des Kalten Krieges in Deutschland.</div>`
+  },
+  {
+    phase: "Höhepunkt",
+    color: "var(--crisis)",
+    date: "1962-10-16",
+    labelDate: "Okt. 1962",
+    title: "Kuba-Krise",
+    body: `Stationierung sowjetischer Raketen auf Kuba bringt die Welt an den Rand eines Atomkriegs.
+    <ul>
+      <li><strong>Warum so gefährlich?</strong> unmittelbare nukleare Konfrontation der Supermächte</li>
+      <li><strong>Wendepunkt:</strong> Beide Seiten erkennen die Grenzen der Eskalation</li>
+      <li><strong>Folge:</strong> mehr Krisenkommunikation und später Entspannungspolitik</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Klassischer Prüfungsfall zur atomaren Bedrohung und Logik der Abschreckung.</div>`
+  },
+  {
+    phase: "Stellvertreterkrieg",
+    color: "var(--crisis)",
+    date: "1965-03-08",
+    labelDate: "1965–1975",
+    title: "Vietnamkrieg",
+    body: `Der Konflikt in Vietnam wird zum globalen Symbol des Kalten Krieges.
+    <ul>
+      <li><strong>Westliche Perspektive:</strong> Eindämmung des Kommunismus</li>
+      <li><strong>Kritik:</strong> Krieg ohne klaren politischen Erfolg, hohe zivile und militärische Verluste</li>
+      <li><strong>Folge:</strong> Glaubwürdigkeitsverlust der USA und Radikalisierung der Protestkultur</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Zeigt, dass der Kalte Krieg nicht nur Europa, sondern die ganze Welt prägte.</div>`
+  },
+  {
+    phase: "Entspannung",
+    color: "var(--detente)",
+    date: "1969-10-21",
+    labelDate: "ab 1969/70",
+    title: "Neue Ostpolitik",
+    body: `Die Bundesrepublik setzt unter Willy Brandt auf Annäherung.
+    <ul>
+      <li><strong>Leitidee:</strong> „Wandel durch Annäherung“</li>
+      <li><strong>Ziel:</strong> praktische Erleichterungen trotz fortbestehender Systemgrenze</li>
+      <li><strong>Bedeutung:</strong> Entschärfung des Deutschlandkonflikts im europäischen Rahmen</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Wichtig, um Deutschland nicht nur als Objekt, sondern auch als begrenzten Akteur zu zeigen.</div>`
+  },
+  {
+    phase: "Abrüstung",
+    color: "var(--detente)",
+    date: "1972-05-26",
+    labelDate: "1972",
+    title: "SALT I / ABM",
+    body: `Beginn einer Phase verbindlicher Rüstungskontrolle zwischen USA und UdSSR.
+    <ul>
+      <li><strong>SALT I:</strong> Begrenzung strategischer Waffen</li>
+      <li><strong>ABM-Vertrag:</strong> Begrenzung von Raketenabwehrsystemen</li>
+      <li><strong>Logik:</strong> Stabilität durch kontrollierte Abschreckung</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Direkt relevant für das Berliner Abi-Thema „Abrüstungsverhandlungen 1972–1991“.</div>`
+  },
+  {
+    phase: "Entspannung",
+    color: "var(--detente)",
+    date: "1975-08-01",
+    labelDate: "1975",
+    title: "KSZE-Schlussakte von Helsinki",
+    body: `Die KSZE verbindet Sicherheitsfragen mit Menschenrechten und Zusammenarbeit.
+    <ul>
+      <li><strong>Prinzip:</strong> territoriale Ordnung wird anerkannt, Menschenrechte werden mit thematisiert</li>
+      <li><strong>Paradox:</strong> autoritäre Regime stimmen Formeln zu, an denen sie später gemessen werden</li>
+      <li><strong>Folge:</strong> Oppositionen in Osteuropa gewinnen Argumentationsraum</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Gute Brücke von Entspannungspolitik zum späteren Zerfall des Ostblocks.</div>`
+  },
+  {
+    phase: "Nachrüstung",
+    color: "var(--de)",
+    date: "1979-12-12",
+    labelDate: "1979",
+    title: "NATO-Doppelbeschluss",
+    body: `Die NATO reagiert auf sowjetische SS-20-Raketen mit einem doppelten Kurs.
+    <ul>
+      <li><strong>Teil 1:</strong> Verhandlungsangebot an die UdSSR</li>
+      <li><strong>Teil 2:</strong> Vorbereitung neuer westlicher Mittelstreckenraketen</li>
+      <li><strong>Konflikt:</strong> Sicherheit durch Abschreckung oder Eskalationsrisiko?</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Einer der wichtigsten expliziten Prüfungsschwerpunkte.</div>`
+  },
+  {
+    phase: "Gesellschaft",
+    color: "var(--de)",
+    date: "1981-10-10",
+    labelDate: "frühe 1980er",
+    title: "Friedensbewegung in der BRD",
+    body: `Breite Proteste wenden sich gegen atomare Nachrüstung.
+    <ul>
+      <li><strong>Träger:</strong> Kirchen, Bürgerinitiativen, Teile der Jugend- und Umweltbewegung, Intellektuelle</li>
+      <li><strong>Argument:</strong> Mehr Waffen bedeuten nicht automatisch mehr Sicherheit</li>
+      <li><strong>Bedeutung:</strong> Innenpolitik, Sicherheitspolitik und Gesellschaft greifen ineinander</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Ebenfalls ausdrücklich Berliner Abiturschwerpunkt.</div>`
+  },
+  {
+    phase: "Wende",
+    color: "var(--end)",
+    date: "1985-03-11",
+    labelDate: "ab 1985",
+    title: "Gorbatschow",
+    body: `Mit Glasnost und Perestroika versucht Gorbatschow, die Sowjetunion zu reformieren.
+    <ul>
+      <li><strong>Glasnost:</strong> mehr Offenheit</li>
+      <li><strong>Perestroika:</strong> Umgestaltung von Wirtschaft und Politik</li>
+      <li><strong>Außenpolitik:</strong> weniger Konfrontation, mehr Verhandlung</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Schlüssel zum Ende des Kalten Krieges und zur Auflösung des Ostblocks.</div>`
+  },
+  {
+    phase: "Abrüstung",
+    color: "var(--detente)",
+    date: "1987-12-08",
+    labelDate: "1987",
+    title: "INF-Vertrag",
+    body: `USA und UdSSR vereinbaren die Beseitigung landgestützter Mittelstreckenraketen.
+    <ul>
+      <li><strong>Besonderheit:</strong> nicht nur Begrenzung, sondern tatsächlicher Abbau</li>
+      <li><strong>Bezug:</strong> eng mit der Debatte um Nachrüstung verbunden</li>
+      <li><strong>Folge:</strong> symbolischer und realer Durchbruch in der Abrüstung</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Starkes Gegenbeispiel zu der Vorstellung, der Kalte Krieg sei nur Eskalation gewesen.</div>`
+  },
+  {
+    phase: "Ende",
+    color: "var(--end)",
+    date: "1989-11-09",
+    labelDate: "9. Nov. 1989",
+    title: "Mauerfall",
+    body: `Die Öffnung der Berliner Mauer wird zum Symbol für den Zusammenbruch der alten Blockordnung.
+    <ul>
+      <li><strong>Vorgeschichte:</strong> Reformen in Osteuropa, Massenproteste in der DDR, Legitimationskrise der SED</li>
+      <li><strong>Wirkung:</strong> Ende der sichtbaren Teilung Europas</li>
+      <li><strong>Folge:</strong> Beschleunigung der deutschen Einheit und des Ostblock-Zerfalls</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Nicht nur deutsches, sondern gesamteuropäisches Schlüsselereignis.</div>`
+  },
+  {
+    phase: "Ende",
+    color: "var(--end)",
+    date: "1991-12-26",
+    labelDate: "1991",
+    title: "Ende der Sowjetunion",
+    body: `Mit dem Zerfall der UdSSR endet die bipolare Weltordnung des Kalten Krieges.
+    <ul>
+      <li><strong>Ursachen:</strong> wirtschaftliche Krise, Reformdruck, Nationalitätenkonflikte, Legitimationsverlust</li>
+      <li><strong>Folge:</strong> Die USA bleiben vorerst einzige Supermacht</li>
+      <li><strong>Bilanz:</strong> Der Kalte Krieg endet ohne direkten Weltkrieg, aber mit tiefen Spuren in Europa und der Welt.</li>
+    </ul>
+    <div class="abi"><strong>Abi-Bedeutung:</strong> Gute Schlussmarke für Gesamturteile und Bilanzfragen.</div>`
+  }
+];
+
+const crisisCards = [
+  {
+    year: "1948/49",
+    title: "Berlin-Blockade",
+    text: "Erste große Zuspitzung des Ost-West-Konflikts in Europa. Berlin wird zum Symbol der Standhaftigkeit des Westens und der Unvereinbarkeit beider Systeme.",
+    cause: "Streit über Deutschland und Berlin",
+    turn: "Luftbrücke statt Nachgeben",
+    result: "Vertiefung der deutschen Teilung"
+  },
+  {
+    year: "1950–1953",
+    title: "Koreakrieg",
+    text: "Zeigt, dass der Kalte Krieg militärisch heiß werden konnte — nur eben nicht direkt zwischen den Supermächten selbst.",
+    cause: "Teilung Koreas + globale Blocklogik",
+    turn: "UNO/USA greifen ein, China ebenso",
+    result: "Militarisierung des Konflikts"
+  },
+  {
+    year: "1961",
+    title: "Mauerbau",
+    text: "Die DDR stoppt die Abwanderung mit Gewalt. Die Krise wird nicht gelöst, sondern zementiert.",
+    cause: "Fluchtbewegung und Instabilität der DDR",
+    turn: "Schließung der Grenze in Berlin",
+    result: "Teilung wird sichtbarer und härter"
+  },
+  {
+    year: "1962",
+    title: "Kuba-Krise",
+    text: "Nächster Schritt wäre womöglich Atomkrieg gewesen. Danach wächst der Wille zur direkten Krisenkommunikation.",
+    cause: "sowjetische Raketen auf Kuba",
+    turn: "Seeblockade und geheime Einigung",
+    result: "Höhepunkt der atomaren Bedrohung"
+  },
+  {
+    year: "1965–1975",
+    title: "Vietnamkrieg",
+    text: "Beispiel für die globale Dimension des Kalten Krieges und die Grenzen militärischer Macht.",
+    cause: "Entkolonialisierung + Systemkonflikt",
+    turn: "massive US-Intervention",
+    result: "Niederlage der USA, Imageverlust"
+  },
+  {
+    year: "1979–1987",
+    title: "NATO-Doppelbeschluss",
+    text: "Die Frage lautet hier nicht nur Frieden oder Krieg, sondern auch: Wie entsteht Sicherheit — durch Härte oder durch Verzicht?",
+    cause: "SS-20 und Ungleichgewicht im Mittelstreckenbereich",
+    turn: "Verhandeln und zugleich nachrüsten",
+    result: "Friedensbewegung + später INF-Vertrag"
+  }
+];
+
+const terms = [
+  {
+    title: "Bipolare Welt",
+    short: "Weltordnung mit zwei dominierenden Machtzentren.",
+    full: `Die bipolare Welt bezeichnet die internationale Ordnung nach 1945, in der die <strong>USA</strong> und die <strong>UdSSR</strong> als Supermächte Politik, Sicherheit und Bündnisse entscheidend bestimmten. Viele Konflikte wurden durch diese Zweiteilung geprägt.`
+  },
+  {
+    title: "Containment",
+    short: "Eindämmung sowjetischen Einflusses.",
+    full: `Containment ist die amerikanische Strategie, die Ausbreitung des sowjetischen Machtbereichs zu begrenzen. Sie wurde vor allem mit der <strong>Truman-Doktrin</strong> verbunden.`
+  },
+  {
+    title: "Blockbildung",
+    short: "Gliederung der Welt in West- und Ostblock.",
+    full: `Blockbildung meint die politische, wirtschaftliche und militärische Zuordnung vieler Staaten zum <strong>Westblock</strong> oder <strong>Ostblock</strong>. Typisch sind NATO und Warschauer Pakt.`
+  },
+  {
+    title: "Stellvertreterkrieg",
+    short: "Indirekter Krieg im Einflussbereich der Supermächte.",
+    full: `Ein Stellvertreterkrieg ist ein Krieg, in dem die Supermächte nicht direkt gegeneinander kämpfen, aber regionale Konflikte <strong>unterstützen, beeinflussen oder militärisch nutzen</strong>, etwa in Korea oder Vietnam.`
+  },
+  {
+    title: "Abschreckung",
+    short: "Verhinderung von Krieg durch Drohung mit Gegenschlag.",
+    full: `Abschreckung beruht auf der Vorstellung, dass ein Gegner keinen Angriff wagt, wenn er mit <strong>vernichtender Gegenreaktion</strong> rechnen muss. Im Atomzeitalter wird daraus das Gleichgewicht des Schreckens.`
+  },
+  {
+    title: "MAD",
+    short: "Mutual Assured Destruction.",
+    full: `MAD bedeutet „gegenseitig gesicherte Zerstörung“. Beide Seiten verfügen über so viele Atomwaffen, dass ein Erstschlag keinen sicheren Sieg bringt, sondern den eigenen Untergang mitverursacht.`
+  },
+  {
+    title: "Entspannungspolitik",
+    short: "Versuch, den Konflikt kontrollierbarer zu machen.",
+    full: `Entspannungspolitik meint Phasen und Strategien, in denen der Ost-West-Konflikt durch <strong>Verhandlungen, Verträge und Kommunikation</strong> begrenzt werden sollte. Dazu gehören SALT, KSZE und die Neue Ostpolitik.`
+  },
+  {
+    title: "Wettrüsten",
+    short: "Wechselseitige militärische Aufrüstung.",
+    full: `Wettrüsten ist die dynamische Steigerung militärischer Mittel, weil jede Seite ihre Sicherheit durch mehr Waffen verbessern will. Im Kalten Krieg war dies besonders im <strong>nuklearen Bereich</strong> prägend.`
+  },
+  {
+    title: "NATO-Doppelbeschluss",
+    short: "Verhandlungsangebot plus Nachrüstungsdrohung.",
+    full: `Der NATO-Doppelbeschluss von 1979 kombinierte zwei Elemente: <strong>Abrüstungsverhandlungen</strong> mit der UdSSR und zugleich die <strong>Androhung bzw. Vorbereitung neuer Raketenstationierungen</strong> im Westen, falls diese scheitern.`
+  }
+];
+
+const rail = document.getElementById("rail");
+const detail = document.getElementById("event-detail");
+const start = new Date("1945-01-01");
+const end = new Date("1992-01-01");
+const total = end - start;
+const pad = 60;
+const width = 1500 - pad * 2;
+
+function xPos(dateString){
+  const d = new Date(dateString);
+  return pad + ((d - start) / total) * width;
+}
+
+const yearMarks = [1945,1950,1955,1960,1965,1970,1975,1980,1985,1990];
+yearMarks.forEach((y,i)=>{
+  const x = xPos(`${y}-01-01`);
+  const tick = document.createElement("div");
+  tick.className = "tick major";
+  tick.style.left = `${x}px`;
+  rail.appendChild(tick);
+
+  const label = document.createElement("div");
+  label.className = "tick-label";
+  label.style.left = `${x}px`;
+  label.textContent = y;
+  rail.appendChild(label);
+});
+
+events.forEach((e,i)=>{
+  const node = document.createElement("div");
+  node.className = "node " + (i % 2 === 0 ? "top" : "bottom");
+  node.style.left = `${xPos(e.date)}px`;
+  node.style.setProperty("--node-color", e.color);
+  node.innerHTML = `
+    <div class="stem"></div>
+    <div class="dot"></div>
+    <div class="label">
+      <span class="date">${e.labelDate}</span>
+      ${e.title}
+    </div>
+  `;
+  node.addEventListener("click", ()=>{
+    document.querySelectorAll(".node.active").forEach(n=>n.classList.remove("active"));
+    node.classList.add("active");
+    detail.classList.remove("empty");
+    detail.style.borderLeftColor = e.color;
+    detail.innerHTML = `
+      <div class="detail-phase">${e.phase}</div>
+      <div class="detail-date">${e.labelDate}</div>
+      <h3>${e.title}</h3>
+      <div class="detail-body">${e.body}</div>
+    `;
+  });
+  rail.appendChild(node);
+});
+
+const crisisGrid = document.getElementById("crisis-grid");
+crisisCards.forEach(c=>{
+  const el = document.createElement("div");
+  el.className = "card crisis-card";
+  el.innerHTML = `
+    <div class="crisis-top">
+      <h3>${c.title}</h3>
+      <div class="year">${c.year}</div>
+    </div>
+    <p>${c.text}</p>
+    <div class="triad">
+      <div><strong>Ursache:</strong> ${c.cause}</div>
+      <div><strong>Wendepunkt:</strong> ${c.turn}</div>
+      <div><strong>Folge:</strong> ${c.result}</div>
+    </div>
+  `;
+  crisisGrid.appendChild(el);
+});
+
+const termsGrid = document.getElementById("terms-grid");
+const termDetail = document.getElementById("term-detail");
+
+terms.forEach(t=>{
+  const el = document.createElement("div");
+  el.className = "card term";
+  el.innerHTML = `
+    <h3>${t.title}</h3>
+    <p>${t.short}</p>
+  `;
+  el.addEventListener("click", ()=>{
+    termDetail.classList.remove("empty");
+    termDetail.innerHTML = `
+      <h3 style="margin:0 0 .4rem">${t.title}</h3>
+      <div style="font-size:.94rem;line-height:1.65">${t.full}</div>
+    `;
+  });
+  termsGrid.appendChild(el);
+});
+
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  });
+});
+
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute("data-theme");
+  document.documentElement.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+}
+
+if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){
+  document.documentElement.setAttribute("data-theme","dark");
+}
+</script>
+</body>
+</html>
