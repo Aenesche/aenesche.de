@@ -1,6 +1,6 @@
 const TILE_SIZE = 40;
 const OFFSET_X = 500;
-const OFFSET_Y = 120; // Zurück auf deinen Wert!
+const OFFSET_Y = 120; 
 
 function getIsoPos(gridX, gridY) {
     return {
@@ -45,23 +45,4 @@ function drawSeedHologram(g, gridX, gridY, height) {
     let cx = pos.x; let cy = pos.y + TILE_SIZE/2 - height;
     g.lineStyle(2, 0xffff00, 1); g.strokeEllipse(cx, cy, 16, 8);
     g.fillStyle(0xffff00, 1); g.fillCircle(cx, cy, 3);
-}
-
-function drawLaserDoor(g, gridX, gridY) {
-    let pos = getIsoPos(gridX, gridY);
-    drawIsoCube(g, gridX, gridY, 4, 30, 0x00ffff, 0.5, 0.3); // Hinten
-    drawIsoCube(g, gridX + 0.8, gridY + 0.8, 4, 30, 0x00ffff, 0.5, 0.3); // Vorne
-    g.lineStyle(1, 0xff0000, 0.8);
-    for(let i=0; i<3; i++) { g.moveTo(pos.x, pos.y - 8 - (i*8)); g.lineTo(pos.x + 28, pos.y + 14 - 8 - (i*8)); }
-}
-
-// NEU: Isometrische Wände
-function drawRoomWalls(g, gridSize, height) {
-    let color = 0x00ffff;
-    g.fillStyle(color, 0.05); g.lineStyle(2, color, 0.5);
-    let top = getIsoPos(0, 0); let left = getIsoPos(0, gridSize); let right = getIsoPos(gridSize, 0);
-    // Linke Wand
-    g.beginPath(); g.moveTo(top.x, top.y); g.lineTo(left.x, left.y); g.lineTo(left.x, left.y - height); g.lineTo(top.x, top.y - height); g.closePath(); g.fillPath(); g.strokePath();
-    // Rechte Wand
-    g.beginPath(); g.moveTo(top.x, top.y); g.lineTo(right.x, right.y); g.lineTo(right.x, right.y - height); g.lineTo(top.x, top.y - height); g.closePath(); g.fillPath(); g.strokePath();
 }
