@@ -2,10 +2,10 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Weedle - Isometric Concept Art</title>
+    <title>Weedle - Final Concept Art</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
-        body { margin: 0; background-color: #050505; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        body { margin: 0; background-color: #050505; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; color: white; font-family: sans-serif; }
     </style>
 </head>
 <body>
@@ -20,95 +20,129 @@
 
     const game = new Phaser.Game(config);
     let player;
-    let cursors;
+    let playerEyes;
+    let keys;
     const TILE_SIZE = 40;
     const OFFSET_X = 500;
-    const OFFSET_Y = 100;
+    const OFFSET_Y = 120;
 
     function preload() {}
 
     function create() {
         const g = this.add.graphics();
 
-        // 1. Das Isometrische Grid zeichnen (Neon-Cyan)
-        g.lineStyle(1, 0x005555, 0.3);
+        // 1. Grid
+        g.lineStyle(1, 0x004444, 0.4);
         const gridSize = 12;
         for (let x = 0; x <= gridSize; x++) {
             for (let y = 0; y <= gridSize; y++) {
                 let pos = getIsoPos(x, y);
-                drawIsoTile(g, pos.x, pos.y, TILE_SIZE, 0, 0, 0); // Nur Umrisse
+                drawIsoTile(g, pos.x, pos.y, TILE_SIZE, 0, 0, 0);
             }
         }
 
         // --- CONCEPT ART SHOWCASE ---
 
-        // Laser-Tür (Grid: 1, 1)
-        drawLaserDoor(g, 1, 1);
-        addLabel(this, 1, 1, "LASER-TÜR");
+        // Samen-Terminal (Tieferes Hologramm)
+        drawIsoCube(g, 2, 1, TILE_SIZE, 30, 0xffaa00, 0.2, 0.1);
+        drawSeedHologram(g, 2, 1, 35); // Näher am Tisch
+        addLabel(this, 2, 1, "SAMEN-TERMINAL");
 
-        // Samen-Terminal (Grid: 4, 1)
-        drawIsoCube(g, 4, 1, TILE_SIZE, 30, 0xffaa00, 0.2, 0.1);
-        drawSeedHologram(g, 4, 1, 50);
-        addLabel(this, 4, 1, "SAMEN-TERMINAL");
+        // Laser-Tür
+        drawLaserDoor(g, 6, 1);
+        addLabel(this, 6, 1, "LASER-TÜR");
 
-        // Beete: Die 3 Wachstumsphasen (Grid: 2, 4 bis 4, 4)
-        drawIsoTile(g, getIsoPos(2, 4).x, getIsoPos(2, 4).y, TILE_SIZE, 0x00ff00, 0.05, 1); // Empty
-        addLabel(this, 2, 4, "BEET (LEER)");
+        // --- PFLANZEN WACHSTUM (Stufenlos dargestellt) ---
+        // 1. Leer
+        drawIsoTile(g, getIsoPos(1, 4).x, getIsoPos(1, 4).y, TILE_SIZE, 0x00ff00, 0.05, 1);
+        addLabel(this, 1, 4, "BEET (LEER)");
 
+        // 2. Wächst (Kleiner Kristall + Progress Timer)
         drawIsoTile(g, getIsoPos(3, 4).x, getIsoPos(3, 4).y, TILE_SIZE, 0x00ff00, 0.1, 1);
-        drawPlant(g, 3, 4, 1); // Growing
+        drawPlant(g, 3, 4, 0.5, 0x00ff00); 
+        drawPieTimer(g, 3, 4, 30, 0.6, 0x00ffff); // 60% gewachsen (Cyan Timer)
         addLabel(this, 3, 4, "WACHSTUM");
 
-        drawIsoTile(g, getIsoPos(4, 4).x, getIsoPos(4, 4).y, TILE_SIZE, 0x00ff00, 0.2, 1);
-        drawPlant(g, 4, 4, 2); // Ready
-        addLabel(this, 4, 4, "ERNTEBEREIT");
+        // 3. Erntebereit (Großer Kristall, leuchtet hellgrün)
+        drawIsoTile(g, getIsoPos(5, 4).x, getIsoPos(5, 4).y, TILE_SIZE, 0x00ff00, 0.2, 1);
+        drawPlant(g, 5, 4, 1.0, 0x00ff00);
+        addLabel(this, 5, 4, "ERNTEBEREIT");
 
-        // Theke / Tisch mit Item (Grid: 8, 4)
-        drawIsoCube(g, 8, 4, TILE_SIZE, 20, 0x00ffff, 0.1, 0.05);
-        drawItemCube(g, 8, 4, 30, 0x00ff00); // Fertiges Paket auf dem Tisch
-        addLabel(this, 8, 4, "LAGER-THEKE\n(+ ITEM)");
+        // 4. Verfault (Rötlich/Braun, wenn zu lange ignoriert)
+        drawIsoTile(g, getIsoPos(7, 4).x, getIsoPos(7, 4).y, TILE_SIZE, 0xff4400, 0.1, 1);
+        drawPlant(g, 7, 4, 0.8, 0xff4400); // Schrumpft leicht und wird rot
+        addLabel(this, 7, 4, "VERFAULT");
 
-        // Kasse mit Kunden (Grid: 8, 8)
-        drawIsoCube(g, 8, 8, TILE_SIZE, 20, 0xff00ff, 0.1, 0.05); // Tisch
-        drawIsoCube(g, 8, 8, 15, 35, 0xff00ff, 0.3, 0.1); // Kasse
-        addLabel(this, 8, 8, "VERKAUF\n(KASSE)");
+        // --- AKTEURE & VERKAUF ---
 
-        // Kunde (Wartet an Kasse) (Grid: 9, 9)
-        drawCharacter(g, 9, 9, 0xff8800); 
-        drawSpeechBubble(g, 9, 9);
-        addLabel(this, 9, 9, "KUNDE");
+        // Angestellter (Bot)
+        drawCharacter(g, 1, 8, 0x0088ff);
+        addLabel(this, 1, 8, "ANGESTELLTER");
 
-        // Angestellter (Bot) (Grid: 2, 8)
-        drawCharacter(g, 2, 8, 0x0088ff);
-        addLabel(this, 2, 8, "ANGESTELLTER");
+        // Kasse & Theke
+        drawIsoCube(g, 7, 8, TILE_SIZE, 20, 0xff00ff, 0.1, 0.05); // Tisch
+        drawIsoCube(g, 7, 8, 15, 30, 0xff00ff, 0.3, 0.1); // Kasse
+        addLabel(this, 7, 8, "KASSE");
 
+        // Kunde mit Sprechblase & RAGE-TIMER
+        drawCharacter(g, 8, 9, 0xff8800); 
+        drawSpeechBubble(g, 8, 9, 45); // Niedrigere Sprechblase
+        drawPieTimer(g, 8, 9, 65, 0.25, 0xff0000); // Roter Rage-Timer (läuft ab)
+        addLabel(this, 8, 9, "KUNDE\n(+ WUT-TIMER)");
 
         // --- DER PLAYER ---
-        player = this.add.container(getIsoPos(6, 6).x, getIsoPos(6, 6).y);
+        player = this.add.container(getIsoPos(5, 7).x, getIsoPos(5, 7).y);
+        
         let playerBody = this.add.graphics();
-        playerBody.fillStyle(0x00ff00, 0.8);
-        playerBody.fillEllipse(0, 0, 24, 12); // Isometrischer Schatten/Basis
+        // Schatten
+        playerBody.fillStyle(0x00ff00, 0.2);
+        playerBody.fillEllipse(0, 0, 24, 12);
+        // Box
         playerBody.lineStyle(2, 0x00ff00, 1);
-        playerBody.strokeRect(-8, -35, 16, 35); // Körper
+        playerBody.strokeRect(-12, -24, 24, 24);
         playerBody.fillStyle(0x003300, 0.8);
-        playerBody.fillRect(-8, -35, 16, 35);
+        playerBody.fillRect(-12, -24, 24, 24);
         player.add(playerBody);
 
-        cursors = this.input.keyboard.createCursorKeys();
+        // Augen (Start blicken sie nach unten/vorne)
+        playerEyes = this.add.graphics();
+        playerEyes.fillStyle(0x00ff00, 1);
+        playerEyes.fillRect(-6, -20, 4, 4); // Linkes Auge
+        playerEyes.fillRect(2, -20, 4, 4);  // Rechtes Auge
+        player.add(playerEyes);
+
+        // WASD + Pfeiltasten Support
+        keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT');
         
-        this.add.text(10, 10, "WASD / PFEILTASTEN zum Bewegen\n(Intuitive Screen-Steuerung)", { font: "16px Arial", fill: "#fff" });
+        this.add.text(10, 10, "STEUERUNG: WASD oder Pfeiltasten\n(Player-Augen folgen der Bewegung)", { font: "16px Arial", fill: "#fff" });
     }
 
     function update() {
-        // Intuitive Steuerung (Oben ist Oben auf dem Bildschirm)
         let speed = 4;
-        if (cursors.left.isDown) player.x -= speed;
-        if (cursors.right.isDown) player.x += speed;
-        if (cursors.up.isDown) player.y -= speed;
-        if (cursors.down.isDown) player.y += speed;
+        let movingX = 0;
+        let movingY = 0;
+
+        if (keys.A.isDown || keys.LEFT.isDown) movingX = -1;
+        if (keys.D.isDown || keys.RIGHT.isDown) movingX = 1;
+        if (keys.W.isDown || keys.UP.isDown) movingY = -1;
+        if (keys.S.isDown || keys.DOWN.isDown) movingY = 1;
+
+        if (movingX !== 0 && movingY !== 0) {
+            movingX *= 0.7071;
+            movingY *= 0.7071;
+        }
+
+        player.x += movingX * speed;
+        player.y += movingY * speed;
+
+        // Augen drehen sich
+        if (movingX !== 0 || movingY !== 0) {
+            let angle = Math.atan2(movingY, movingX);
+            playerEyes.rotation = angle - Math.PI/2;
+        }
     }
 
-    // --- HILFSFUNKTIONEN FÜR ISOMETRISCHES DESIGN ---
+    // --- HILFSFUNKTIONEN ---
 
     function getIsoPos(gridX, gridY) {
         return {
@@ -119,94 +153,92 @@
 
     function addLabel(scene, gridX, gridY, text) {
         let pos = getIsoPos(gridX, gridY);
-        let t = scene.add.text(pos.x, pos.y + 20, text, { font: "10px Arial", fill: "#888", align: "center" });
+        let t = scene.add.text(pos.x, pos.y + 15, text, { font: "11px Arial", fill: "#888", align: "center" });
         t.setOrigin(0.5, 0);
     }
 
     function drawIsoTile(g, x, y, size, fillHex, fillAlpha, strokeAlpha) {
-        g.beginPath();
-        g.moveTo(x, y);
-        g.lineTo(x + size, y + size / 2);
-        g.lineTo(x, y + size);
-        g.lineTo(x - size, y + size / 2);
-        g.closePath();
+        g.beginPath(); g.moveTo(x, y); g.lineTo(x + size, y + size / 2); g.lineTo(x, y + size); g.lineTo(x - size, y + size / 2); g.closePath();
         if (fillAlpha > 0) { g.fillStyle(fillHex, fillAlpha); g.fillPath(); }
         if (strokeAlpha > 0) { g.lineStyle(2, fillHex, strokeAlpha); g.strokePath(); }
     }
 
     function drawIsoCube(g, gridX, gridY, size, height, color, topAlpha, sideAlpha) {
-        let pos = getIsoPos(gridX, gridY);
-        let x = pos.x, y = pos.y;
-        
-        // Rechte Seite
-        g.fillStyle(color, sideAlpha * 0.6);
-        g.beginPath(); g.moveTo(x, y + size); g.lineTo(x + size, y + size/2); g.lineTo(x + size, y + size/2 - height); g.lineTo(x, y + size - height); g.closePath(); g.fillPath(); g.lineStyle(1, color, 1); g.strokePath();
-        
-        // Linke Seite
-        g.fillStyle(color, sideAlpha);
-        g.beginPath(); g.moveTo(x, y + size); g.lineTo(x - size, y + size/2); g.lineTo(x - size, y + size/2 - height); g.lineTo(x, y + size - height); g.closePath(); g.fillPath(); g.strokePath();
-        
-        // Oben
+        let pos = getIsoPos(gridX, gridY); let x = pos.x, y = pos.y;
+        g.fillStyle(color, sideAlpha * 0.6); g.beginPath(); g.moveTo(x, y + size); g.lineTo(x + size, y + size/2); g.lineTo(x + size, y + size/2 - height); g.lineTo(x, y + size - height); g.closePath(); g.fillPath(); g.lineStyle(1, color, 1); g.strokePath();
+        g.fillStyle(color, sideAlpha); g.beginPath(); g.moveTo(x, y + size); g.lineTo(x - size, y + size/2); g.lineTo(x - size, y + size/2 - height); g.lineTo(x, y + size - height); g.closePath(); g.fillPath(); g.strokePath();
         drawIsoTile(g, x, y - height, size, color, topAlpha, 1);
     }
 
-    function drawLaserDoor(g, gridX, gridY) {
+    // Der stufenlose "Kristall" für die Pflanze
+    function drawPlant(g, gridX, gridY, scale, color) {
         let pos = getIsoPos(gridX, gridY);
-        // Säulen
-        drawIsoCube(g, gridX, gridY, 5, 40, 0x00ffff, 0.5, 0.3); // Hinten
-        drawIsoCube(g, gridX + 0.8, gridY + 0.8, 5, 40, 0x00ffff, 0.5, 0.3); // Vorne
-        // Laser-Gitter
-        g.lineStyle(1, 0xff0000, 0.8);
-        for(let i=0; i<4; i++) {
-            g.moveTo(pos.x, pos.y - 10 - (i*8));
-            g.lineTo(pos.x + 30, pos.y + 15 - 10 - (i*8));
-        }
-    }
-
-    function drawSeedHologram(g, gridX, gridY, height) {
-        let pos = getIsoPos(gridX, gridY);
-        g.lineStyle(2, 0xffff00, 1);
-        g.strokeEllipse(pos.x, pos.y - height, 20, 10);
-        g.fillStyle(0xffff00, 1);
-        g.fillCircle(pos.x, pos.y - height, 3); // Kern
-    }
-
-    function drawPlant(g, gridX, gridY, phase) {
-        let pos = getIsoPos(gridX, gridY);
-        g.lineStyle(2, 0x00ff00, 1);
-        if (phase === 1) {
-            // Kleiner Spross
-            g.moveTo(pos.x, pos.y + 20); g.lineTo(pos.x, pos.y);
-            g.lineTo(pos.x - 5, pos.y - 5); g.moveTo(pos.x, pos.y); g.lineTo(pos.x + 5, pos.y - 5);
-        } else if (phase === 2) {
-            // Fertige geometrische "Neon-Pflanze"
-            g.strokeTriangle(pos.x, pos.y - 20, pos.x - 10, pos.y, pos.x + 10, pos.y);
-            g.strokeTriangle(pos.x, pos.y - 10, pos.x - 15, pos.y + 10, pos.x + 15, pos.y + 10);
-        }
-    }
-
-    function drawItemCube(g, gridX, gridY, hoverHeight, color) {
-        // Kleiner schwebender Item-Würfel
-        drawIsoCube(g, gridX, gridY, 8, hoverHeight, color, 0.6, 0.3);
+        let h = 30 * scale; 
+        let w = 15 * scale;
+        g.lineStyle(2, color, 1);
+        g.fillStyle(color, 0.2);
+        g.beginPath();
+        g.moveTo(pos.x, pos.y); // Unten
+        g.lineTo(pos.x - w, pos.y - h/2); // Links
+        g.lineTo(pos.x, pos.y - h); // Spitze
+        g.lineTo(pos.x + w, pos.y - h/2); // Rechts
+        g.closePath();
+        g.fillPath();
+        g.strokePath();
+        // Innerer leuchtender Kern
+        g.fillStyle(color, 1);
+        g.fillEllipse(pos.x, pos.y - h/2, w/2, h/4);
     }
 
     function drawCharacter(g, gridX, gridY, color) {
         let pos = getIsoPos(gridX, gridY);
-        g.fillStyle(color, 0.4);
-        g.fillEllipse(pos.x, pos.y + 20, 20, 10); // Schatten
-        g.lineStyle(2, color, 1);
-        g.strokeRect(pos.x - 6, pos.y - 15, 12, 30); // Körper
+        g.fillStyle(color, 0.2); g.fillEllipse(pos.x, pos.y, 24, 12); // Schatten
+        g.lineStyle(2, color, 1); g.strokeRect(pos.x - 12, pos.y - 24, 24, 24); // Box
+        g.fillStyle(color, 0.2); g.fillRect(pos.x - 12, pos.y - 24, 24, 24);
+        g.fillStyle(color, 1); // Augen (schauen nach vorne links zum Tisch)
+        g.fillRect(pos.x - 8, pos.y - 20, 4, 4); g.fillRect(pos.x, pos.y - 20, 4, 4);
     }
 
-    function drawSpeechBubble(g, gridX, gridY) {
+    // Kuchendiagramm (Timer / Rage)
+    function drawPieTimer(g, gridX, gridY, heightOffset, percent, color) {
         let pos = getIsoPos(gridX, gridY);
-        let bx = pos.x + 15, by = pos.y - 40;
-        g.lineStyle(1, 0xffffff, 0.8);
-        g.fillStyle(0x000000, 0.8);
+        let x = pos.x;
+        let y = pos.y - heightOffset;
+        let radius = 10;
+        
+        g.lineStyle(2, color, 0.5);
+        g.strokeCircle(x, y, radius); // Rahmen
+        
+        g.fillStyle(color, 0.8);
+        g.beginPath();
+        g.moveTo(x, y);
+        // Start bei -90 Grad (Oben). Ende bei -90 + (Prozent * 360)
+        g.arc(x, y, radius, -Math.PI/2, -Math.PI/2 + (Math.PI * 2 * percent), false);
+        g.closePath();
+        g.fillPath();
+    }
+
+    function drawSpeechBubble(g, gridX, gridY, heightOffset) {
+        let pos = getIsoPos(gridX, gridY);
+        let bx = pos.x + 15, by = pos.y - heightOffset;
+        g.lineStyle(1, 0xffffff, 0.8); g.fillStyle(0x000000, 0.8);
         g.beginPath(); g.moveTo(bx, by); g.lineTo(bx+20, by); g.lineTo(bx+20, by-15); g.lineTo(bx-5, by-15); g.lineTo(bx-5, by-5); g.closePath();
         g.fillPath(); g.strokePath();
-        // Item-Wunsch (Grüner Block) im Bubble
-        g.fillStyle(0x00ff00, 1); g.fillRect(bx+2, by-12, 8, 8);
+        g.fillStyle(0x00ff00, 1); g.fillRect(bx+2, by-12, 8, 8); // Das gewünschte Item
+    }
+
+    function drawSeedHologram(g, gridX, gridY, height) {
+        let pos = getIsoPos(gridX, gridY);
+        g.lineStyle(2, 0xffff00, 1); g.strokeEllipse(pos.x, pos.y - height, 16, 8);
+        g.fillStyle(0xffff00, 1); g.fillCircle(pos.x, pos.y - height, 3);
+    }
+
+    function drawLaserDoor(g, gridX, gridY) {
+        let pos = getIsoPos(gridX, gridY);
+        drawIsoCube(g, gridX, gridY, 4, 30, 0x00ffff, 0.5, 0.3); // Hinten
+        drawIsoCube(g, gridX + 0.8, gridY + 0.8, 4, 30, 0x00ffff, 0.5, 0.3); // Vorne
+        g.lineStyle(1, 0xff0000, 0.8);
+        for(let i=0; i<3; i++) { g.moveTo(pos.x, pos.y - 8 - (i*8)); g.lineTo(pos.x + 28, pos.y + 14 - 8 - (i*8)); }
     }
 </script>
 </body>
