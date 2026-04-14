@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Weedle - Neon Prototyp 3.0 (Echte Perspektive)</title>
+    <title>Weedle - Neon Prototyp 3.0 (Perspektive)</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
         body { margin: 0; background: #050505; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
@@ -10,15 +10,14 @@
 </head>
 <body>
 <script>
-    // Konfiguration für Matter.js (ermöglicht komplexe Polygon-Kollisionen)
     const config = {
         type: Phaser.AUTO,
         width: 800,
         height: 600,
         backgroundColor: '#050505',
         physics: {
-            default: 'matter',
-            matter: { debug: false } // Setze auf true für Hitbox-Vorschau
+            default: 'arcade',
+            arcade: { debug: false } 
         },
         scene: { preload: preload, create: create, update: update }
     };
@@ -27,30 +26,22 @@
     let player;
     let playerEyes;
     let keys;
-    let groundCollider;
+    let walls;
 
-    // Fluchtpunkt (V) und Bodengrenzen für die Perspektive
-    const Fluchtpunkt = { x: 400, y: 150 }; // Zentraler Fluchtpunkt oben in der Mitte
-    const BodenVorn = { y: 550, breite: 700 }; // Vordere Bodengrenze
-    const BodenHinten = { y: 200, breite: 300 }; // Hintere Bodengrenze (kleiner wegen Perspektive)
+    // Fluchtpunkt und Grenzen für die Perspektive
+    const BodenVorn = { y: 550, breite: 700 }; // Vordere Kante (Eingang)
+    const BodenHinten = { y: 200, breite: 300 }; // Hintere Kante
 
     function preload() {}
 
     function create() {
-        const self = this;
+        walls = this.physics.add.staticGroup();
 
         // 1. Neon-Boden zeichnen (Perspektivisches Zentralgitter)
         const floor = this.add.graphics();
-        floor.lineStyle(1, 0x003333, 0.4); // Dunkles Neon-Cyan
+        floor.lineStyle(1, 0x003333, 0.4); 
         
-        // Vordere und hintere Bodengrenzen zeichnen
-        floor.moveTo(400 - BodenVorn.breite / 2, BodenVorn.y);
-        floor.lineTo(400 + BodenVorn.breite / 2, BodenVorn.y);
-        floor.moveTo(400 - BodenHinten.breite / 2, BodenHinten.y);
-        floor.lineTo(400 + BodenHinten.breite / 2, BodenHinten.y);
-        floor.strokePath();
-
-        // Perspektivische Gitterlinien zeichnen (konvergieren zum Fluchtpunkt)
+        // Gitter zeichnen
         const gitterAnzahl = 10;
         for(let i = 0; i <= gitterAnzahl; i++) {
             let xVorn = (400 - BodenVorn.breite / 2) + (i / gitterAnzahl) * BodenVorn.breite;
@@ -58,10 +49,7 @@
             floor.moveTo(xVorn, BodenVorn.y);
             floor.lineTo(xHinten, BodenHinten.y);
         }
-        
-        // Horizontale Gitterlinien
         for(let y = BodenHinten.y; y <= BodenVorn.y; y += 40) {
-            // Wir müssen die Breite an dieser Y-Position berechnen
             let p = (y - BodenHinten.y) / (BodenVorn.y - BodenHinten.y);
             let breite = BodenHinten.breite + p * (BodenVorn.breite - BodenHinten.breite);
             floor.moveTo(400 - breite / 2, y);
@@ -69,81 +57,51 @@
         }
         floor.strokePath();
 
-        // 2. Perspektivische Wände bauen (wie in Skizze 7)
-        // Wir erstellen statische Polygon-Körper für die Kollisionen
+        // 2. Perspektivische Wände zeichnen
+        let wallVisuals = this.add.graphics();
+        wallVisuals.lineStyle(2, 0x00ffff, 1);
         
-        // Linke Wand (Polygon)
-        let wallLeft = this.add.graphics();
-        wallLeft.lineStyle(2, 0x00ffff, 1);
-        wallLeft.strokePolygon([
-            {x: 400 - BodenVorn.breite / 2, y: BodenVorn.y}, // Vordere Ecke
-            {x: 400 - BodenHinten.breite / 2, y: BodenHinten.y}, // Hintere Ecke
-            {x: 400 - BodenHinten.breite / 2, y: BodenHinten.y - 100}, // Hintere Oberkante
-            {x: 400 - BodenVorn.breite / 2, y: BodenVorn.y - 150} // Vordere Oberkante
-        ]);
-        drawDepthLines(wallLeft, 400 - BodenVorn.breite / 2, BodenVorn.y, 400 - BodenHinten.breite / 2, BodenHinten.y, 150, 100);
-
-        // Rechte Wand (Polygon)
-        let wallRight = this.add.graphics();
-        wallRight.lineStyle(2, 0x00ffff, 1);
-        wallRight.strokePolygon([
-            {x: 400 + BodenVorn.breite / 2, y: BodenVorn.y},
-            {x: 400 + BodenHinten.breite / 2, y: BodenHinten.y},
-            {x: 400 + BodenHinten.breite / 2, y: BodenHinten.y - 100},
-            {x: 400 + BodenVorn.breite / 2, y: BodenVorn.y - 150}
-        ]);
-        drawDepthLines(wallRight, 400 + BodenVorn.breite / 2, BodenVorn.y, 400 + BodenHinten.breite / 2, BodenHinten.y, 150, 100);
-
-        // Hintere Wand (flaches Rechteck)
-        let wallBack = this.add.graphics();
-        wallBack.lineStyle(2, 0x00ffff, 1);
-        wallBack.strokeRect(400 - BodenHinten.breite / 2, BodenHinten.y - 100, BodenHinten.breite, 100);
-        wallBack.fillStyle(0x00ffff, 0.1);
-        wallBack.fillRect(400 - BodenHinten.breite / 2, BodenHinten.y - 100, BodenHinten.breite, 100);
-
-        // Vordere Bodengrenze (offener Eingang)
-        let wallFront = this.add.graphics();
-        wallFront.lineStyle(2, 0x666666, 1); // Graue Linie
-        wallFront.moveTo(400 - BodenVorn.breite / 2, BodenVorn.y);
-        wallFront.lineTo(400 + BodenVorn.breite / 2, BodenVorn.y);
-        wallFront.strokePath();
-
-        // Physik-Körper für die Wände erstellen (Statische Polygone)
-        // Matter.js Polygone werden um ihren Schwerpunkt zentriert erstellt
-        let verticesLeft = [
+        // Linke Wand Form
+        let ptsLeft = [
             {x: 400 - BodenVorn.breite / 2, y: BodenVorn.y},
             {x: 400 - BodenHinten.breite / 2, y: BodenHinten.y},
             {x: 400 - BodenHinten.breite / 2, y: BodenHinten.y - 100},
             {x: 400 - BodenVorn.breite / 2, y: BodenVorn.y - 150}
         ];
-        // Ein Matter.js Polygonkörper muss aus Vertices erstellt werden
-        let leftWallCollider = this.matter.add.fromVertices(400 - (BodenVorn.breite / 2 + BodenHinten.breite / 2) / 2, BodenVorn.y - 100, verticesLeft, { isStatic: true, friction: 0, restitution: 0 });
+        drawPoly(wallVisuals, ptsLeft);
+        drawDepthLines(wallVisuals, ptsLeft[0].x, ptsLeft[0].y, ptsLeft[1].x, ptsLeft[1].y, 150, 100);
 
-        let verticesRight = [
+        // Rechte Wand Form
+        let ptsRight = [
             {x: 400 + BodenVorn.breite / 2, y: BodenVorn.y},
             {x: 400 + BodenHinten.breite / 2, y: BodenHinten.y},
             {x: 400 + BodenHinten.breite / 2, y: BodenHinten.y - 100},
             {x: 400 + BodenVorn.breite / 2, y: BodenVorn.y - 150}
         ];
-        let rightWallCollider = this.matter.add.fromVertices(400 + (BodenVorn.breite / 2 + BodenHinten.breite / 2) / 2, BodenVorn.y - 100, verticesRight, { isStatic: true, friction: 0, restitution: 0 });
-        
-        // Hintere Wand-Kollision (rechteckig)
-        let backWallCollider = this.matter.add.rectangle(400, BodenHinten.y - 50, BodenHinten.breite, 100, { isStatic: true });
+        drawPoly(wallVisuals, ptsRight);
+        drawDepthLines(wallVisuals, ptsRight[0].x, ptsRight[0].y, ptsRight[1].x, ptsRight[1].y, 150, 100);
 
-        // Vordere Bodengrenze-Kollision
-        let frontWallCollider = this.matter.add.rectangle(400, BodenVorn.y, BodenVorn.breite, 2, { isStatic: true });
+        // Hintere Wand
+        wallVisuals.strokeRect(400 - BodenHinten.breite / 2, BodenHinten.y - 100, BodenHinten.breite, 100);
+        wallVisuals.fillStyle(0x00ffff, 0.05);
+        wallVisuals.fillRect(400 - BodenHinten.breite / 2, BodenHinten.y - 100, BodenHinten.breite, 100);
 
-        // 3. Ein Tisch in der Mitte (Orthogonales, aber kleineres Rechteck)
+        // Eingangslinie
+        wallVisuals.lineStyle(2, 0x444444, 1); 
+        wallVisuals.moveTo(400 - BodenVorn.breite / 2, BodenVorn.y);
+        wallVisuals.lineTo(400 + BodenVorn.breite / 2, BodenVorn.y);
+        wallVisuals.strokePath();
+
+        // 3. Tisch (Normale Arcade-Kollision reicht hier, da er mittig steht)
         createTable(this, 400, 350, 80, 50, 0xff00ff);
 
-        // 4. Der Player (Neon-Bot)
-        player = this.add.container(400, BodenVorn.y - 50);
-        // Matter.js benötigt einen Physik-Körper am Container
-        this.matter.add.gameObject(player, { shape: { type: 'rectangle', width: 24, height: 24 }, friction: 0, restitution: 0 });
-        player.body.setCollideWorldBounds(true);
-        player.body.setSize(24, 24); // Hitbox
+        // 4. Player
+        player = this.add.container(400, 450);
+        this.physics.world.enable(player);
+        player.body.setSize(24, 24);
+        player.body.setOffset(-12, -12);
 
-        // Player Visuals (Körper)
+        // Player Optik
         let playerBody = this.add.graphics();
         playerBody.lineStyle(2, 0x00ff00, 1);
         playerBody.strokeRect(-12, -12, 24, 24);
@@ -151,21 +109,20 @@
         playerBody.fillRect(-12, -12, 24, 24);
         player.add(playerBody);
 
-        // Player Visuals (Augen - Blicken standardmäßig nach oben/vorne)
         playerEyes = this.add.graphics();
         playerEyes.fillStyle(0x00ff00, 1);
-        playerEyes.fillRect(-6, -10, 4, 4); // Linkes Auge
-        playerEyes.fillRect(2, -10, 4, 4);  // Rechtes Auge
+        playerEyes.fillRect(-6, -10, 4, 4);
+        playerEyes.fillRect(2, -10, 4, 4); 
         player.add(playerEyes);
 
-        // Steuerung
+        // Nur Tisch-Kollision (Wände berechnen wir unten)
+        this.physics.add.collider(player, walls);
+
         keys = this.input.keyboard.addKeys('W,A,S,D');
     }
 
     function update() {
         let speed = 200;
-        player.body.setVelocity(0);
-
         let movingX = 0;
         let movingY = 0;
 
@@ -174,7 +131,6 @@
         if (keys.W.isDown) movingY = -1;
         if (keys.S.isDown) movingY = 1;
 
-        // Diagonales Laufen fixen
         if (movingX !== 0 && movingY !== 0) {
             movingX *= 0.7071;
             movingY *= 0.7071;
@@ -183,47 +139,66 @@
         player.body.setVelocityX(movingX * speed);
         player.body.setVelocityY(movingY * speed);
 
-        // Augen in Laufrichtung drehen
         if (movingX !== 0 || movingY !== 0) {
             let angle = Math.atan2(movingY, movingX);
-            playerEyes.rotation = angle - Math.PI / 2; // - 90 Grad, da die Augen "nach oben" gezeichnet wurden
+            playerEyes.rotation = angle - Math.PI / 2; 
         } else {
-            // Standard: Augen blicken nach vorne/oben
             playerEyes.rotation = 0;
         }
+
+        // --- DER TRICK: Mathematische "Wände" für die Perspektive ---
+        let playerRadius = 12;
+
+        // 1. Oben und unten einsperren
+        if (player.y < BodenHinten.y + playerRadius) player.y = BodenHinten.y + playerRadius;
+        if (player.y > BodenVorn.y - playerRadius) player.y = BodenVorn.y - playerRadius;
+
+        // 2. Die schrägen Seitenwände berechnen (je nachdem wie tief man im Raum steht)
+        let prozentTief = (player.y - BodenHinten.y) / (BodenVorn.y - BodenHinten.y);
+        
+        let linkeWandX = (400 - BodenHinten.breite / 2) + prozentTief * ((400 - BodenVorn.breite / 2) - (400 - BodenHinten.breite / 2));
+        let rechteWandX = 800 - linkeWandX;
+
+        if (player.x < linkeWandX + playerRadius) player.x = linkeWandX + playerRadius;
+        if (player.x > rechteWandX - playerRadius) player.x = rechteWandX - playerRadius;
     }
 
-    // --- HILFSFUNKTIONEN FÜR DIE GRAFIK ---
+    // --- HILFSFUNKTIONEN ---
 
-    // Zeichnet die perspektivischen "Tiefen"-Linien (die vertikalen Linien an den Seiten, wie in Skizze 7)
-    function drawDepthLines(graphics, xVorn, yVorn, xHinten, yHinten, hVorn, hHinten) {
-        graphics.beginPath();
-        graphics.lineStyle(1, 0x00ffff, 0.4);
-        const tiefeAnzahl = 8;
-        for(let i = 0; i < tiefeAnzahl; i++) {
-            let p = i / (tiefeAnzahl - 1);
+    function drawPoly(g, points) {
+        g.beginPath();
+        g.moveTo(points[0].x, points[0].y);
+        for(let i = 1; i < points.length; i++) {
+            g.lineTo(points[i].x, points[i].y);
+        }
+        g.closePath();
+        g.strokePath();
+    }
+
+    function drawDepthLines(g, xVorn, yVorn, xHinten, yHinten, hVorn, hHinten) {
+        g.beginPath();
+        g.lineStyle(1, 0x00ffff, 0.4);
+        for(let i = 0; i < 8; i++) {
+            let p = i / 7;
             let x = xHinten + p * (xVorn - xHinten);
             let y = yHinten + p * (yVorn - yHinten);
             let h = hHinten + p * (hVorn - hHinten);
-            graphics.moveTo(x, y);
-            graphics.lineTo(x, y - h);
+            g.moveTo(x, y);
+            g.lineTo(x, y - h);
         }
-        graphics.strokePath();
+        g.strokePath();
     }
 
     function createTable(scene, x, y, w, h, color) {
         let tableVisual = scene.add.graphics();
-        
-        // Glasfläche (transparent, orthogonal)
         tableVisual.fillStyle(color, 0.1); 
         tableVisual.fillRect(x - w/2, y - h/2, w, h);
-        
-        // Leuchtender Rahmen
         tableVisual.lineStyle(2, color, 1);
         tableVisual.strokeRect(x - w/2, y - h/2, w, h);
 
-        // Physik-Hitbox erstellen (Matte.js, rechteckig, zentriert)
-        scene.matter.add.rectangle(x, y, w, h, { isStatic: true, friction: 0, restitution: 0 });
+        let zone = scene.add.zone(x, y, w, h);
+        scene.physics.add.existing(zone, true);
+        walls.add(zone);
     }
 </script>
 </body>
