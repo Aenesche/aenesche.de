@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
+    <meta charset="UTF-8">
+    <title>Weedle - Neon Prototyp</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
-        body { margin: 0; background-color: #050505; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        body { margin: 0; background: #050505; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -12,99 +14,153 @@
         type: Phaser.AUTO,
         width: 800,
         height: 600,
-        backgroundColor: '#050505', // Deep Black
+        backgroundColor: '#050505',
+        // HIER WAR DER FEHLER: Physics muss aktiviert sein!
+        physics: {
+            default: 'arcade',
+            arcade: { debug: false } 
+        },
         scene: { preload: preload, create: create, update: update }
     };
 
     const game = new Phaser.Game(config);
     let player;
-    let cursors;
+    let playerEyes;
+    let keys;
+    let walls;
 
     function preload() {}
 
-    // Kopiere diesen Teil in deine create-Funktion
-function create() {
-    // 1. Physik-Gruppe für Wände
-    this.walls = this.physics.add.staticGroup();
+    function create() {
+        // 1. Physik-Gruppe für Wände und Tische
+        walls = this.physics.add.staticGroup();
 
-    // 2. Boden zeichnen (Parallelogramm-Grid)
-    const floor = this.add.graphics();
-    floor.lineStyle(1, 0x1a1a1a, 1);
-    for(let i = 0; i < 20; i++) {
-        floor.moveTo(0, i * 40);
-        floor.lineTo(800, i * 40 + 100); // Der Versatz erzeugt das Parallelogramm
-        floor.strokePath();
-    }
-
-    // 3. Eine Wand bauen (Funktion unten definiert)
-    createWall(this, 100, 100, 300, 20); // Horizontale Wand
-    createWall(this, 100, 100, 20, 200); // Vertikale Wand
-
-    // 4. Der Player (Neon-Bot)
-    this.player = this.add.container(400, 300);
-    this.physics.world.enable(this.player);
-    this.player.body.setCollideWorldBounds(true);
-    
-    // Player Visuals
-    let body = this.add.graphics();
-    body.lineStyle(2, 0x00ff00, 1);
-    body.strokeRect(-15, -15, 30, 30); // Äußerer Rahmen
-    body.fillStyle(0x00ff00, 0.5);
-    body.fillRect(-5, -5, 10, 10);    // Leuchtender Kern
-    this.player.add(body);
-
-    // Kollisionen aktivieren
-    this.physics.add.collider(this.player, this.walls);
-
-    // Steuerung
-    this.keys = this.input.keyboard.addKeys('W,A,S,D');
-}
-
-function update() {
-    let speed = 200;
-    this.player.body.setVelocity(0);
-
-    if (this.keys.A.isDown) this.player.body.setVelocityX(-speed);
-    if (this.keys.D.isDown) this.player.body.setVelocityX(speed);
-    if (this.keys.W.isDown) this.player.body.setVelocityY(-speed);
-    if (this.keys.S.isDown) this.player.body.setVelocityY(speed);
-}
-
-// Hilfsfunktion für Neon-Wände mit Kollision
-function createWall(scene, x, y, w, h) {
-    let wall = scene.add.graphics();
-    // Tiefen-Effekt (3D-Look)
-    wall.lineStyle(2, 0x00ffff, 1);
-    wall.strokeRect(x, y, w, h);
-    wall.lineStyle(1, 0x00ffff, 0.3);
-    wall.strokeRect(x, y - 10, w, h); // Die "Oberkante" der Wand
-    
-    // Physik-Körper hinzufügen
-    let zone = scene.add.zone(x + w/2, y + h/2, w, h);
-    scene.walls.add(zone);
-}
-
-    function drawIsoTile(g, x, y, size) {
-        g.beginPath();
-        g.moveTo(x, y);
-        g.lineTo(x + size, y + size / 2);
-        g.lineTo(x, y + size);
-        g.lineTo(x - size, y + size / 2);
-        g.closePath();
-        g.strokePath();
-    }
-
-    function createNeonStation(scene, x, y, color) {
-        let g = scene.add.graphics();
-        // Glow-Effekt durch mehrere Schichten
-        for(let i = 5; i > 0; i--) {
-            g.lineStyle(i * 2, color, 0.1);
-            drawIsoTile(g, x, y, 40);
-        }
-        g.lineStyle(2, color, 1);
-        drawIsoTile(g, x, y, 40);
+        // 2. Neon-Boden zeichnen (Parallelogramm-Grid)
+        const floor = this.add.graphics();
+        floor.lineStyle(1, 0x003333, 0.4); // Dunkles Neon-Cyan
         
-        scene.add.text(x - 20, y - 40, "STATION", { font: "12px Arial", fill: "#fff" });
+        // Vertikale Linien (leicht schräg für den Tiefeneffekt)
+        for(let x = 0; x <= 1000; x += 40) {
+            floor.moveTo(x, 0);
+            floor.lineTo(x - 300, 600); 
+        }
+        // Horizontale Linien
+        for(let y = 0; y <= 600; y += 40) {
+            floor.moveTo(0, y);
+            floor.lineTo(800, y);
+        }
+        floor.strokePath();
+
+        // 3. Wände bauen (x, y, breite, höhe)
+        createWall(this, 150, 100, 500, 20); // Obere Wand
+        createWall(this, 150, 100, 20, 400); // Linke Wand
+        createWall(this, 150, 480, 500, 20); // Untere Wand
+        createWall(this, 630, 100, 20, 400); // Rechte Wand
+
+        // Ein Tisch in der Mitte
+        createTable(this, 350, 250, 100, 60);
+
+        // 4. Der Player (Neon-Bot)
+        player = this.add.container(400, 300);
+        this.physics.world.enable(player);
+        player.body.setCollideWorldBounds(true);
+        player.body.setSize(24, 24); // Hitbox
+        player.body.setOffset(-12, -12); // Hitbox zentrieren
+
+        // Player Visuals (Körper)
+        let playerBody = this.add.graphics();
+        playerBody.lineStyle(2, 0x00ff00, 1);
+        playerBody.strokeRect(-12, -12, 24, 24);
+        playerBody.fillStyle(0x002200, 0.8);
+        playerBody.fillRect(-12, -12, 24, 24);
+        player.add(playerBody);
+
+        // Player Visuals (Augen)
+        playerEyes = this.add.graphics();
+        playerEyes.fillStyle(0x00ff00, 1);
+        playerEyes.fillRect(-6, 4, 4, 4); // Linkes Auge
+        playerEyes.fillRect(2, 4, 4, 4);  // Rechtes Auge
+        player.add(playerEyes);
+
+        // Kollision aktivieren!
+        this.physics.add.collider(player, walls);
+
+        // Steuerung
+        keys = this.input.keyboard.addKeys('W,A,S,D');
+    }
+
+    function update() {
+        let speed = 200;
+        player.body.setVelocity(0);
+
+        let movingX = 0;
+        let movingY = 0;
+
+        if (keys.A.isDown) movingX = -1;
+        if (keys.D.isDown) movingX = 1;
+        if (keys.W.isDown) movingY = -1;
+        if (keys.S.isDown) movingY = 1;
+
+        // Diagonales Laufen fixen (damit man nicht doppelt so schnell ist)
+        if (movingX !== 0 && movingY !== 0) {
+            movingX *= 0.7071;
+            movingY *= 0.7071;
+        }
+
+        player.body.setVelocityX(movingX * speed);
+        player.body.setVelocityY(movingY * speed);
+
+        // Augen in Laufrichtung drehen
+        if (movingX !== 0 || movingY !== 0) {
+            let angle = Math.atan2(movingY, movingX);
+            playerEyes.rotation = angle - Math.PI / 2; // - 90 Grad, da die Augen "nach unten" gezeichnet wurden
+        }
+    }
+
+    // --- HILFSFUNKTIONEN FÜR DIE GRAFIK ---
+
+    function createWall(scene, x, y, w, h) {
+        let wallVisual = scene.add.graphics();
+        
+        // Feste Basis
+        wallVisual.fillStyle(0x000000, 1);
+        wallVisual.fillRect(x, y, w, h);
+        
+        // Leuchtende Kanten
+        wallVisual.lineStyle(2, 0x00ffff, 1);
+        wallVisual.strokeRect(x, y, w, h);
+        
+        // 3D/Tiefen-Effekt (Oberkante schräg nach hinten)
+        wallVisual.lineStyle(1, 0x00ffff, 0.4);
+        wallVisual.strokeRect(x + 10, y - 15, w, h); 
+        wallVisual.beginPath();
+        wallVisual.moveTo(x, y); wallVisual.lineTo(x + 10, y - 15);
+        wallVisual.moveTo(x + w, y); wallVisual.lineTo(x + w + 10, y - 15);
+        wallVisual.moveTo(x, y + h); wallVisual.lineTo(x + 10, y + h - 15);
+        wallVisual.moveTo(x + w, y + h); wallVisual.lineTo(x + w + 10, y + h - 15);
+        wallVisual.strokePath();
+
+        // Physik-Hitbox erstellen
+        let zone = scene.add.zone(x + w/2, y + h/2, w, h);
+        scene.physics.add.existing(zone, true); // true = static
+        walls.add(zone);
+    }
+
+    function createTable(scene, x, y, w, h) {
+        let tableVisual = scene.add.graphics();
+        
+        // Glasfläche (transparent)
+        tableVisual.fillStyle(0xff00ff, 0.1); 
+        tableVisual.fillRect(x, y, w, h);
+        
+        // Leuchtender Rahmen
+        tableVisual.lineStyle(2, 0xff00ff, 1);
+        tableVisual.strokeRect(x, y, w, h);
+
+        // Physik-Hitbox erstellen
+        let zone = scene.add.zone(x + w/2, y + h/2, w, h);
+        scene.physics.add.existing(zone, true);
+        walls.add(zone);
     }
 </script>
 </body>
