@@ -1,5 +1,5 @@
 class Station extends Phaser.GameObjects.Container {
-    constructor(scene, gridX, gridY, type, color, label) {
+    constructor(scene, gridX, gridY, type, label) {
         let pos = getIsoPos(gridX, gridY);
         super(scene, pos.x, pos.y + TILE_SIZE/2); 
         this.type = type;
@@ -8,38 +8,36 @@ class Station extends Phaser.GameObjects.Container {
 
         let g = scene.add.graphics();
         
-        // Wenn es ein Beet ist, machen wir den Deckel farbig
-        if (type === "bed") {
-            drawIsoCube(g, gridX, gridY, TILE_SIZE, this.tableHeight, 0x00ffff, 0.05, 0.05); // Cyan base
-            drawIsoTile(g, pos.x, pos.y - this.tableHeight, TILE_SIZE, 0x00ff00, 0.1, 1); // Green top
-            // Zeichne sofort eine leere Pflanze (Kristall) unsichtbar
+        // Wir zeichnen das exakte Konzept-Design basierend auf dem Typ
+        if (type === "seed_shop") {
+            drawIsoCube(g, gridX, gridY, TILE_SIZE, 30, 0xffaa00, 0.2, 0.1);
+            drawSeedHologram(g, gridX, gridY, 35);
+            this.tableHeight = 30;
+        } else if (type === "storage") {
+            drawIsoCube(g, gridX, gridY, TILE_SIZE, 15, 0x00ffff, 0.1, 0.05);
+        } else if (type === "bed") {
+            drawBedTable(g, gridX, gridY, 0x00ff00, 0.05);
+            // Pflanze ist am Anfang unsichtbar
             this.plantGraphic = scene.add.graphics();
-            drawPlant(this.plantGraphic, pos.x, pos.y - this.tableHeight, 1, 0x00ff00);
-            this.plantGraphic.setAlpha(0); // Unsichtbar am Anfang
-            scene.add.existing(this.plantGraphic);
-        } else {
-            drawIsoCube(g, gridX, gridY, TILE_SIZE, this.tableHeight, color, 0.1, 0.05);
+            drawPlant(this.plantGraphic, gridX, gridY, 1.0, 0x00ff00, 15);
+            this.plantGraphic.setAlpha(0);
         }
         
-        g.setPosition(-pos.x, -pos.y);
+        // Verschieben, da der Container selbst schon am richtigen Ort sitzt
+        g.setPosition(-pos.x, -(pos.y + TILE_SIZE/2));
         this.add(g);
-
-        // Hologramm für SeedShop
-        if (type === "seed_shop") {
-            let holo = scene.add.graphics();
-            holo.lineStyle(2, 0xffff00, 1); holo.strokeEllipse(0, -this.tableHeight - 15, 16, 8);
-            holo.fillStyle(0xffff00, 1); holo.fillCircle(0, -this.tableHeight - 15, 3);
-            this.add(holo);
+        
+        if (this.plantGraphic) {
+            this.plantGraphic.setPosition(-pos.x, -(pos.y + TILE_SIZE/2));
+            this.add(this.plantGraphic);
         }
 
-        scene.add.text(pos.x, pos.y + TILE_SIZE + 5, label, {fontSize: "10px", color: "#888"}).setOrigin(0.5);
+        scene.add.text(0, TILE_SIZE - 10, label, {fontSize: "10px", color: "#888"}).setOrigin(0.5);
 
         scene.add.existing(this);
         scene.physics.world.enable(this);
         this.body.setImmovable(true);
-        
-        // HITBOX FIX: Enger an die isometrische Form angepasst
-        this.body.setSize(TILE_SIZE * 1.2, TILE_SIZE * 0.8);
-        this.body.setOffset(-TILE_SIZE * 0.6, -TILE_SIZE * 0.4);
+        // Exakte Hitbox für isometrische Kollision
+        this.body.setSize(TILE_SIZE * 1.2, TILE_SIZE * 0.8).setOffset(-TILE_SIZE * 0.6, -TILE_SIZE * 0.4);
     }
 }
