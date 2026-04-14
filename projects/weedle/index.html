@@ -22,47 +22,67 @@
 
     function preload() {}
 
-    function create() {
-        // 1. Das Isometrische Grid zeichnen (Neon-Blau)
-        const graphics = this.add.graphics();
-        graphics.lineStyle(1, 0x00ffff, 0.3); // Neon Cyan mit Transparenz
+    // Kopiere diesen Teil in deine create-Funktion
+function create() {
+    // 1. Physik-Gruppe für Wände
+    this.walls = this.physics.add.staticGroup();
 
-        const gridSize = 10;
-        const tileSize = 40;
-
-        for (let x = 0; x <= gridSize; x++) {
-            for (let y = 0; y <= gridSize; y++) {
-                // Isometrische Koordinaten berechnen
-                let isoX = (x - y) * (tileSize);
-                let isoY = (x + y) * (tileSize / 2);
-                
-                // Wir zeichnen ein Diamant-Feld (Isometric Tile)
-                drawIsoTile(graphics, 400 + isoX, 100 + isoY, tileSize);
-            }
-        }
-
-        // 2. Ein "Neon-Beet" als Prototyp (Leuchtendes Pink)
-        createNeonStation(this, 400, 250, 0xff00ff);
-
-        // 3. Der Player (Ein einfacher Neon-Zylinder-Ersatz)
-        player = this.add.container(400, 200);
-        let playerBody = this.add.graphics();
-        playerBody.fillStyle(0x00ff00, 1);
-        playerBody.fillEllipse(0, 0, 20, 10); // Schatten/Basis
-        playerBody.fillStyle(0x00ff00, 0.8);
-        playerBody.fillRect(-10, -40, 20, 40); // Körper
-        player.add(playerBody);
-
-        cursors = this.input.keyboard.createCursorKeys();
+    // 2. Boden zeichnen (Parallelogramm-Grid)
+    const floor = this.add.graphics();
+    floor.lineStyle(1, 0x1a1a1a, 1);
+    for(let i = 0; i < 20; i++) {
+        floor.moveTo(0, i * 40);
+        floor.lineTo(800, i * 40 + 100); // Der Versatz erzeugt das Parallelogramm
+        floor.strokePath();
     }
 
-    function update() {
-        // Simples Movement (noch nicht isometrisch korrigiert, aber zum Testen)
-        if (cursors.left.isDown) player.x -= 3;
-        if (cursors.right.isDown) player.x += 3;
-        if (cursors.up.isDown) player.y -= 2;
-        if (cursors.down.isDown) player.y += 2;
-    }
+    // 3. Eine Wand bauen (Funktion unten definiert)
+    createWall(this, 100, 100, 300, 20); // Horizontale Wand
+    createWall(this, 100, 100, 20, 200); // Vertikale Wand
+
+    // 4. Der Player (Neon-Bot)
+    this.player = this.add.container(400, 300);
+    this.physics.world.enable(this.player);
+    this.player.body.setCollideWorldBounds(true);
+    
+    // Player Visuals
+    let body = this.add.graphics();
+    body.lineStyle(2, 0x00ff00, 1);
+    body.strokeRect(-15, -15, 30, 30); // Äußerer Rahmen
+    body.fillStyle(0x00ff00, 0.5);
+    body.fillRect(-5, -5, 10, 10);    // Leuchtender Kern
+    this.player.add(body);
+
+    // Kollisionen aktivieren
+    this.physics.add.collider(this.player, this.walls);
+
+    // Steuerung
+    this.keys = this.input.keyboard.addKeys('W,A,S,D');
+}
+
+function update() {
+    let speed = 200;
+    this.player.body.setVelocity(0);
+
+    if (this.keys.A.isDown) this.player.body.setVelocityX(-speed);
+    if (this.keys.D.isDown) this.player.body.setVelocityX(speed);
+    if (this.keys.W.isDown) this.player.body.setVelocityY(-speed);
+    if (this.keys.S.isDown) this.player.body.setVelocityY(speed);
+}
+
+// Hilfsfunktion für Neon-Wände mit Kollision
+function createWall(scene, x, y, w, h) {
+    let wall = scene.add.graphics();
+    // Tiefen-Effekt (3D-Look)
+    wall.lineStyle(2, 0x00ffff, 1);
+    wall.strokeRect(x, y, w, h);
+    wall.lineStyle(1, 0x00ffff, 0.3);
+    wall.strokeRect(x, y - 10, w, h); // Die "Oberkante" der Wand
+    
+    // Physik-Körper hinzufügen
+    let zone = scene.add.zone(x + w/2, y + h/2, w, h);
+    scene.walls.add(zone);
+}
 
     function drawIsoTile(g, x, y, size) {
         g.beginPath();
