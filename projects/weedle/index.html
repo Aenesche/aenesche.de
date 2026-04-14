@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Weedle - Final Concept Art</title>
+    <title>Weedle - Final Concept Art v2</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
         body { margin: 0; background-color: #050505; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; color: white; font-family: sans-serif; }
@@ -43,34 +43,36 @@
 
         // --- CONCEPT ART SHOWCASE ---
 
-        // Samen-Terminal (Tieferes Hologramm)
+        // Samen-Terminal
         drawIsoCube(g, 2, 1, TILE_SIZE, 30, 0xffaa00, 0.2, 0.1);
-        drawSeedHologram(g, 2, 1, 35); // Näher am Tisch
+        drawSeedHologram(g, 2, 1, 35);
         addLabel(this, 2, 1, "SAMEN-TERMINAL");
 
         // Laser-Tür
         drawLaserDoor(g, 6, 1);
         addLabel(this, 6, 1, "LASER-TÜR");
 
-        // --- PFLANZEN WACHSTUM (Stufenlos dargestellt) ---
+        // --- PFLANZEN WACHSTUM (Auf Tischen, in der Mitte!) ---
+        let tableHeight = 15;
+
         // 1. Leer
-        drawIsoTile(g, getIsoPos(1, 4).x, getIsoPos(1, 4).y, TILE_SIZE, 0x00ff00, 0.05, 1);
+        drawBedTable(g, 1, 4, 0x00ff00, 0.05);
         addLabel(this, 1, 4, "BEET (LEER)");
 
-        // 2. Wächst (Kleiner Kristall + Progress Timer)
-        drawIsoTile(g, getIsoPos(3, 4).x, getIsoPos(3, 4).y, TILE_SIZE, 0x00ff00, 0.1, 1);
-        drawPlant(g, 3, 4, 0.5, 0x00ff00); 
-        drawPieTimer(g, 3, 4, 30, 0.6, 0x00ffff); // 60% gewachsen (Cyan Timer)
+        // 2. Wächst
+        drawBedTable(g, 3, 4, 0x00ff00, 0.1);
+        drawPlant(g, 3, 4, 0.5, 0x00ff00, tableHeight); 
+        drawPieTimer(g, 3, 4, tableHeight + 25, 0.6, 0x00ffff); // Cyan Timer drüber
         addLabel(this, 3, 4, "WACHSTUM");
 
-        // 3. Erntebereit (Großer Kristall, leuchtet hellgrün)
-        drawIsoTile(g, getIsoPos(5, 4).x, getIsoPos(5, 4).y, TILE_SIZE, 0x00ff00, 0.2, 1);
-        drawPlant(g, 5, 4, 1.0, 0x00ff00);
+        // 3. Erntebereit
+        drawBedTable(g, 5, 4, 0x00ff00, 0.2);
+        drawPlant(g, 5, 4, 1.0, 0x00ff00, tableHeight);
         addLabel(this, 5, 4, "ERNTEBEREIT");
 
-        // 4. Verfault (Rötlich/Braun, wenn zu lange ignoriert)
-        drawIsoTile(g, getIsoPos(7, 4).x, getIsoPos(7, 4).y, TILE_SIZE, 0xff4400, 0.1, 1);
-        drawPlant(g, 7, 4, 0.8, 0xff4400); // Schrumpft leicht und wird rot
+        // 4. Verfault
+        drawBedTable(g, 7, 4, 0xff4400, 0.1);
+        drawPlant(g, 7, 4, 0.8, 0xff4400, tableHeight); 
         addLabel(this, 7, 4, "VERFAULT");
 
         // --- AKTEURE & VERKAUF ---
@@ -79,42 +81,39 @@
         drawCharacter(g, 1, 8, 0x0088ff);
         addLabel(this, 1, 8, "ANGESTELLTER");
 
-        // Kasse & Theke
-        drawIsoCube(g, 7, 8, TILE_SIZE, 20, 0xff00ff, 0.1, 0.05); // Tisch
-        drawIsoCube(g, 7, 8, 15, 30, 0xff00ff, 0.3, 0.1); // Kasse
-        addLabel(this, 7, 8, "KASSE");
+        // Kasse (Auf Standard-Theke)
+        drawIsoCube(g, 7, 8, TILE_SIZE, tableHeight, 0x00ffff, 0.1, 0.05); // Standard-Theke
+        drawRegister(g, 7, 8, tableHeight); // Kassen-Aufsatz
+        addLabel(this, 7, 8, "KASSE\n(AUF THEKE)");
 
         // Kunde mit Sprechblase & RAGE-TIMER
         drawCharacter(g, 8, 9, 0xff8800); 
-        drawSpeechBubble(g, 8, 9, 45); // Niedrigere Sprechblase
-        drawPieTimer(g, 8, 9, 65, 0.25, 0xff0000); // Roter Rage-Timer (läuft ab)
+        drawSpeechBubble(g, 8, 9, 45); 
+        drawPieTimer(g, 8, 9, 65, 0.25, 0xff0000); // Roter Rage-Timer
         addLabel(this, 8, 9, "KUNDE\n(+ WUT-TIMER)");
 
         // --- DER PLAYER ---
         player = this.add.container(getIsoPos(5, 7).x, getIsoPos(5, 7).y);
         
         let playerBody = this.add.graphics();
-        // Schatten
         playerBody.fillStyle(0x00ff00, 0.2);
-        playerBody.fillEllipse(0, 0, 24, 12);
-        // Box
+        playerBody.fillEllipse(0, 0, 24, 12); // Schatten
         playerBody.lineStyle(2, 0x00ff00, 1);
-        playerBody.strokeRect(-12, -24, 24, 24);
+        playerBody.strokeRect(-12, -24, 24, 24); // Körper-Box
         playerBody.fillStyle(0x003300, 0.8);
         playerBody.fillRect(-12, -24, 24, 24);
         player.add(playerBody);
 
-        // Augen (Start blicken sie nach unten/vorne)
+        // Augen (Neue Logik: Sie rotieren nicht mehr aus der Box raus!)
         playerEyes = this.add.graphics();
         playerEyes.fillStyle(0x00ff00, 1);
-        playerEyes.fillRect(-6, -20, 4, 4); // Linkes Auge
-        playerEyes.fillRect(2, -20, 4, 4);  // Rechtes Auge
+        playerEyes.fillRect(-6, -2, 4, 4); // Linkes Auge (relativ zur Mitte)
+        playerEyes.fillRect(2, -2, 4, 4);  // Rechtes Auge
+        playerEyes.y = -12; // Setze sie auf Kopfhöhe (Mitte der Box)
         player.add(playerEyes);
 
-        // WASD + Pfeiltasten Support
         keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT');
-        
-        this.add.text(10, 10, "STEUERUNG: WASD oder Pfeiltasten\n(Player-Augen folgen der Bewegung)", { font: "16px Arial", fill: "#fff" });
+        this.add.text(10, 10, "STEUERUNG: WASD / Pfeiltasten\nAugen bleiben jetzt IM Würfel!", { font: "16px Arial", fill: "#fff" });
     }
 
     function update() {
@@ -135,11 +134,14 @@
         player.x += movingX * speed;
         player.y += movingY * speed;
 
-        // Augen drehen sich
-        if (movingX !== 0 || movingY !== 0) {
-            let angle = Math.atan2(movingY, movingX);
-            playerEyes.rotation = angle - Math.PI/2;
-        }
+        // NEUE AUGEN-LOGIK: Verschiebung statt Rotation
+        // Die Augen gleiten max 4 Pixel in Laufrichtung
+        let eyeTargetX = movingX * 4;
+        let eyeTargetY = -12 + (movingY * 4); // Basis Y ist -12
+
+        // Fließende Animation für die Augen
+        playerEyes.x += (eyeTargetX - playerEyes.x) * 0.2;
+        playerEyes.y += (eyeTargetY - playerEyes.y) * 0.2;
     }
 
     // --- HILFSFUNKTIONEN ---
@@ -153,7 +155,8 @@
 
     function addLabel(scene, gridX, gridY, text) {
         let pos = getIsoPos(gridX, gridY);
-        let t = scene.add.text(pos.x, pos.y + 15, text, { font: "11px Arial", fill: "#888", align: "center" });
+        // Label leicht nach unten verschoben, damit es mittig unter der Station steht
+        let t = scene.add.text(pos.x, pos.y + TILE_SIZE, text, { font: "11px Arial", fill: "#888", align: "center" });
         t.setOrigin(0.5, 0);
     }
 
@@ -170,67 +173,87 @@
         drawIsoTile(g, x, y - height, size, color, topAlpha, 1);
     }
 
-    // Der stufenlose "Kristall" für die Pflanze
-    function drawPlant(g, gridX, gridY, scale, color) {
+    // Kombiniert einen Standard-Tisch mit einem Beet obendrauf
+    function drawBedTable(g, gridX, gridY, bedColor, bedAlpha) {
+        let height = 15;
+        // Theke (Cyan)
+        drawIsoCube(g, gridX, gridY, TILE_SIZE, height, 0x00ffff, 0.05, 0.05);
+        // Beet Deckel (Grün/Rot)
         let pos = getIsoPos(gridX, gridY);
-        let h = 30 * scale; 
-        let w = 15 * scale;
-        g.lineStyle(2, color, 1);
-        g.fillStyle(color, 0.2);
+        drawIsoTile(g, pos.x, pos.y - height, TILE_SIZE, bedColor, bedAlpha, 1);
+    }
+
+    // Zeichnet die Kasse auf die Theke
+    function drawRegister(g, gridX, gridY, tableHeight) {
+        let pos = getIsoPos(gridX, gridY);
+        let rx = pos.x;
+        let ry = pos.y - tableHeight + TILE_SIZE/2; // Mitte des Tisches
+
+        // Kassen-Körper (Magenta)
+        g.fillStyle(0xff00ff, 0.4);
+        g.lineStyle(1, 0xff00ff, 1);
         g.beginPath();
-        g.moveTo(pos.x, pos.y); // Unten
-        g.lineTo(pos.x - w, pos.y - h/2); // Links
-        g.lineTo(pos.x, pos.y - h); // Spitze
-        g.lineTo(pos.x + w, pos.y - h/2); // Rechts
-        g.closePath();
+        g.moveTo(rx, ry); g.lineTo(rx + 10, ry - 5); g.lineTo(rx + 10, ry - 15); g.lineTo(rx, ry - 10); g.closePath(); g.fillPath(); g.strokePath();
+        g.beginPath();
+        g.moveTo(rx, ry); g.lineTo(rx - 10, ry - 5); g.lineTo(rx - 10, ry - 15); g.lineTo(rx, ry - 10); g.closePath(); g.fillPath(); g.strokePath();
+        
+        // Kleines Neon-Display (Cyan)
+        g.fillStyle(0x00ffff, 1);
+        g.beginPath();
+        g.moveTo(rx - 8, ry - 7); g.lineTo(rx - 2, ry - 4); g.lineTo(rx - 2, ry - 10); g.lineTo(rx - 8, ry - 13); g.closePath();
         g.fillPath();
-        g.strokePath();
-        // Innerer leuchtender Kern
-        g.fillStyle(color, 1);
-        g.fillEllipse(pos.x, pos.y - h/2, w/2, h/4);
+    }
+
+    function drawPlant(g, gridX, gridY, scale, color, elevation) {
+        let pos = getIsoPos(gridX, gridY);
+        let cx = pos.x; 
+        let cy = pos.y + (TILE_SIZE / 2) - elevation; // EXAKT zentriert und auf Tischhöhe!
+        
+        let h = 30 * scale; let w = 15 * scale;
+        g.lineStyle(2, color, 1); g.fillStyle(color, 0.2);
+        g.beginPath();
+        g.moveTo(cx, cy); g.lineTo(cx - w, cy - h/2); g.lineTo(cx, cy - h); g.lineTo(cx + w, cy - h/2); g.closePath();
+        g.fillPath(); g.strokePath();
+        g.fillStyle(color, 1); g.fillEllipse(cx, cy - h/2, w/2, h/4);
     }
 
     function drawCharacter(g, gridX, gridY, color) {
         let pos = getIsoPos(gridX, gridY);
-        g.fillStyle(color, 0.2); g.fillEllipse(pos.x, pos.y, 24, 12); // Schatten
-        g.lineStyle(2, color, 1); g.strokeRect(pos.x - 12, pos.y - 24, 24, 24); // Box
-        g.fillStyle(color, 0.2); g.fillRect(pos.x - 12, pos.y - 24, 24, 24);
-        g.fillStyle(color, 1); // Augen (schauen nach vorne links zum Tisch)
-        g.fillRect(pos.x - 8, pos.y - 20, 4, 4); g.fillRect(pos.x, pos.y - 20, 4, 4);
+        let cx = pos.x; let cy = pos.y + TILE_SIZE/2; // Charaktere auf Fliesen-Zentrum
+        
+        g.fillStyle(color, 0.2); g.fillEllipse(cx, cy, 24, 12);
+        g.lineStyle(2, color, 1); g.strokeRect(cx - 12, cy - 24, 24, 24);
+        g.fillStyle(color, 0.2); g.fillRect(cx - 12, cy - 24, 24, 24);
+        g.fillStyle(color, 1); 
+        g.fillRect(cx - 6, cy - 14, 4, 4); g.fillRect(cx + 2, cy - 14, 4, 4);
     }
 
-    // Kuchendiagramm (Timer / Rage)
     function drawPieTimer(g, gridX, gridY, heightOffset, percent, color) {
         let pos = getIsoPos(gridX, gridY);
-        let x = pos.x;
-        let y = pos.y - heightOffset;
+        let cx = pos.x; let cy = pos.y + TILE_SIZE/2 - heightOffset; // Über der Mitte
         let radius = 10;
         
-        g.lineStyle(2, color, 0.5);
-        g.strokeCircle(x, y, radius); // Rahmen
-        
+        g.lineStyle(2, color, 0.5); g.strokeCircle(cx, cy, radius); 
         g.fillStyle(color, 0.8);
-        g.beginPath();
-        g.moveTo(x, y);
-        // Start bei -90 Grad (Oben). Ende bei -90 + (Prozent * 360)
-        g.arc(x, y, radius, -Math.PI/2, -Math.PI/2 + (Math.PI * 2 * percent), false);
-        g.closePath();
-        g.fillPath();
+        g.beginPath(); g.moveTo(cx, cy);
+        g.arc(cx, cy, radius, -Math.PI/2, -Math.PI/2 + (Math.PI * 2 * percent), false);
+        g.closePath(); g.fillPath();
     }
 
     function drawSpeechBubble(g, gridX, gridY, heightOffset) {
         let pos = getIsoPos(gridX, gridY);
-        let bx = pos.x + 15, by = pos.y - heightOffset;
+        let bx = pos.x + 15, by = pos.y + TILE_SIZE/2 - heightOffset;
         g.lineStyle(1, 0xffffff, 0.8); g.fillStyle(0x000000, 0.8);
         g.beginPath(); g.moveTo(bx, by); g.lineTo(bx+20, by); g.lineTo(bx+20, by-15); g.lineTo(bx-5, by-15); g.lineTo(bx-5, by-5); g.closePath();
         g.fillPath(); g.strokePath();
-        g.fillStyle(0x00ff00, 1); g.fillRect(bx+2, by-12, 8, 8); // Das gewünschte Item
+        g.fillStyle(0x00ff00, 1); g.fillRect(bx+2, by-12, 8, 8); 
     }
 
     function drawSeedHologram(g, gridX, gridY, height) {
         let pos = getIsoPos(gridX, gridY);
-        g.lineStyle(2, 0xffff00, 1); g.strokeEllipse(pos.x, pos.y - height, 16, 8);
-        g.fillStyle(0xffff00, 1); g.fillCircle(pos.x, pos.y - height, 3);
+        let cx = pos.x; let cy = pos.y + TILE_SIZE/2 - height;
+        g.lineStyle(2, 0xffff00, 1); g.strokeEllipse(cx, cy, 16, 8);
+        g.fillStyle(0xffff00, 1); g.fillCircle(cx, cy, 3);
     }
 
     function drawLaserDoor(g, gridX, gridY) {
