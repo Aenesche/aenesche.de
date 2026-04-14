@@ -1,94 +1,91 @@
 <!DOCTYPE html>
-<html lang="de">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weedle - Level Editor</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
-        body { margin: 0; background: #222; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; color: white; font-family: sans-serif; }
-        #ui-layer { position: absolute; top: 10px; left: 10px; pointer-events: none; }
-        .btn { pointer-events: auto; background: #444; color: white; border: 1px solid #666; padding: 10px; cursor: pointer; margin-bottom: 5px; display: block; }
-        .btn:hover { background: #666; }
+        body { margin: 0; background-color: #050505; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
     </style>
 </head>
 <body>
+<script>
+    const config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        backgroundColor: '#050505', // Deep Black
+        scene: { preload: preload, create: create, update: update }
+    };
 
-    <div id="ui-layer">
-        <div id="editor-ui" style="display: none;">
-            <h3>Editor Modus</h3>
-            <p>Klick auf die Karte, um einen Slot zu setzen.</p>
-            <button class="btn" onclick="exportJSON()">JSON Exportieren (Konsole)</button>
-            <button class="btn" onclick="clearSlots()">Alle Slots löschen</button>
-        </div>
-    </div>
+    const game = new Phaser.Game(config);
+    let player;
+    let cursors;
 
-    <script>
-        // Check, ob wir im Editor-Modus sind
-        const isEditor = new URLSearchParams(window.location.search).get('edit') === 'true';
-        if(isEditor) document.getElementById('editor-ui').style.display = 'block';
+    function preload() {}
 
-        const config = {
-            type: Phaser.AUTO,
-            width: 800,
-            height: 600,
-            parent: 'game-container',
-            backgroundColor: '#34495e',
-            scene: { preload: preload, create: create, update: update }
-        };
+    function create() {
+        // 1. Das Isometrische Grid zeichnen (Neon-Blau)
+        const graphics = this.add.graphics();
+        graphics.lineStyle(1, 0x00ffff, 0.3); // Neon Cyan mit Transparenz
 
-        const game = new Phaser.Game(config);
-        let slots = [];
-        let ghostSlot;
+        const gridSize = 10;
+        const tileSize = 40;
 
-        function preload() {
-            // HIER deine Assets verknüpfen (wenn du sie hochgeladen hast)
-            // this.load.image('background', 'assets/map.png');
-            // this.load.spritesheet('char', 'assets/character.png', { frameWidth: 64, frameHeight: 64 });
-        }
-
-        function create() {
-            const self = this;
-
-            // 1. Hintergrund (Platzhalter)
-            this.add.grid(400, 300, 800, 600, 32, 32, 0x2c3e50).setAltFillStyle(0x34495e);
-            this.add.text(10, 570, isEditor ? "MODUS: EDITOR (Slot platzieren)" : "MODUS: SPIEL", { fill: '#0f0' });
-
-            // 2. Ghost-Slot (Vorschau im Editor)
-            if (isEditor) {
-                ghostSlot = this.add.rectangle(0, 0, 40, 40, 0x00ff00, 0.3);
+        for (let x = 0; x <= gridSize; x++) {
+            for (let y = 0; y <= gridSize; y++) {
+                // Isometrische Koordinaten berechnen
+                let isoX = (x - y) * (tileSize);
+                let isoY = (x + y) * (tileSize / 2);
                 
-                this.input.on('pointerdown', (pointer) => {
-                    const newSlot = { x: Math.round(pointer.x), y: Math.round(pointer.y), id: slots.length + 1 };
-                    slots.push(newSlot);
-                    drawSlot(self, newSlot);
-                });
+                // Wir zeichnen ein Diamant-Feld (Isometric Tile)
+                drawIsoTile(graphics, 400 + isoX, 100 + isoY, tileSize);
             }
         }
 
-        function update() {
-            if (isEditor && ghostSlot) {
-                ghostSlot.x = this.input.activePointer.x;
-                ghostSlot.y = this.input.activePointer.y;
-            }
+        // 2. Ein "Neon-Beet" als Prototyp (Leuchtendes Pink)
+        createNeonStation(this, 400, 250, 0xff00ff);
+
+        // 3. Der Player (Ein einfacher Neon-Zylinder-Ersatz)
+        player = this.add.container(400, 200);
+        let playerBody = this.add.graphics();
+        playerBody.fillStyle(0x00ff00, 1);
+        playerBody.fillEllipse(0, 0, 20, 10); // Schatten/Basis
+        playerBody.fillStyle(0x00ff00, 0.8);
+        playerBody.fillRect(-10, -40, 20, 40); // Körper
+        player.add(playerBody);
+
+        cursors = this.input.keyboard.createCursorKeys();
+    }
+
+    function update() {
+        // Simples Movement (noch nicht isometrisch korrigiert, aber zum Testen)
+        if (cursors.left.isDown) player.x -= 3;
+        if (cursors.right.isDown) player.x += 3;
+        if (cursors.up.isDown) player.y -= 2;
+        if (cursors.down.isDown) player.y += 2;
+    }
+
+    function drawIsoTile(g, x, y, size) {
+        g.beginPath();
+        g.moveTo(x, y);
+        g.lineTo(x + size, y + size / 2);
+        g.lineTo(x, y + size);
+        g.lineTo(x - size, y + size / 2);
+        g.closePath();
+        g.strokePath();
+    }
+
+    function createNeonStation(scene, x, y, color) {
+        let g = scene.add.graphics();
+        // Glow-Effekt durch mehrere Schichten
+        for(let i = 5; i > 0; i--) {
+            g.lineStyle(i * 2, color, 0.1);
+            drawIsoTile(g, x, y, 40);
         }
-
-        function drawSlot(scene, data) {
-            const rect = scene.add.rectangle(data.x, data.y, 40, 40, 0xffffff, 0.5);
-            scene.add.text(data.x, data.y, data.id, { fontSize: '12px' }).setOrigin(0.5);
-        }
-
-        // Editor Funktionen
-        window.exportJSON = () => {
-            console.log("KOPIERE DIESE DATEN:");
-            console.log(JSON.stringify(slots, null, 2));
-            alert("JSON wurde in die Browser-Konsole (F12) gedruckt!");
-        };
-
-        window.clearSlots = () => {
-            location.reload();
-        };
-
-    </script>
+        g.lineStyle(2, color, 1);
+        drawIsoTile(g, x, y, 40);
+        
+        scene.add.text(x - 20, y - 40, "STATION", { font: "12px Arial", fill: "#fff" });
+    }
+</script>
 </body>
 </html>
