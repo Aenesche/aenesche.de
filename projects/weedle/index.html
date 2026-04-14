@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Weedle - Neon Prototyp 3.0 (Perspektive)</title>
+    <title>Weedle - Finales Grafik Konzept</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
         body { margin: 0; background: #050505; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
@@ -17,7 +17,7 @@
         backgroundColor: '#050505',
         physics: {
             default: 'arcade',
-            arcade: { debug: false } 
+            arcade: { debug: false }
         },
         scene: { preload: preload, create: create, update: update }
     };
@@ -27,77 +27,38 @@
     let playerEyes;
     let keys;
     let walls;
-
-    // Fluchtpunkt und Grenzen für die Perspektive
-    const BodenVorn = { y: 550, breite: 700 }; // Vordere Kante (Eingang)
-    const BodenHinten = { y: 200, breite: 300 }; // Hintere Kante
+    let trailEmitter;
 
     function preload() {}
 
     function create() {
         walls = this.physics.add.staticGroup();
 
-        // 1. Neon-Boden zeichnen (Perspektivisches Zentralgitter)
+        // 1. Partikel-Textur für den Schweif generieren (Kein Bild-Upload nötig!)
+        let particleGraphics = this.make.graphics();
+        particleGraphics.fillStyle(0x00ff00, 1);
+        particleGraphics.fillRect(0, 0, 6, 6);
+        particleGraphics.generateTexture('trail_tex', 6, 6);
+
+        // 2. Das Neon-Gitter (Gerade & Sauber)
         const floor = this.add.graphics();
         floor.lineStyle(1, 0x003333, 0.4); 
-        
-        // Gitter zeichnen
-        const gitterAnzahl = 10;
-        for(let i = 0; i <= gitterAnzahl; i++) {
-            let xVorn = (400 - BodenVorn.breite / 2) + (i / gitterAnzahl) * BodenVorn.breite;
-            let xHinten = (400 - BodenHinten.breite / 2) + (i / gitterAnzahl) * BodenHinten.breite;
-            floor.moveTo(xVorn, BodenVorn.y);
-            floor.lineTo(xHinten, BodenHinten.y);
-        }
-        for(let y = BodenHinten.y; y <= BodenVorn.y; y += 40) {
-            let p = (y - BodenHinten.y) / (BodenVorn.y - BodenHinten.y);
-            let breite = BodenHinten.breite + p * (BodenVorn.breite - BodenHinten.breite);
-            floor.moveTo(400 - breite / 2, y);
-            floor.lineTo(400 + breite / 2, y);
-        }
+        for(let x = 0; x <= 800; x += 40) { floor.moveTo(x, 0); floor.lineTo(x, 600); }
+        for(let y = 0; y <= 600; y += 40) { floor.moveTo(0, y); floor.lineTo(800, y); }
         floor.strokePath();
 
-        // 2. Perspektivische Wände zeichnen
-        let wallVisuals = this.add.graphics();
-        wallVisuals.lineStyle(2, 0x00ffff, 1);
-        
-        // Linke Wand Form
-        let ptsLeft = [
-            {x: 400 - BodenVorn.breite / 2, y: BodenVorn.y},
-            {x: 400 - BodenHinten.breite / 2, y: BodenHinten.y},
-            {x: 400 - BodenHinten.breite / 2, y: BodenHinten.y - 100},
-            {x: 400 - BodenVorn.breite / 2, y: BodenVorn.y - 150}
-        ];
-        drawPoly(wallVisuals, ptsLeft);
-        drawDepthLines(wallVisuals, ptsLeft[0].x, ptsLeft[0].y, ptsLeft[1].x, ptsLeft[1].y, 150, 100);
+        // 3. Orthogonale Wände (Draufsicht mit Tiefe)
+        createWall(this, 150, 100, 500, 40, 20, 0x00ffff); // Oben
+        createWall(this, 150, 100, 40, 400, 20, 0x00ffff); // Links
+        createWall(this, 610, 100, 40, 400, 20, 0x00ffff); // Rechts
 
-        // Rechte Wand Form
-        let ptsRight = [
-            {x: 400 + BodenVorn.breite / 2, y: BodenVorn.y},
-            {x: 400 + BodenHinten.breite / 2, y: BodenHinten.y},
-            {x: 400 + BodenHinten.breite / 2, y: BodenHinten.y - 100},
-            {x: 400 + BodenVorn.breite / 2, y: BodenVorn.y - 150}
-        ];
-        drawPoly(wallVisuals, ptsRight);
-        drawDepthLines(wallVisuals, ptsRight[0].x, ptsRight[0].y, ptsRight[1].x, ptsRight[1].y, 150, 100);
+        // Tisch (Simples Rechteck)
+        createTable(this, 350, 250, 100, 60, 0xff00ff);
 
-        // Hintere Wand
-        wallVisuals.strokeRect(400 - BodenHinten.breite / 2, BodenHinten.y - 100, BodenHinten.breite, 100);
-        wallVisuals.fillStyle(0x00ffff, 0.05);
-        wallVisuals.fillRect(400 - BodenHinten.breite / 2, BodenHinten.y - 100, BodenHinten.breite, 100);
-
-        // Eingangslinie
-        wallVisuals.lineStyle(2, 0x444444, 1); 
-        wallVisuals.moveTo(400 - BodenVorn.breite / 2, BodenVorn.y);
-        wallVisuals.lineTo(400 + BodenVorn.breite / 2, BodenVorn.y);
-        wallVisuals.strokePath();
-
-        // 3. Tisch (Normale Arcade-Kollision reicht hier, da er mittig steht)
-        createTable(this, 400, 350, 80, 50, 0xff00ff);
-
-        // 4. Player
-        player = this.add.container(400, 450);
+        // 4. Der Player (Neon-Bot)
+        player = this.add.container(400, 300);
         this.physics.world.enable(player);
+        player.body.setCollideWorldBounds(true);
         player.body.setSize(24, 24);
         player.body.setOffset(-12, -12);
 
@@ -109,20 +70,33 @@
         playerBody.fillRect(-12, -12, 24, 24);
         player.add(playerBody);
 
+        // Player Augen (Schauen nach rechts als Startwert)
         playerEyes = this.add.graphics();
         playerEyes.fillStyle(0x00ff00, 1);
-        playerEyes.fillRect(-6, -10, 4, 4);
-        playerEyes.fillRect(2, -10, 4, 4); 
+        playerEyes.fillRect(4, -6, 4, 4); // Linkes Auge
+        playerEyes.fillRect(4, 2, 4, 4);  // Rechtes Auge
         player.add(playerEyes);
 
-        // Nur Tisch-Kollision (Wände berechnen wir unten)
-        this.physics.add.collider(player, walls);
+        // 5. Der Neon-Schweif (Partikel)
+        trailEmitter = this.add.particles(0, 0, 'trail_tex', {
+            speed: 10,
+            lifespan: 300,
+            scale: { start: 1, end: 0 },
+            alpha: { start: 0.4, end: 0 },
+            blendMode: 'ADD',
+            emitting: false // Wird nur beim Laufen aktiviert
+        });
+        trailEmitter.startFollow(player);
 
+        // Kollisionen
+        this.physics.add.collider(player, walls);
         keys = this.input.keyboard.addKeys('W,A,S,D');
     }
 
     function update() {
-        let speed = 200;
+        let speed = 250;
+        player.body.setVelocity(0);
+
         let movingX = 0;
         let movingY = 0;
 
@@ -131,6 +105,7 @@
         if (keys.W.isDown) movingY = -1;
         if (keys.S.isDown) movingY = 1;
 
+        // Diagonal-Fix
         if (movingX !== 0 && movingY !== 0) {
             movingX *= 0.7071;
             movingY *= 0.7071;
@@ -139,64 +114,49 @@
         player.body.setVelocityX(movingX * speed);
         player.body.setVelocityY(movingY * speed);
 
+        // Blickrichtung & Schweif steuern
         if (movingX !== 0 || movingY !== 0) {
             let angle = Math.atan2(movingY, movingX);
-            playerEyes.rotation = angle - Math.PI / 2; 
+            
+            // Augen in Laufrichtung drehen
+            playerEyes.rotation = angle;
+            
+            // Schweif aktivieren und Offset auf den "Rücken" legen
+            trailEmitter.emitting = true;
+            trailEmitter.followOffset.x = -Math.cos(angle) * 12; // 12 Pixel hinter der Mitte
+            trailEmitter.followOffset.y = -Math.sin(angle) * 12;
         } else {
-            playerEyes.rotation = 0;
+            // Beim Stehenbleiben hört der Schweif auf
+            trailEmitter.emitting = false;
         }
-
-        // --- DER TRICK: Mathematische "Wände" für die Perspektive ---
-        let playerRadius = 12;
-
-        // 1. Oben und unten einsperren
-        if (player.y < BodenHinten.y + playerRadius) player.y = BodenHinten.y + playerRadius;
-        if (player.y > BodenVorn.y - playerRadius) player.y = BodenVorn.y - playerRadius;
-
-        // 2. Die schrägen Seitenwände berechnen (je nachdem wie tief man im Raum steht)
-        let prozentTief = (player.y - BodenHinten.y) / (BodenVorn.y - BodenHinten.y);
-        
-        let linkeWandX = (400 - BodenHinten.breite / 2) + prozentTief * ((400 - BodenVorn.breite / 2) - (400 - BodenHinten.breite / 2));
-        let rechteWandX = 800 - linkeWandX;
-
-        if (player.x < linkeWandX + playerRadius) player.x = linkeWandX + playerRadius;
-        if (player.x > rechteWandX - playerRadius) player.x = rechteWandX - playerRadius;
     }
 
     // --- HILFSFUNKTIONEN ---
 
-    function drawPoly(g, points) {
-        g.beginPath();
-        g.moveTo(points[0].x, points[0].y);
-        for(let i = 1; i < points.length; i++) {
-            g.lineTo(points[i].x, points[i].y);
-        }
-        g.closePath();
-        g.strokePath();
-    }
-
-    function drawDepthLines(g, xVorn, yVorn, xHinten, yHinten, hVorn, hHinten) {
-        g.beginPath();
-        g.lineStyle(1, 0x00ffff, 0.4);
-        for(let i = 0; i < 8; i++) {
-            let p = i / 7;
-            let x = xHinten + p * (xVorn - xHinten);
-            let y = yHinten + p * (yVorn - yHinten);
-            let h = hHinten + p * (hVorn - hHinten);
-            g.moveTo(x, y);
-            g.lineTo(x, y - h);
-        }
-        g.strokePath();
+    function createWall(scene, x, y, w, h, depth, color) {
+        let wallVisual = scene.add.graphics();
+        wallVisual.fillStyle(color, 0.2);
+        wallVisual.fillRect(x, y, w, depth); 
+        wallVisual.lineStyle(2, color, 1);
+        wallVisual.strokeRect(x, y, w, depth);
+        wallVisual.fillStyle(color, 0.1);
+        wallVisual.fillRect(x, y + depth, w, h - depth);
+        wallVisual.lineStyle(1, color, 0.6);
+        wallVisual.strokeRect(x, y + depth, w, h - depth);
+        
+        let zone = scene.add.zone(x + w/2, y + h/2, w, h);
+        scene.physics.add.existing(zone, true);
+        walls.add(zone);
     }
 
     function createTable(scene, x, y, w, h, color) {
         let tableVisual = scene.add.graphics();
         tableVisual.fillStyle(color, 0.1); 
-        tableVisual.fillRect(x - w/2, y - h/2, w, h);
+        tableVisual.fillRect(x, y, w, h);
         tableVisual.lineStyle(2, color, 1);
-        tableVisual.strokeRect(x - w/2, y - h/2, w, h);
+        tableVisual.strokeRect(x, y, w, h);
 
-        let zone = scene.add.zone(x, y, w, h);
+        let zone = scene.add.zone(x + w/2, y + h/2, w, h);
         scene.physics.add.existing(zone, true);
         walls.add(zone);
     }
