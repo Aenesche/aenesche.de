@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Weedle - Neon Prototyp</title>
+    <title>Weedle - Neon Prototyp 2.0</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
         body { margin: 0; background: #050505; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
@@ -15,10 +15,9 @@
         width: 800,
         height: 600,
         backgroundColor: '#050505',
-        // HIER WAR DER FEHLER: Physics muss aktiviert sein!
         physics: {
             default: 'arcade',
-            arcade: { debug: false } 
+            arcade: { debug: false } // Setze auf true für Hitbox-Vorschau
         },
         scene: { preload: preload, create: create, update: update }
     };
@@ -35,14 +34,14 @@
         // 1. Physik-Gruppe für Wände und Tische
         walls = this.physics.add.staticGroup();
 
-        // 2. Neon-Boden zeichnen (Parallelogramm-Grid)
+        // 2. Neon-Boden zeichnen (Orthogonales, quadratisches Grid)
         const floor = this.add.graphics();
         floor.lineStyle(1, 0x003333, 0.4); // Dunkles Neon-Cyan
         
-        // Vertikale Linien (leicht schräg für den Tiefeneffekt)
-        for(let x = 0; x <= 1000; x += 40) {
+        // Vertikale Linien (gerade, quadratisch)
+        for(let x = 0; x <= 800; x += 40) {
             floor.moveTo(x, 0);
-            floor.lineTo(x - 300, 600); 
+            floor.lineTo(x, 600); 
         }
         // Horizontale Linien
         for(let y = 0; y <= 600; y += 40) {
@@ -51,14 +50,22 @@
         }
         floor.strokePath();
 
-        // 3. Wände bauen (x, y, breite, höhe)
-        createWall(this, 150, 100, 500, 20); // Obere Wand
-        createWall(this, 150, 100, 20, 400); // Linke Wand
-        createWall(this, 150, 480, 500, 20); // Untere Wand
-        createWall(this, 630, 100, 20, 400); // Rechte Wand
+        // 3. Orthogonale Wände bauen (x, y, breite, höhe, tiefe/höhe)
+        // Wir zeichnen die Wände als dicke, orthogonale Balken, um die " Draufsicht vor dem Laden " darzustellen
+        
+        // Fette obere Wand (Draufsicht auf die Wandhöhe)
+        createWall(this, 150, 100, 500, 40, 20, 0x00ffff); 
+        
+        // Fette linke Wand (Draufsicht auf die Wandhöhe)
+        createWall(this, 150, 100, 40, 400, 20, 0x00ffff);
+        
+        // Fette rechte Wand (Draufsicht auf die Wandhöhe)
+        createWall(this, 610, 100, 40, 400, 20, 0x00ffff); 
 
-        // Ein Tisch in der Mitte
-        createTable(this, 350, 250, 100, 60);
+        // Die untere Wand lassen wir offen für den Eingang
+
+        // Ein Tisch in der Mitte (Orthogonales Rechteck)
+        createTable(this, 350, 250, 100, 60, 0xff00ff);
 
         // 4. Der Player (Neon-Bot)
         player = this.add.container(400, 300);
@@ -75,11 +82,11 @@
         playerBody.fillRect(-12, -12, 24, 24);
         player.add(playerBody);
 
-        // Player Visuals (Augen)
+        // Player Visuals (Augen - Blicken nach vorne/oben)
         playerEyes = this.add.graphics();
         playerEyes.fillStyle(0x00ff00, 1);
-        playerEyes.fillRect(-6, 4, 4, 4); // Linkes Auge
-        playerEyes.fillRect(2, 4, 4, 4);  // Rechtes Auge
+        playerEyes.fillRect(-6, -10, 4, 4); // Linkes Auge
+        playerEyes.fillRect(2, -10, 4, 4);  // Rechtes Auge
         player.add(playerEyes);
 
         // Kollision aktivieren!
@@ -101,7 +108,7 @@
         if (keys.W.isDown) movingY = -1;
         if (keys.S.isDown) movingY = 1;
 
-        // Diagonales Laufen fixen (damit man nicht doppelt so schnell ist)
+        // Diagonales Laufen fixen
         if (movingX !== 0 && movingY !== 0) {
             movingX *= 0.7071;
             movingY *= 0.7071;
@@ -113,48 +120,49 @@
         // Augen in Laufrichtung drehen
         if (movingX !== 0 || movingY !== 0) {
             let angle = Math.atan2(movingY, movingX);
-            playerEyes.rotation = angle - Math.PI / 2; // - 90 Grad, da die Augen "nach unten" gezeichnet wurden
+            playerEyes.rotation = angle - Math.PI / 2; // - 90 Grad, da die Augen "nach oben" gezeichnet wurden
         }
     }
 
     // --- HILFSFUNKTIONEN FÜR DIE GRAFIK ---
 
-    function createWall(scene, x, y, w, h) {
+    // Erstellt dicke, orthogonale Wände, die die Wandhöhe simulieren
+    function createWall(scene, x, y, w, h, depth, color) {
         let wallVisual = scene.add.graphics();
         
-        // Feste Basis
-        wallVisual.fillStyle(0x000000, 1);
-        wallVisual.fillRect(x, y, w, h);
+        // Die "Sicht von oben" auf die Wand (Draufsicht auf die Wandtiefe)
+        wallVisual.fillStyle(color, 0.2);
+        wallVisual.fillRect(x, y, w, depth); 
+        wallVisual.lineStyle(2, color, 1);
+        wallVisual.strokeRect(x, y, w, depth);
+
+        // Die "Vorderseite" der Wand (Dicke/Höhe nach unten)
+        wallVisual.fillStyle(color, 0.1);
+        wallVisual.fillRect(x, y + depth, w, h - depth);
+        wallVisual.lineStyle(1, color, 0.6);
+        wallVisual.strokeRect(x, y + depth, w, h - depth);
         
-        // Leuchtende Kanten
-        wallVisual.lineStyle(2, 0x00ffff, 1);
-        wallVisual.strokeRect(x, y, w, h);
-        
-        // 3D/Tiefen-Effekt (Oberkante schräg nach hinten)
-        wallVisual.lineStyle(1, 0x00ffff, 0.4);
-        wallVisual.strokeRect(x + 10, y - 15, w, h); 
+        // Wir zeichnen orthogonale Verbindungslinien, um die "Tiefe" zu zeigen, aber ohne schräge Linien nach hinten
         wallVisual.beginPath();
-        wallVisual.moveTo(x, y); wallVisual.lineTo(x + 10, y - 15);
-        wallVisual.moveTo(x + w, y); wallVisual.lineTo(x + w + 10, y - 15);
-        wallVisual.moveTo(x, y + h); wallVisual.lineTo(x + 10, y + h - 15);
-        wallVisual.moveTo(x + w, y + h); wallVisual.lineTo(x + w + 10, y + h - 15);
+        wallVisual.moveTo(x, y + depth); wallVisual.lineTo(x, y + depth + (h - depth));
+        wallVisual.moveTo(x + w, y + depth); wallVisual.lineTo(x + w, y + depth + (h - depth));
         wallVisual.strokePath();
 
-        // Physik-Hitbox erstellen
+        // Physik-Hitbox erstellen (Wir nehmen die dicke Wand als Collider)
         let zone = scene.add.zone(x + w/2, y + h/2, w, h);
         scene.physics.add.existing(zone, true); // true = static
         walls.add(zone);
     }
 
-    function createTable(scene, x, y, w, h) {
+    function createTable(scene, x, y, w, h, color) {
         let tableVisual = scene.add.graphics();
         
-        // Glasfläche (transparent)
-        tableVisual.fillStyle(0xff00ff, 0.1); 
+        // Glasfläche (transparent, orthogonal)
+        tableVisual.fillStyle(color, 0.1); 
         tableVisual.fillRect(x, y, w, h);
         
         // Leuchtender Rahmen
-        tableVisual.lineStyle(2, 0xff00ff, 1);
+        tableVisual.lineStyle(2, color, 1);
         tableVisual.strokeRect(x, y, w, h);
 
         // Physik-Hitbox erstellen
