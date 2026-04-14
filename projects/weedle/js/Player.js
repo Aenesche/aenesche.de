@@ -10,6 +10,7 @@ class Player extends Phaser.GameObjects.Container {
         this.bodyGfx.fillStyle(0x003300, 0.8); this.bodyGfx.fillRect(-12, -24, 24, 24);
         this.add(this.bodyGfx);
 
+        // Deine exakte Augen-Logik
         this.eyes = scene.add.graphics();
         this.eyes.fillStyle(0x00ff00, 1);
         this.eyes.fillRect(-6, -2, 4, 4); this.eyes.fillRect(2, -2, 4, 4);
@@ -25,30 +26,27 @@ class Player extends Phaser.GameObjects.Container {
         let speed = 200;
         let vx = 0, vy = 0;
 
-        if (keys.A.isDown) vx = -1;
-        if (keys.D.isDown) vx = 1;
-        if (keys.W.isDown) vy = -1;
-        if (keys.S.isDown) vy = 1;
+        if (keys.A.isDown || keys.LEFT.isDown) vx = -1;
+        if (keys.D.isDown || keys.RIGHT.isDown) vx = 1;
+        if (keys.W.isDown || keys.UP.isDown) vy = -1;
+        if (keys.S.isDown || keys.DOWN.isDown) vy = 1;
 
         if (vx !== 0 && vy !== 0) { vx *= 0.707; vy *= 0.707; }
         this.body.setVelocity(vx * speed, vy * speed);
 
-        // Augen-Animation
+        // Deine Augen-Verschiebung
         let targetX = vx * 4;
         let targetY = -12 + (vy * 4);
         this.eyes.x += (targetX - this.eyes.x) * 0.2;
         this.eyes.y += (targetY - this.eyes.y) * 0.2;
 
-        // WAND-KOLLISION (Mathematisch im Iso-Grid)
-        // Wir rechnen die Bildschirm X/Y in Grid X/Y um
+        // Wand-Grenzen (verhindert das Durchlaufen der Wände)
         let gridX = (this.x - OFFSET_X) / (2 * TILE_SIZE) + (this.y - OFFSET_Y) / TILE_SIZE;
         let gridY = (this.y - OFFSET_Y) / TILE_SIZE - (this.x - OFFSET_X) / (2 * TILE_SIZE);
-
-        let roomSize = 9.5; // Größe des Raums
-        if (gridX < 0) this.x += 2; // Drückt dich zurück
+        if (gridX < 0) this.x += 2; 
         if (gridY < 0) this.y += 2;
-        if (gridX > roomSize) this.x -= 2;
-        if (gridY > roomSize) this.y -= 2;
+        if (gridX > 9.5) this.x -= 2;
+        if (gridY > 9.5) this.y -= 2;
 
         return (vx !== 0 || vy !== 0);
     }
@@ -56,7 +54,7 @@ class Player extends Phaser.GameObjects.Container {
     pickup(item) {
         if (this.heldItem) return;
         this.heldItem = item;
-        item.setPosition(0, -40); // Über dem Kopf
+        item.setPosition(0, -40);
         this.add(item);
     }
 
