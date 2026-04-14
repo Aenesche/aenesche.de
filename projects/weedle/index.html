@@ -2,163 +2,211 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Weedle - Finales Grafik Konzept</title>
+    <title>Weedle - Isometric Concept Art</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
     <style>
-        body { margin: 0; background: #050505; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        body { margin: 0; background-color: #050505; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
     </style>
 </head>
 <body>
 <script>
     const config = {
         type: Phaser.AUTO,
-        width: 800,
-        height: 600,
+        width: 1000,
+        height: 700,
         backgroundColor: '#050505',
-        physics: {
-            default: 'arcade',
-            arcade: { debug: false }
-        },
         scene: { preload: preload, create: create, update: update }
     };
 
     const game = new Phaser.Game(config);
     let player;
-    let playerEyes;
-    let keys;
-    let walls;
-    let trailEmitter;
+    let cursors;
+    const TILE_SIZE = 40;
+    const OFFSET_X = 500;
+    const OFFSET_Y = 100;
 
     function preload() {}
 
     function create() {
-        walls = this.physics.add.staticGroup();
+        const g = this.add.graphics();
 
-        // 1. Partikel-Textur für den Schweif generieren (Kein Bild-Upload nötig!)
-        let particleGraphics = this.make.graphics();
-        particleGraphics.fillStyle(0x00ff00, 1);
-        particleGraphics.fillRect(0, 0, 6, 6);
-        particleGraphics.generateTexture('trail_tex', 6, 6);
+        // 1. Das Isometrische Grid zeichnen (Neon-Cyan)
+        g.lineStyle(1, 0x005555, 0.3);
+        const gridSize = 12;
+        for (let x = 0; x <= gridSize; x++) {
+            for (let y = 0; y <= gridSize; y++) {
+                let pos = getIsoPos(x, y);
+                drawIsoTile(g, pos.x, pos.y, TILE_SIZE, 0, 0, 0); // Nur Umrisse
+            }
+        }
 
-        // 2. Das Neon-Gitter (Gerade & Sauber)
-        const floor = this.add.graphics();
-        floor.lineStyle(1, 0x003333, 0.4); 
-        for(let x = 0; x <= 800; x += 40) { floor.moveTo(x, 0); floor.lineTo(x, 600); }
-        for(let y = 0; y <= 600; y += 40) { floor.moveTo(0, y); floor.lineTo(800, y); }
-        floor.strokePath();
+        // --- CONCEPT ART SHOWCASE ---
 
-        // 3. Orthogonale Wände (Draufsicht mit Tiefe)
-        createWall(this, 150, 100, 500, 40, 20, 0x00ffff); // Oben
-        createWall(this, 150, 100, 40, 400, 20, 0x00ffff); // Links
-        createWall(this, 610, 100, 40, 400, 20, 0x00ffff); // Rechts
+        // Laser-Tür (Grid: 1, 1)
+        drawLaserDoor(g, 1, 1);
+        addLabel(this, 1, 1, "LASER-TÜR");
 
-        // Tisch (Simples Rechteck)
-        createTable(this, 350, 250, 100, 60, 0xff00ff);
+        // Samen-Terminal (Grid: 4, 1)
+        drawIsoCube(g, 4, 1, TILE_SIZE, 30, 0xffaa00, 0.2, 0.1);
+        drawSeedHologram(g, 4, 1, 50);
+        addLabel(this, 4, 1, "SAMEN-TERMINAL");
 
-        // 4. Der Player (Neon-Bot)
-        player = this.add.container(400, 300);
-        this.physics.world.enable(player);
-        player.body.setCollideWorldBounds(true);
-        player.body.setSize(24, 24);
-        player.body.setOffset(-12, -12);
+        // Beete: Die 3 Wachstumsphasen (Grid: 2, 4 bis 4, 4)
+        drawIsoTile(g, getIsoPos(2, 4).x, getIsoPos(2, 4).y, TILE_SIZE, 0x00ff00, 0.05, 1); // Empty
+        addLabel(this, 2, 4, "BEET (LEER)");
 
-        // Player Optik
+        drawIsoTile(g, getIsoPos(3, 4).x, getIsoPos(3, 4).y, TILE_SIZE, 0x00ff00, 0.1, 1);
+        drawPlant(g, 3, 4, 1); // Growing
+        addLabel(this, 3, 4, "WACHSTUM");
+
+        drawIsoTile(g, getIsoPos(4, 4).x, getIsoPos(4, 4).y, TILE_SIZE, 0x00ff00, 0.2, 1);
+        drawPlant(g, 4, 4, 2); // Ready
+        addLabel(this, 4, 4, "ERNTEBEREIT");
+
+        // Theke / Tisch mit Item (Grid: 8, 4)
+        drawIsoCube(g, 8, 4, TILE_SIZE, 20, 0x00ffff, 0.1, 0.05);
+        drawItemCube(g, 8, 4, 30, 0x00ff00); // Fertiges Paket auf dem Tisch
+        addLabel(this, 8, 4, "LAGER-THEKE\n(+ ITEM)");
+
+        // Kasse mit Kunden (Grid: 8, 8)
+        drawIsoCube(g, 8, 8, TILE_SIZE, 20, 0xff00ff, 0.1, 0.05); // Tisch
+        drawIsoCube(g, 8, 8, 15, 35, 0xff00ff, 0.3, 0.1); // Kasse
+        addLabel(this, 8, 8, "VERKAUF\n(KASSE)");
+
+        // Kunde (Wartet an Kasse) (Grid: 9, 9)
+        drawCharacter(g, 9, 9, 0xff8800); 
+        drawSpeechBubble(g, 9, 9);
+        addLabel(this, 9, 9, "KUNDE");
+
+        // Angestellter (Bot) (Grid: 2, 8)
+        drawCharacter(g, 2, 8, 0x0088ff);
+        addLabel(this, 2, 8, "ANGESTELLTER");
+
+
+        // --- DER PLAYER ---
+        player = this.add.container(getIsoPos(6, 6).x, getIsoPos(6, 6).y);
         let playerBody = this.add.graphics();
+        playerBody.fillStyle(0x00ff00, 0.8);
+        playerBody.fillEllipse(0, 0, 24, 12); // Isometrischer Schatten/Basis
         playerBody.lineStyle(2, 0x00ff00, 1);
-        playerBody.strokeRect(-12, -12, 24, 24);
-        playerBody.fillStyle(0x002200, 0.8);
-        playerBody.fillRect(-12, -12, 24, 24);
+        playerBody.strokeRect(-8, -35, 16, 35); // Körper
+        playerBody.fillStyle(0x003300, 0.8);
+        playerBody.fillRect(-8, -35, 16, 35);
         player.add(playerBody);
 
-        // Player Augen (Schauen nach rechts als Startwert)
-        playerEyes = this.add.graphics();
-        playerEyes.fillStyle(0x00ff00, 1);
-        playerEyes.fillRect(4, -6, 4, 4); // Linkes Auge
-        playerEyes.fillRect(4, 2, 4, 4);  // Rechtes Auge
-        player.add(playerEyes);
-
-        // 5. Der Neon-Schweif (Partikel)
-        trailEmitter = this.add.particles(0, 0, 'trail_tex', {
-            speed: 10,
-            lifespan: 300,
-            scale: { start: 1, end: 0 },
-            alpha: { start: 0.4, end: 0 },
-            blendMode: 'ADD',
-            emitting: false // Wird nur beim Laufen aktiviert
-        });
-        trailEmitter.startFollow(player);
-
-        // Kollisionen
-        this.physics.add.collider(player, walls);
-        keys = this.input.keyboard.addKeys('W,A,S,D');
+        cursors = this.input.keyboard.createCursorKeys();
+        
+        this.add.text(10, 10, "WASD / PFEILTASTEN zum Bewegen\n(Intuitive Screen-Steuerung)", { font: "16px Arial", fill: "#fff" });
     }
 
     function update() {
-        let speed = 250;
-        player.body.setVelocity(0);
-
-        let movingX = 0;
-        let movingY = 0;
-
-        if (keys.A.isDown) movingX = -1;
-        if (keys.D.isDown) movingX = 1;
-        if (keys.W.isDown) movingY = -1;
-        if (keys.S.isDown) movingY = 1;
-
-        // Diagonal-Fix
-        if (movingX !== 0 && movingY !== 0) {
-            movingX *= 0.7071;
-            movingY *= 0.7071;
-        }
-
-        player.body.setVelocityX(movingX * speed);
-        player.body.setVelocityY(movingY * speed);
-
-        // Blickrichtung & Schweif steuern
-        if (movingX !== 0 || movingY !== 0) {
-            let angle = Math.atan2(movingY, movingX);
-            
-            // Augen in Laufrichtung drehen
-            playerEyes.rotation = angle;
-            
-            // Schweif aktivieren und Offset auf den "Rücken" legen
-            trailEmitter.emitting = true;
-            trailEmitter.followOffset.x = -Math.cos(angle) * 12; // 12 Pixel hinter der Mitte
-            trailEmitter.followOffset.y = -Math.sin(angle) * 12;
-        } else {
-            // Beim Stehenbleiben hört der Schweif auf
-            trailEmitter.emitting = false;
-        }
+        // Intuitive Steuerung (Oben ist Oben auf dem Bildschirm)
+        let speed = 4;
+        if (cursors.left.isDown) player.x -= speed;
+        if (cursors.right.isDown) player.x += speed;
+        if (cursors.up.isDown) player.y -= speed;
+        if (cursors.down.isDown) player.y += speed;
     }
 
-    // --- HILFSFUNKTIONEN ---
+    // --- HILFSFUNKTIONEN FÜR ISOMETRISCHES DESIGN ---
 
-    function createWall(scene, x, y, w, h, depth, color) {
-        let wallVisual = scene.add.graphics();
-        wallVisual.fillStyle(color, 0.2);
-        wallVisual.fillRect(x, y, w, depth); 
-        wallVisual.lineStyle(2, color, 1);
-        wallVisual.strokeRect(x, y, w, depth);
-        wallVisual.fillStyle(color, 0.1);
-        wallVisual.fillRect(x, y + depth, w, h - depth);
-        wallVisual.lineStyle(1, color, 0.6);
-        wallVisual.strokeRect(x, y + depth, w, h - depth);
+    function getIsoPos(gridX, gridY) {
+        return {
+            x: OFFSET_X + (gridX - gridY) * TILE_SIZE,
+            y: OFFSET_Y + (gridX + gridY) * (TILE_SIZE / 2)
+        };
+    }
+
+    function addLabel(scene, gridX, gridY, text) {
+        let pos = getIsoPos(gridX, gridY);
+        let t = scene.add.text(pos.x, pos.y + 20, text, { font: "10px Arial", fill: "#888", align: "center" });
+        t.setOrigin(0.5, 0);
+    }
+
+    function drawIsoTile(g, x, y, size, fillHex, fillAlpha, strokeAlpha) {
+        g.beginPath();
+        g.moveTo(x, y);
+        g.lineTo(x + size, y + size / 2);
+        g.lineTo(x, y + size);
+        g.lineTo(x - size, y + size / 2);
+        g.closePath();
+        if (fillAlpha > 0) { g.fillStyle(fillHex, fillAlpha); g.fillPath(); }
+        if (strokeAlpha > 0) { g.lineStyle(2, fillHex, strokeAlpha); g.strokePath(); }
+    }
+
+    function drawIsoCube(g, gridX, gridY, size, height, color, topAlpha, sideAlpha) {
+        let pos = getIsoPos(gridX, gridY);
+        let x = pos.x, y = pos.y;
         
-        let zone = scene.add.zone(x + w/2, y + h/2, w, h);
-        scene.physics.add.existing(zone, true);
-        walls.add(zone);
+        // Rechte Seite
+        g.fillStyle(color, sideAlpha * 0.6);
+        g.beginPath(); g.moveTo(x, y + size); g.lineTo(x + size, y + size/2); g.lineTo(x + size, y + size/2 - height); g.lineTo(x, y + size - height); g.closePath(); g.fillPath(); g.lineStyle(1, color, 1); g.strokePath();
+        
+        // Linke Seite
+        g.fillStyle(color, sideAlpha);
+        g.beginPath(); g.moveTo(x, y + size); g.lineTo(x - size, y + size/2); g.lineTo(x - size, y + size/2 - height); g.lineTo(x, y + size - height); g.closePath(); g.fillPath(); g.strokePath();
+        
+        // Oben
+        drawIsoTile(g, x, y - height, size, color, topAlpha, 1);
     }
 
-    function createTable(scene, x, y, w, h, color) {
-        let tableVisual = scene.add.graphics();
-        tableVisual.fillStyle(color, 0.1); 
-        tableVisual.fillRect(x, y, w, h);
-        tableVisual.lineStyle(2, color, 1);
-        tableVisual.strokeRect(x, y, w, h);
+    function drawLaserDoor(g, gridX, gridY) {
+        let pos = getIsoPos(gridX, gridY);
+        // Säulen
+        drawIsoCube(g, gridX, gridY, 5, 40, 0x00ffff, 0.5, 0.3); // Hinten
+        drawIsoCube(g, gridX + 0.8, gridY + 0.8, 5, 40, 0x00ffff, 0.5, 0.3); // Vorne
+        // Laser-Gitter
+        g.lineStyle(1, 0xff0000, 0.8);
+        for(let i=0; i<4; i++) {
+            g.moveTo(pos.x, pos.y - 10 - (i*8));
+            g.lineTo(pos.x + 30, pos.y + 15 - 10 - (i*8));
+        }
+    }
 
-        let zone = scene.add.zone(x + w/2, y + h/2, w, h);
-        scene.physics.add.existing(zone, true);
-        walls.add(zone);
+    function drawSeedHologram(g, gridX, gridY, height) {
+        let pos = getIsoPos(gridX, gridY);
+        g.lineStyle(2, 0xffff00, 1);
+        g.strokeEllipse(pos.x, pos.y - height, 20, 10);
+        g.fillStyle(0xffff00, 1);
+        g.fillCircle(pos.x, pos.y - height, 3); // Kern
+    }
+
+    function drawPlant(g, gridX, gridY, phase) {
+        let pos = getIsoPos(gridX, gridY);
+        g.lineStyle(2, 0x00ff00, 1);
+        if (phase === 1) {
+            // Kleiner Spross
+            g.moveTo(pos.x, pos.y + 20); g.lineTo(pos.x, pos.y);
+            g.lineTo(pos.x - 5, pos.y - 5); g.moveTo(pos.x, pos.y); g.lineTo(pos.x + 5, pos.y - 5);
+        } else if (phase === 2) {
+            // Fertige geometrische "Neon-Pflanze"
+            g.strokeTriangle(pos.x, pos.y - 20, pos.x - 10, pos.y, pos.x + 10, pos.y);
+            g.strokeTriangle(pos.x, pos.y - 10, pos.x - 15, pos.y + 10, pos.x + 15, pos.y + 10);
+        }
+    }
+
+    function drawItemCube(g, gridX, gridY, hoverHeight, color) {
+        // Kleiner schwebender Item-Würfel
+        drawIsoCube(g, gridX, gridY, 8, hoverHeight, color, 0.6, 0.3);
+    }
+
+    function drawCharacter(g, gridX, gridY, color) {
+        let pos = getIsoPos(gridX, gridY);
+        g.fillStyle(color, 0.4);
+        g.fillEllipse(pos.x, pos.y + 20, 20, 10); // Schatten
+        g.lineStyle(2, color, 1);
+        g.strokeRect(pos.x - 6, pos.y - 15, 12, 30); // Körper
+    }
+
+    function drawSpeechBubble(g, gridX, gridY) {
+        let pos = getIsoPos(gridX, gridY);
+        let bx = pos.x + 15, by = pos.y - 40;
+        g.lineStyle(1, 0xffffff, 0.8);
+        g.fillStyle(0x000000, 0.8);
+        g.beginPath(); g.moveTo(bx, by); g.lineTo(bx+20, by); g.lineTo(bx+20, by-15); g.lineTo(bx-5, by-15); g.lineTo(bx-5, by-5); g.closePath();
+        g.fillPath(); g.strokePath();
+        // Item-Wunsch (Grüner Block) im Bubble
+        g.fillStyle(0x00ff00, 1); g.fillRect(bx+2, by-12, 8, 8);
     }
 </script>
 </body>
