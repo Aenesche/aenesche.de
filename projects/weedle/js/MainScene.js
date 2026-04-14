@@ -6,29 +6,34 @@ class MainScene extends Phaser.Scene {
         this.interactables = this.physics.add.staticGroup();
 
         let g = this.add.graphics();
+        let ROOM_SIZE = 10;
 
         // 1. Grid (Boden)
         g.lineStyle(1, 0x004444, 0.4);
-        for(let i=0; i<=10; i++) {
-            for(let j=0; j<=10; j++) {
+        for(let i=0; i<=ROOM_SIZE; i++) {
+            for(let j=0; j<=ROOM_SIZE; j++) {
                 let p = getIsoPos(i, j);
                 drawIsoTile(g, p.x, p.y, TILE_SIZE, 0, 0, 0);
             }
         }
 
-        // 2. Dekoration (Tür)
-        drawLaserDoor(g, 9, 1);
+        // 2. Wände & Tür (Oben Links in der Ecke bei Grid 0,4)
+        drawRoomWalls(g, ROOM_SIZE, 60);
+        drawLaserDoor(g, 0, 4);
 
-        // 3. Stationen auf Tischen
-        let seedShop = new Station(this, 2, 2, "seed_shop", 0xffaa00, "SAMEN SHOP (E)");
+        // 3. Stationen
+        let seedShop = new Station(this, 3, 2, "seed_shop", 0xffaa00, "SAMEN SHOP (E)");
         this.interactables.add(seedShop);
 
-        let storage = new Station(this, 5, 5, "storage", 0x00ffff, "LAGER (E)");
+        let storage = new Station(this, 6, 5, "storage", 0x00ffff, "LAGER (E)");
         this.interactables.add(storage);
+
+        let bed = new Station(this, 3, 6, "bed", 0x00ff00, "BEET (E)");
+        this.interactables.add(bed);
 
         // 4. Player
         this.player = new Player(this, 5, 8);
-        this.physics.add.collider(this.player, this.interactables); // Tische blockieren jetzt!
+        this.physics.add.collider(this.player, this.interactables); 
 
         // UI Progress
         this.progressGfx = this.add.graphics();
@@ -39,9 +44,8 @@ class MainScene extends Phaser.Scene {
         let isMoving = this.player.update(this.keys);
         this.progressGfx.clear();
 
-        // Interaktions-Check
         let closest = null;
-        let minDist = 60; // Etwas größerer Interaktions-Radius
+        let minDist = 50; // Radius für Interaktion
 
         this.interactables.children.iterate(station => {
             let dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, station.x, station.y);
@@ -75,12 +79,21 @@ class MainScene extends Phaser.Scene {
                 let item = this.player.drop();
                 station.heldItem = item;
                 station.add(item);
-                item.setPosition(0, -station.tableHeight - 10); // Oben auf dem Tisch ablegen
+                // ITEM ZENTRIERUNG: Exakt auf der Tischoberfläche
+                item.setPosition(0, -station.tableHeight); 
             } else if (!this.player.heldItem && station.heldItem) {
                 let item = station.heldItem;
                 station.heldItem = null;
                 station.remove(item);
                 this.player.pickup(item);
+            }
+        } 
+        else if (station.type === "bed") {
+            // HIER KOMMT DIE PFLANZ-LOGIK REIN
+            if (this.player.heldItem && this.player.heldItem.type === "seed") {
+                let item = this.player.drop();
+                item.destroy(); // Samen verschwindet in der Erde
+                station.plantGraphic.setAlpha(1); // Pflanze sichtbar machen
             }
         }
     }
