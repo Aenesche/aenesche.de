@@ -44,7 +44,6 @@ export const WALLS = {
 };
 
 export const INTERACTION = {
-    RANGE: 1.5,           // Tiles
-    HOLD_DURATION: 2000,  // ms für Hold-Aktionen
-    KEY: 'E',
+    RANGE: 1.5,          // Max Distanz in Tiles (Center zu Center)
+    HIGHLIGHT_PULSE: 1500, // Pulse-Periode in ms
 };
