@@ -62,4 +62,8 @@ export default class Station {
     occludesPlayerAt(playerX, playerY) {
         return this._playerOccludedBy(playerX, playerY);
     }
+    // Standard: nicht interagierbar. Subklassen überschreiben.
+    getInteraction() {
+        return null;
+    }
 }
