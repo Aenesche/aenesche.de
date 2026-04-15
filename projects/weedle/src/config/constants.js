@@ -42,3 +42,9 @@ export const WALLS = {
     BACK_HEIGHT: 70,
     FRONT_HEIGHT: 25,
 };
+
+export const INTERACTION = {
+    RANGE: 1.5,           // Tiles
+    HOLD_DURATION: 2000,  // ms für Hold-Aktionen
+    KEY: 'E',
+};
