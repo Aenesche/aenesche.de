@@ -10,7 +10,7 @@ const WALL_HEIGHT = 70;
 
 export function drawOuterWalls(scene, originX, originY) {
     const g = scene.add.graphics();
-    g.setDepth(1);
+    g.setDepth(-1000);
 
     const N = ISO.GRID_SIZE;
 
