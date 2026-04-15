@@ -16,4 +16,14 @@ export default class Bed extends Station {
             bottom: this.isoY + ISO.TILE_SIZE,
         };
     }
+
+    getInteraction() {
+        return {
+            type: 'tap',
+            duration: 0,
+            onComplete: () => {
+                console.log('🪴 Beet interagiert (Platzhalter)');
+            },
+        };
+    }
 }
