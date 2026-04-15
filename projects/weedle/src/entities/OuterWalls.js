@@ -58,16 +58,6 @@ class WallSegment {
         const g = this.graphics;
         const { from, to, height } = this;
 
-        // Schwacher Fill als "Glas"
-        g.fillStyle(color, 0.04);
-        g.beginPath();
-        g.moveTo(from.x, from.y);
-        g.lineTo(to.x,   to.y);
-        g.lineTo(to.x,   to.y - height);
-        g.lineTo(from.x, from.y - height);
-        g.closePath();
-        g.fillPath();
-
         // Oberkante hell
         g.lineStyle(2, color, 0.9);
         g.beginPath();
@@ -76,7 +66,7 @@ class WallSegment {
         g.strokePath();
 
         // Unterkante dezent
-        g.lineStyle(1, color, 0.4);
+        g.lineStyle(1, color, 0.5);
         g.beginPath();
         g.moveTo(from.x, from.y);
         g.lineTo(to.x,   to.y);
