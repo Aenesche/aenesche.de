@@ -38,4 +38,13 @@ export default class Register extends Station {
             bottom: this.isoY + ISO.TILE_SIZE,
         };
     }
+    getInteraction() {
+        return {
+            type: 'hold',
+            duration: 1500,
+            onComplete: () => {
+                console.log('💰 Bestellung aufgenommen (Platzhalter)');
+            },
+        };
+    }
 }
