@@ -14,6 +14,7 @@ export const ISO = {
 
 export const COLORS = {
     GRID:        0x004444,
+    WALL:        0x00ffff,
     PLAYER:      0x00ff00,
     EMPLOYEE:    0x0088ff,
     CUSTOMER:    0xff8800,
