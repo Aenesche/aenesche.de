@@ -20,6 +20,16 @@ export function isoToGrid(px, py, originX = 0, originY = 0) {
     };
 }
 
+// Tile-Mitte statt Tile-Ecke. Bequemer fürs Platzieren von Figuren/Objekten.
+export function gridToIsoCenter(gridX, gridY, originX = 0, originY = 0) {
+    const pos = gridToIso(gridX, gridY, originX, originY);
+    return { x: pos.x, y: pos.y + ISO.TILE_SIZE / 2 };
+}
+
+export function isoCenterToGrid(px, py, originX = 0, originY = 0) {
+    return isoToGrid(px, py - ISO.TILE_SIZE / 2, originX, originY);
+}
+
 export function drawIsoTile(g, x, y, size, fillHex, fillAlpha, strokeAlpha) {
     g.beginPath();
     g.moveTo(x, y);
