@@ -13,7 +13,7 @@
 import { GAME, ISO, COLORS } from '../config/constants.js';
 import { gridToIso, gridToIsoCenter, isoCenterToGrid, drawIsoTile } from '../utils/iso.js';
 import Player from '../entities/Player.js';
-import { drawOuterWalls } from '../entities/OuterWalls.js';
+import { createOuterWalls } from '../entities/OuterWalls.js';
 import CollisionGrid from '../world/CollisionGrid.js';
 import SeedTerminal from '../entities/stations/SeedTerminal.js';
 import Bed from '../entities/stations/Bed.js';
@@ -31,7 +31,7 @@ export default class GameScene extends Phaser.Scene {
         this.collision = new CollisionGrid();
 
         this.drawGrid();
-        drawOuterWalls(this, this.originX, this.originY);
+        this.walls = createOuterWalls(this, this.originX, this.originY);
 
         // Start-Setup nach Game-Logic-Doku: 1 Terminal, 3 Beete, 1 Kasse
         this.stations = [
@@ -69,6 +69,14 @@ export default class GameScene extends Phaser.Scene {
         if (this.keys.S.isDown || this.keys.DOWN.isDown)  dirY =  1;
 
         this.player.update(delta, dirX, dirY, (x, y) => this.canMoveTo(x, y));
+
+        // Occlusion: Stationen + Vorderwände werden transparent wenn Player dahinter.
+        // Player wird transparent wenn er hinter Stationen läuft.
+        const px = this.player.x;
+        const py = this.player.y;
+        this.stations.forEach(s => s.updateOcclusion(px, py));
+        this.walls.forEach(w => w.updateOcclusion(px, py));
+        this.player.updateOcclusion(this.stations);
 
         const grid = isoCenterToGrid(this.player.x, this.player.y, this.originX, this.originY);
         this.debugText.setText([
