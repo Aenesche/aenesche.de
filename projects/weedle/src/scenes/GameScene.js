@@ -21,6 +21,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.collision = new CollisionGrid();
 
+        // Reihenfolge wichtig: erst Boden (depth -2000), dann Wände (-1000)
         this.drawGrid();
         this.walls = createOuterWalls(this, this.originX, this.originY);
 
@@ -49,7 +50,7 @@ export default class GameScene extends Phaser.Scene {
         });
         this.debugText.setDepth(300000);
     }
-
+    
     update(time, delta) {
         let dirX = 0, dirY = 0;
         if (this.keys.A.isDown || this.keys.LEFT.isDown)  dirX = -1;
@@ -82,11 +83,13 @@ export default class GameScene extends Phaser.Scene {
 
     drawGrid() {
         const g = this.add.graphics();
-        g.setDepth(-1000);
+        g.setDepth(-2000); // Ganz unten
+        // Stärkere Linien als vorher (0.4 → 0.5) damit sie sichtbarer sind
+        g.lineStyle(1, COLORS.GRID, 0.5);
         for (let x = 0; x <= ISO.GRID_SIZE; x++) {
             for (let y = 0; y <= ISO.GRID_SIZE; y++) {
                 const pos = gridToIso(x, y, this.originX, this.originY);
-                drawIsoTile(g, pos.x, pos.y, ISO.TILE_SIZE, COLORS.GRID, 0, 0.4);
+                drawIsoTile(g, pos.x, pos.y, ISO.TILE_SIZE, COLORS.GRID, 0, 0.5);
             }
         }
     }
