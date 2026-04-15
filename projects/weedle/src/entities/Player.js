@@ -30,6 +30,8 @@ export default class Player {
 
         this.targetAlpha = 1;
         this.currentAlpha = 1;
+        // Inventar — exakt 1 Item-Slot (1-Item-Regel)
+        this.carriedItem = null;
     }
 
     // canMoveTo: (screenX, screenY) => bool. Wird vom Caller bereitgestellt.
@@ -115,5 +117,26 @@ export default class Player {
         this.targetAlpha = isHidden ? OCCLUSION.ALPHA : 1;
         this.currentAlpha += (this.targetAlpha - this.currentAlpha) * OCCLUSION.LERP;
         this.container.setAlpha(this.currentAlpha);
+    }
+    hasItem() {
+        return this.carriedItem !== null;
+    }
+
+    pickUp(carriedItem) {
+        if (this.hasItem()) return false;
+        this.carriedItem = carriedItem;
+        // Item überm Kopf positionieren (-32 = oberhalb der Body-Box)
+        carriedItem.graphics.setPosition(0, -32);
+        this.container.add(carriedItem.graphics);
+        return true;
+    }
+
+    dropItem() {
+        if (!this.carriedItem) return null;
+        const item = this.carriedItem;
+        this.container.remove(item.graphics);
+        item.destroy();
+        this.carriedItem = null;
+        return item.itemDef;
     }
 }
