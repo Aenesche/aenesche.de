@@ -1,10 +1,4 @@
-// Basis für alle Stationen. Liefert:
-//  - eigenes Graphics-Objekt (für individuelle Alpha-Steuerung)
-//  - bounds-Rect für Occlusion-Checks
-//  - Alpha-Lerp pro Frame
-//
-// Subklassen überschreiben drawSelf(g) und setzen this.bounds.
-// drawSelf wird mit Iso-Pixelkoordinaten aufgerufen, x/y = top-corner des Boden-Tiles.
+// src/entities/stations/Station.js
 
 import { ISO, OCCLUSION } from '../../config/constants.js';
 import { gridToIso, isoCenterToGrid } from '../../utils/iso.js';
@@ -41,12 +35,9 @@ export default class Station {
         return [{ x: this.gridX, y: this.gridY }];
     }
 
-    // Occlusion in Grid-Space. Player ist "hinter" dem Objekt wenn
-    // sein gridX UND gridY beide kleiner sind (näher zur Iso-Rückseite).
-    // Das Window ist sehr eng: 0..0.6 Tiles in beide Richtungen.
     _playerOccludedBy(playerX, playerY) {
         const p = isoCenterToGrid(playerX, playerY, this.scene.originX, this.scene.originY);
-        const dx = this.gridX - p.x; // >0 wenn Player links/oben vom Objekt
+        const dx = this.gridX - p.x;
         const dy = this.gridY - p.y;
         const RANGE = 0.6;
         return dx > 0.05 && dx < RANGE && dy > 0.05 && dy < RANGE;
@@ -62,7 +53,7 @@ export default class Station {
     occludesPlayerAt(playerX, playerY) {
         return this._playerOccludedBy(playerX, playerY);
     }
-    // Standard: nicht interagierbar. Subklassen überschreiben.
+
     getInteraction() {
         return null;
     }
