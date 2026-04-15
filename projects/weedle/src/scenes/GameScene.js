@@ -1,14 +1,4 @@
-// Haupt-Scene. Grid + Außenwände + Stationen + Player.
-//
-// Kollision läuft jetzt komplett über CollisionGrid:
-//  - Außenwände → bounds-check in CollisionGrid (out-of-grid = blocked)
-//  - Stationen → markieren ihre Tiles als blockiert
-//  - Player → fragt via canMoveTo, das wiederum collision.canStandAt nutzt
-//
-// Iso-Depth-Sorting:
-//  - Grid + Wände: depth = -1000 (immer hinten)
-//  - Stationen: depth = ihr Footprint-Center-Y
-//  - Player: depth = container.y, jedes Frame aktualisiert
+// src/scenes/GameScene.js
 
 import { GAME, ISO, COLORS } from '../config/constants.js';
 import { gridToIso, gridToIsoCenter, isoCenterToGrid, drawIsoTile } from '../utils/iso.js';
@@ -18,6 +8,7 @@ import CollisionGrid from '../world/CollisionGrid.js';
 import SeedTerminal from '../entities/stations/SeedTerminal.js';
 import Bed from '../entities/stations/Bed.js';
 import Register from '../entities/stations/Register.js';
+import InteractionManager from '../world/InteractionManager.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -33,7 +24,6 @@ export default class GameScene extends Phaser.Scene {
         this.drawGrid();
         this.walls = createOuterWalls(this, this.originX, this.originY);
 
-        // Start-Setup nach Game-Logic-Doku: 1 Terminal, 3 Beete, 1 Kasse
         this.stations = [
             new SeedTerminal(this, 5, 1),
             new Bed(this, 3, 5),
@@ -42,23 +32,22 @@ export default class GameScene extends Phaser.Scene {
             new Register(this, 5, 9),
         ];
 
-        // Stationen-Tiles im CollisionGrid sperren
         this.stations.forEach(s => {
             s.getTiles().forEach(t => this.collision.block(t.x, t.y));
         });
 
-        // Player auf einem freien Tile spawnen
         const spawn = gridToIsoCenter(2, 7, this.originX, this.originY);
         this.player = new Player(this, spawn.x, spawn.y);
 
         this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT');
 
-        // Debug HUD
+        this.interaction = new InteractionManager(this, this.player, this.stations);
+
         this.debugText = this.add.text(20, 20, '', {
             font: '12px monospace',
             color: '#00ff88',
         });
-        this.debugText.setDepth(10000);
+        this.debugText.setDepth(300000);
     }
 
     update(time, delta) {
@@ -70,18 +59,18 @@ export default class GameScene extends Phaser.Scene {
 
         this.player.update(delta, dirX, dirY, (x, y) => this.canMoveTo(x, y));
 
-        // Occlusion: Stationen + Vorderwände werden transparent wenn Player dahinter.
-        // Player wird transparent wenn er hinter Stationen läuft.
         const px = this.player.x;
         const py = this.player.y;
         this.stations.forEach(s => s.updateOcclusion(px, py));
         this.walls.forEach(w => w.updateOcclusion(px, py));
         this.player.updateOcclusion(this.stations);
 
-        const grid = isoCenterToGrid(this.player.x, this.player.y, this.originX, this.originY);
+        this.interaction.update(delta);
+
+        const grid = isoCenterToGrid(px, py, this.originX, this.originY);
         this.debugText.setText([
-            'WEEDLE — Stationen + Kollision',
-            'WASD / Pfeiltasten',
+            'WEEDLE — Interaktion',
+            'WASD bewegen, E interagieren (halten für Hold)',
             `grid: (${grid.x.toFixed(1)}, ${grid.y.toFixed(1)})`,
         ]);
     }
