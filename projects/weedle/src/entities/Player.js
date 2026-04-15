@@ -2,7 +2,7 @@
 // Bewegt sich frei in Screen-Space. Kollision wird von außen via canMoveTo()
 // geprüft — der Player weiß nichts von Wänden, er fragt nur nach.
 
-import { COLORS, PLAYER } from '../config/constants.js';
+import { COLORS, PLAYER, OCCLUSION } from '../config/constants.js';
 
 export default class Player {
     constructor(scene, x, y) {
@@ -27,6 +27,9 @@ export default class Player {
         this.eyes.fillRect(2, -2, 4, 4);
         this.eyes.y = -12;
         this.container.add(this.eyes);
+
+        this.targetAlpha = 1;
+        this.currentAlpha = 1;
     }
 
     // canMoveTo: (screenX, screenY) => bool. Wird vom Caller bereitgestellt.
@@ -105,4 +108,12 @@ export default class Player {
 
     get x() { return this.container.x; }
     get y() { return this.container.y; }
+
+    // Wird von der Scene aufgerufen mit allen Objekten, die den Player verdecken könnten.
+    updateOcclusion(occluders) {
+        const isHidden = occluders.some(o => o.occludesPlayerAt && o.occludesPlayerAt(this.x, this.y));
+        this.targetAlpha = isHidden ? OCCLUSION.ALPHA : 1;
+        this.currentAlpha += (this.targetAlpha - this.currentAlpha) * OCCLUSION.LERP;
+        this.container.setAlpha(this.currentAlpha);
+    }
 }
