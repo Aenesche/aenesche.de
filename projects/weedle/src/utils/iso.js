@@ -46,3 +46,33 @@ export function drawIsoTile(g, x, y, size, fillHex, fillAlpha, strokeAlpha) {
         g.strokePath();
     }
 }
+
+// Würfel auf einem Iso-Tile. (x, y) ist die obere Diamond-Ecke des Tiles am Boden.
+// Zeichnet rechte Seite, linke Seite und Deckel.
+export function drawIsoCube(g, x, y, size, height, color, topAlpha, sideAlpha) {
+    // Rechte Seite
+    g.fillStyle(color, sideAlpha * 0.6);
+    g.beginPath();
+    g.moveTo(x, y + size);
+    g.lineTo(x + size, y + size / 2);
+    g.lineTo(x + size, y + size / 2 - height);
+    g.lineTo(x, y + size - height);
+    g.closePath();
+    g.fillPath();
+    g.lineStyle(1, color, 1);
+    g.strokePath();
+
+    // Linke Seite
+    g.fillStyle(color, sideAlpha);
+    g.beginPath();
+    g.moveTo(x, y + size);
+    g.lineTo(x - size, y + size / 2);
+    g.lineTo(x - size, y + size / 2 - height);
+    g.lineTo(x, y + size - height);
+    g.closePath();
+    g.fillPath();
+    g.strokePath();
+
+    // Deckel
+    drawIsoTile(g, x, y - height, size, color, topAlpha, 1);
+}
