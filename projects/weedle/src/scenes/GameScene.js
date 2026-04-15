@@ -9,6 +9,7 @@ import SeedTerminal from '../entities/stations/SeedTerminal.js';
 import Bed from '../entities/stations/Bed.js';
 import Register from '../entities/stations/Register.js';
 import InteractionManager from '../world/InteractionManager.js';
+import GameState from '../world/GameState.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -20,6 +21,7 @@ export default class GameScene extends Phaser.Scene {
         this.originY = 140;
 
         this.collision = new CollisionGrid();
+        this.state = new GameState();
 
         // Reihenfolge wichtig: erst Boden (depth -2000), dann Wände (-1000)
         this.drawGrid();
@@ -49,6 +51,17 @@ export default class GameScene extends Phaser.Scene {
             color: '#00ff88',
         });
         this.debugText.setDepth(300000);
+        
+        this.moneyText = this.add.text(GAME.WIDTH - 20, 20, '', {
+            font: 'bold 18px monospace',
+            color: '#00ff88',
+        });
+        this.moneyText.setOrigin(1, 0);
+        this.moneyText.setDepth(300000);
+
+        const updateMoney = () => this.moneyText.setText(`€ ${this.state.money}`);
+        updateMoney();
+        this.state.onChange(updateMoney);
     }
     
     update(time, delta) {
