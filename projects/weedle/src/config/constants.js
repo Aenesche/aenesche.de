@@ -47,3 +47,16 @@ export const INTERACTION = {
     RANGE: 1.5,          // Max Distanz in Tiles (Center zu Center)
     HIGHLIGHT_PULSE: 1500, // Pulse-Periode in ms
 };
+
+export const ECONOMY = {
+    STARTING_MONEY: 100,
+    SEED_COST: 10,
+};
+
+export const ITEMS = {
+    SEED: {
+        id: 'seed',
+        color: 0xffff00,
+        label: 'Samen',
+    },
+};
