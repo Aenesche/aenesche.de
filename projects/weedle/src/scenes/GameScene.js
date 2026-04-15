@@ -1,18 +1,23 @@
-// Haupt-Scene. Grid + Außenwände + Player mit Kollision.
+// Haupt-Scene. Grid + Außenwände + Stationen + Player.
 //
-// Bewegungs-Modell:
-// - Player bewegt sich frei in Screen-Pixeln (WASD/Arrows)
-// - Diagonale Eingabe wird normalisiert
-// - Vor jedem Schritt fragt der Player canMoveTo() — wir konvertieren die
-//   Ziel-Screen-Position in Grid-Koordinaten und prüfen, ob das Tile begehbar ist
-// - X und Y werden separat geprüft → Sliden an Wänden funktioniert automatisch
+// Kollision läuft jetzt komplett über CollisionGrid:
+//  - Außenwände → bounds-check in CollisionGrid (out-of-grid = blocked)
+//  - Stationen → markieren ihre Tiles als blockiert
+//  - Player → fragt via canMoveTo, das wiederum collision.canStandAt nutzt
 //
-// Später: canMoveTo nutzt die CollisionGrid (für platzierte Stationen + Innenwände).
+// Iso-Depth-Sorting:
+//  - Grid + Wände: depth = -1000 (immer hinten)
+//  - Stationen: depth = ihr Footprint-Center-Y
+//  - Player: depth = container.y, jedes Frame aktualisiert
 
 import { GAME, ISO, COLORS } from '../config/constants.js';
 import { gridToIso, gridToIsoCenter, isoCenterToGrid, drawIsoTile } from '../utils/iso.js';
 import Player from '../entities/Player.js';
 import { drawOuterWalls } from '../entities/OuterWalls.js';
+import CollisionGrid from '../world/CollisionGrid.js';
+import SeedTerminal from '../entities/stations/SeedTerminal.js';
+import Bed from '../entities/stations/Bed.js';
+import Register from '../entities/stations/Register.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -20,15 +25,30 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
-        // Grid mittig auf der Bühne, etwas Platz oben für Wände
         this.originX = GAME.WIDTH / 2;
         this.originY = 140;
+
+        this.collision = new CollisionGrid();
 
         this.drawGrid();
         drawOuterWalls(this, this.originX, this.originY);
 
-        // Player in der Mitte spawnen
-        const spawn = gridToIsoCenter(ISO.GRID_SIZE / 2, ISO.GRID_SIZE / 2, this.originX, this.originY);
+        // Start-Setup nach Game-Logic-Doku: 1 Terminal, 3 Beete, 1 Kasse
+        this.stations = [
+            new SeedTerminal(this, 5, 1),
+            new Bed(this, 3, 5),
+            new Bed(this, 5, 5),
+            new Bed(this, 7, 5),
+            new Register(this, 5, 9),
+        ];
+
+        // Stationen-Tiles im CollisionGrid sperren
+        this.stations.forEach(s => {
+            s.getTiles().forEach(t => this.collision.block(t.x, t.y));
+        });
+
+        // Player auf einem freien Tile spawnen
+        const spawn = gridToIsoCenter(2, 7, this.originX, this.originY);
         this.player = new Player(this, spawn.x, spawn.y);
 
         this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT');
@@ -38,6 +58,7 @@ export default class GameScene extends Phaser.Scene {
             font: '12px monospace',
             color: '#00ff88',
         });
+        this.debugText.setDepth(10000);
     }
 
     update(time, delta) {
@@ -51,26 +72,20 @@ export default class GameScene extends Phaser.Scene {
 
         const grid = isoCenterToGrid(this.player.x, this.player.y, this.originX, this.originY);
         this.debugText.setText([
-            'WEEDLE — Movement OK',
+            'WEEDLE — Stationen + Kollision',
             'WASD / Pfeiltasten',
             `grid: (${grid.x.toFixed(1)}, ${grid.y.toFixed(1)})`,
         ]);
     }
 
-    // Wird vom Player für jede Achse einzeln aufgerufen.
-    // Aktuell: nur Außenwand-Check. Bald: Lookup in CollisionGrid.
     canMoveTo(screenX, screenY) {
         const grid = isoCenterToGrid(screenX, screenY, this.originX, this.originY);
-        const margin = 0.3; // Player ist nicht punktförmig
-        return grid.x >= margin
-            && grid.x <= ISO.GRID_SIZE - margin
-            && grid.y >= margin
-            && grid.y <= ISO.GRID_SIZE - margin;
+        return this.collision.canStandAt(grid.x, grid.y);
     }
 
     drawGrid() {
         const g = this.add.graphics();
-        g.setDepth(0);
+        g.setDepth(-1000);
         for (let x = 0; x <= ISO.GRID_SIZE; x++) {
             for (let y = 0; y <= ISO.GRID_SIZE; y++) {
                 const pos = gridToIso(x, y, this.originX, this.originY);
