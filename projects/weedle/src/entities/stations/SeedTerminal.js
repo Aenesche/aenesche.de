@@ -8,7 +8,6 @@ export default class SeedTerminal extends Station {
     drawSelf(g) {
         drawIsoCube(g, this.isoX, this.isoY, ISO.TILE_SIZE, HEIGHT, COLORS.SEED_SHOP, 0.2, 0.1);
 
-        // Samen-Hologramm über dem Deckel
         const cx = this.isoX;
         const cy = this.isoY + ISO.TILE_SIZE / 2 - HEIGHT - 10;
         g.lineStyle(2, 0xffff00, 1);
@@ -21,6 +20,16 @@ export default class SeedTerminal extends Station {
             right:  this.isoX + ISO.TILE_SIZE,
             top:    this.isoY - HEIGHT - 20,
             bottom: this.isoY + ISO.TILE_SIZE,
+        };
+    }
+
+    getInteraction() {
+        return {
+            type: 'hold',
+            duration: 2000,
+            onComplete: () => {
+                console.log('🌱 Samen gekauft (Platzhalter)');
+            },
         };
     }
 }
