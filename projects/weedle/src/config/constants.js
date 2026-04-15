@@ -31,3 +31,14 @@ export const COLORS = {
 export const PLAYER = {
     SPEED: 200, // px/s
 };
+
+export const OCCLUSION = {
+    ALPHA: 0.5,        // Transparenz wenn verdeckt
+    LERP: 0.15,        // Geschwindigkeit der Alpha-Änderung pro Frame
+    PLAYER_THRESHOLD: 30, // Wieviel Pixel muss Objekt vor Player sein, damit es transparent wird
+};
+
+export const WALLS = {
+    BACK_HEIGHT: 70,
+    FRONT_HEIGHT: 25,
+};
