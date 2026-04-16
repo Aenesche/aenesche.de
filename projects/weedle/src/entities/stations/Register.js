@@ -42,8 +42,9 @@ export default class Register extends Station {
 
         const player = this.scene.player;
         const state = this.scene.state;
+        const customerManager = this.scene.customers;
 
-        // 1. Bestellung aufnehmen (Hold 1.5s) — nur wenn noch nicht enthüllt
+        // Bestellung aufnehmen
         if (!customer.orderRevealed) {
             return {
                 type: 'hold',
@@ -55,7 +56,7 @@ export default class Register extends Station {
             };
         }
 
-        // 2. Item übergeben (Tap) — Player trägt was, das der Kunde will
+        // Item übergeben
         if (player.hasItem() && customer.order.includes(player.carriedItem.itemDef.id)) {
             const itemDef = player.carriedItem.itemDef;
             return {
@@ -64,9 +65,9 @@ export default class Register extends Station {
                 onComplete: () => {
                     if (customer.receiveItem(itemDef)) {
                         player.dropItem();
-                        // Bezahlung wenn alle Items geliefert
-                        if (customer.order.length === 0 && itemDef.sellPrice) {
-                            state.earn(itemDef.sellPrice);
+                        if (itemDef.sellPrice) state.earn(itemDef.sellPrice);
+                        if (customer.order.length === 0) {
+                            customerManager.onCustomerServed(customer);
                         }
                     }
                 },
