@@ -142,20 +142,21 @@ export default class GameScene extends Phaser.Scene {
 
     // Schiebt den Player auf das nächste freie Nachbar-Tile
     pushPlayerOutOf(gridX, gridY) {
-        const grid = isoCenterToGrid(this.player.footX, this.player.footY, this.originX, this.originY);
-        const px = Math.floor(grid.x);
-        const py = Math.floor(grid.y);
-        if (px !== gridX || py !== gridY) return;
+        // Richtung: vom blockierten Tile-Center weg
+        const tileCenter = gridToIsoCenter(gridX + 0.5, gridY + 0.5, this.originX, this.originY);
+        let dx = this.player.container.x - tileCenter.x;
+        let dy = this.player.container.y - tileCenter.y;
+        const len = Math.hypot(dx, dy);
+        if (len < 0.1) { dx = 0; dy = 1; } // Fallback: nach unten
+        else { dx /= len; dy /= len; }
 
-        // Nächstes freies Nachbar-Tile suchen, zur MITTE davon schieben
-        const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0]]; // nur Hauptrichtungen, sicherer
-        for (const [dx, dy] of dirs) {
-            const nx = gridX + dx;
-            const ny = gridY + dy;
-            if (this.collision.canStandAt(nx + 0.5, ny + 0.5, 0.3)) {
-                const target = gridToIsoCenter(nx + 0.5, ny + 0.5, this.originX, this.originY);
-                this.player.container.x = target.x;
-                this.player.container.y = target.y;
+        // Pixel für Pixel rausschieben bis frei
+        for (let i = 1; i < 200; i++) {
+            const testX = this.player.container.x + dx * i;
+            const testY = this.player.container.y + dy * i;
+            if (this.canMoveTo(testX, testY)) {
+                this.player.container.x = testX;
+                this.player.container.y = testY;
                 return;
             }
         }
