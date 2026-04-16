@@ -52,7 +52,7 @@ export default class GameScene extends Phaser.Scene {
         // neue Kunden spawnen kann ohne selbst den Import zu brauchen.
         this.CustomerClass = Customer;
         const register = this.stations.find(s => s instanceof Register);
-        this.customers = new CustomerManager(this, this.door, register, this.collision);
+        this.customers = new CustomerManager(this, this.door, register, this.collision, this.state);
 
         const spawn = gridToIsoCenter(2, 7, this.originX, this.originY);
         this.player = new Player(this, spawn.x, spawn.y);
@@ -74,9 +74,27 @@ export default class GameScene extends Phaser.Scene {
         this.moneyText.setOrigin(1, 0);
         this.moneyText.setDepth(300000);
 
-        const updateMoney = () => this.moneyText.setText(`€ ${this.state.money}`);
-        updateMoney();
-        this.state.onChange(updateMoney);
+        this.moneyText = this.add.text(GAME.WIDTH - 20, 20, '', {
+            font: 'bold 18px monospace',
+            color: '#00ff88',
+        });
+        this.moneyText.setOrigin(1, 0);
+        this.moneyText.setDepth(300000);
+
+        this.satisfactionText = this.add.text(GAME.WIDTH - 20, 45, '', {
+            font: 'bold 14px monospace',
+            color: '#00ffff',
+        });
+        this.satisfactionText.setOrigin(1, 0);
+        this.satisfactionText.setDepth(300000);
+
+        const updateHUD = () => {
+            this.moneyText.setText(`€ ${this.state.money}`);
+            const bar = '█'.repeat(this.state.satisfaction) + '░'.repeat(10 - this.state.satisfaction);
+            this.satisfactionText.setText(`${bar}`);
+        };
+        updateHUD();
+        this.state.onChange(updateHUD);
     }
     
     update(time, delta) {
