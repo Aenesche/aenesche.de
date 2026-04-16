@@ -1,13 +1,18 @@
-// CollisionGrid: 2D-Bool-Array, true = begehbar.
-// Wird beim Platzieren von Stationen befüllt (block).
-// Jeder Bewegungs-Check geht hier durch.
-
-import { ISO } from '../config/constants.js';
+import { ISO, DOOR } from '../config/constants.js';
 
 export default class CollisionGrid {
     constructor() {
         const N = ISO.GRID_SIZE;
         this.walkable = Array.from({ length: N }, () => new Array(N).fill(true));
+        // Extra-Tiles außerhalb des Grids (für Queue draußen + Tür)
+        // Wir erlauben einen Korridor bei gridX = DOOR.GRID_X bis y = N + 3
+        // UND seitlich für die Warteschlange
+        this.extraWalkable = new Set();
+        for (let dy = 0; dy <= 3; dy++) {
+            for (let dx = -1; dx <= 5; dx++) { // Tür und Bereich rechts davon
+                this.extraWalkable.add(`${DOOR.GRID_X + dx},${N + dy}`);
+            }
+        }
     }
 
     block(gridX, gridY) {
@@ -23,12 +28,14 @@ export default class CollisionGrid {
         const N = ISO.GRID_SIZE;
         const x = Math.floor(gridX);
         const y = Math.floor(gridY);
-        if (x < 0 || x >= N || y < 0 || y >= N) return false;
-        return this.walkable[x][y];
+        // Innerhalb des Hauptgrids
+        if (x >= 0 && x < N && y >= 0 && y < N) {
+            return this.walkable[x][y];
+        }
+        // Außerhalb: nur die expliziten Extra-Tiles
+        return this.extraWalkable.has(`${x},${y}`);
     }
 
-    // Player-Footprint-Check: 4 Ecken eines kleinen Quadrats um die Center-Position.
-    // margin = halbe Footprint-Breite in Tiles.
     canStandAt(gridX, gridY, margin = 0.3) {
         return this.isWalkable(gridX - margin, gridY - margin)
             && this.isWalkable(gridX + margin, gridY - margin)
