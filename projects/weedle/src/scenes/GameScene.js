@@ -53,6 +53,12 @@ export default class GameScene extends Phaser.Scene {
         this.player = new Player(this, spawn.x, spawn.y);
 
         this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT');
+        // Notfall-Reset: R drücken wenn man feststeckt
+        this.input.keyboard.addKey('R').on('down', () => {
+            const spawn = gridToIsoCenter(2, 7, this.originX, this.originY);
+            this.player.container.x = spawn.x;
+            this.player.container.y = spawn.y;
+        });
 
         // Customer-System: braucht mindestens 1 Register.
         // Wenn noch keins gebaut → customers wird null, kein Spawning.
@@ -186,7 +192,7 @@ export default class GameScene extends Phaser.Scene {
         const grid = isoCenterToGrid(fpx, fpy, this.originX, this.originY);
         this.debugText.setText([
             'WEEDLE — Build-System',
-            'WASD bewegen, E interagieren (halten)',
+            'WASD bewegen, E interagieren, R = Reset',
             `grid: (${grid.x.toFixed(1)}, ${grid.y.toFixed(1)})`,
         ]);
     }
