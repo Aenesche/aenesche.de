@@ -139,15 +139,15 @@ export default class GameScene extends Phaser.Scene {
         const grid = isoCenterToGrid(this.player.footX, this.player.footY, this.originX, this.originY);
         const px = Math.floor(grid.x);
         const py = Math.floor(grid.y);
-        if (px !== gridX || py !== gridY) return; // Spieler steht nicht auf dem Tile
+        if (px !== gridX || py !== gridY) return;
 
-        // Nächstes freies Nachbar-Tile suchen
-        const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0], [1, 1], [-1, 1], [1, -1], [-1, -1]];
+        // Nächstes freies Nachbar-Tile suchen, zur MITTE davon schieben
+        const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0]]; // nur Hauptrichtungen, sicherer
         for (const [dx, dy] of dirs) {
             const nx = gridX + dx;
             const ny = gridY + dy;
-            if (this.collision.isWalkable(nx, ny)) {
-                const target = gridToIsoCenter(nx, ny, this.originX, this.originY);
+            if (this.collision.canStandAt(nx + 0.5, ny + 0.5, 0.3)) {
+                const target = gridToIsoCenter(nx + 0.5, ny + 0.5, this.originX, this.originY);
                 this.player.container.x = target.x;
                 this.player.container.y = target.y;
                 return;
