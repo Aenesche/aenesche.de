@@ -69,7 +69,7 @@ export default class BuildSlot extends Station {
 
         // Holographisches Boden-Tile: pulsierend, gestrichelt
         g.lineStyle(2, color, pulse);
-        g.fillStyle(color, pulse * 0.15);
+        g.fillStyle(color, pulse * 1);
 
         g.beginPath();
         g.moveTo(this.isoX, this.isoY);
