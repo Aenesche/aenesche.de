@@ -9,7 +9,6 @@
 //   → Vorderwände stehen visuell zwischen Player und Kamera, deshalb gehen sie
 //     transparent damit der Player sichtbar bleibt.
 
-import { COLORS, ISO, OCCLUSION, WALLS } from '../config/constants.js';
 import { gridToIso } from '../utils/iso.js';
 import { COLORS, ISO, OCCLUSION, WALLS, DOOR } from '../config/constants.js';
 
