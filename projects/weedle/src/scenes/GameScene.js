@@ -47,15 +47,19 @@ export default class GameScene extends Phaser.Scene {
         // Build-System
         this.buildManager = new BuildManager(this);
         this.buildManager.init(this.stations);
+        
+        getSpawnPosition() {
+            return gridToIsoCenter(this.door.gridX, this.door.gridY + 1, this.originX, this.originY);
+        }
 
         // Player
-        const spawn = gridToIsoCenter(2, 7, this.originX, this.originY);
+        const spawn = this.getSpawnPosition();
         this.player = new Player(this, spawn.x, spawn.y);
 
         this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT');
         // Notfall-Reset: R drücken wenn man feststeckt
         this.input.keyboard.addKey('R').on('down', () => {
-            const spawn = gridToIsoCenter(2, 7, this.originX, this.originY);
+            const spawn = this.getSpawnPosition();
             this.player.container.x = spawn.x;
             this.player.container.y = spawn.y;
         });
