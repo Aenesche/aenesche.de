@@ -13,6 +13,8 @@ import GameState from '../world/GameState.js';
 import StorageTable from '../entities/stations/StorageTable.js';
 import Door from '../entities/Door.js';
 import { drawStreet } from '../world/Street.js';
+import Customer from '../entities/Customer.js';
+import CustomerManager from '../world/CustomerManager.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -46,6 +48,11 @@ export default class GameScene extends Phaser.Scene {
         });
 
         this.door = new Door(this);
+        // Customer-System. Wir geben die Klasse durch, damit der Manager
+        // neue Kunden spawnen kann ohne selbst den Import zu brauchen.
+        this.CustomerClass = Customer;
+        const register = this.stations.find(s => s instanceof Register);
+        this.customers = new CustomerManager(this, this.door, register, this.collision);
 
         const spawn = gridToIsoCenter(2, 7, this.originX, this.originY);
         this.player = new Player(this, spawn.x, spawn.y);
@@ -84,6 +91,7 @@ export default class GameScene extends Phaser.Scene {
         this.stations.forEach(s => {
             if (s.update) s.update(delta);
         });
+        this.customers.update(delta);
 
         const px = this.player.x;
         const py = this.player.y;
