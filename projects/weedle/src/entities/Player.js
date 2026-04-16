@@ -30,6 +30,12 @@ export default class Player {
 
         this.targetAlpha = 1;
         this.currentAlpha = 1;
+        // Offset von Container-Position zur logischen Fuß-Position
+        // Container.y ist Mitte des Schattens (Boden). Für Kollision korrekt.
+        // Aber der visuelle Body ragt 24px nach oben — dadurch wirkt es
+        // als ob die Kollision "zu tief" sitzt. Wir shiften den Footprint
+        // leicht nach oben, damit es sich visuell richtig anfühlt.
+        this.footOffsetY = -6;
         // Inventar — exakt 1 Item-Slot (1-Item-Regel)
         this.carriedItem = null;
     }
@@ -47,9 +53,10 @@ export default class Player {
         const dy = dirY * PLAYER.SPEED * dt;
 
         if (dx !== 0 || dy !== 0) {
-            this.moveWithSlide(dx, dy, canMoveTo);
+            // canMoveTo bekommt Fuß-Position (mit Offset), nicht Container-Mitte
+            const footCanMove = (x, y) => canMoveTo(x, y + this.footOffsetY);
+            this.moveWithSlide(dx, dy, footCanMove);
         }
-
         // Iso-Depth: höhere Screen-Y → näher an der Kamera → höher zeichnen.
         // So läuft der Player automatisch vor/hinter Stationen je nach Position.
         this.container.setDepth(this.container.y);
@@ -110,6 +117,8 @@ export default class Player {
 
     get x() { return this.container.x; }
     get y() { return this.container.y; }
+    get footX() { return this.container.x; }
+    get footY() { return this.container.y + this.footOffsetY; }
 
     // Wird von der Scene aufgerufen mit allen Objekten, die den Player verdecken könnten.
     updateOcclusion(occluders) {
