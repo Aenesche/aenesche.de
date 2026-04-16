@@ -10,7 +10,6 @@ import Bed from '../entities/stations/Bed.js';
 import Register from '../entities/stations/Register.js';
 import InteractionManager from '../world/InteractionManager.js';
 import GameState from '../world/GameState.js';
-import StorageTable from '../entities/stations/StorageTable.js';
 import Door from '../entities/Door.js';
 import { drawStreet } from '../world/Street.js';
 import Customer from '../entities/Customer.js';
