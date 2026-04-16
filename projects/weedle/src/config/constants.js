@@ -87,22 +87,21 @@ export const CUSTOMER = {
 };
 
 export const SATISFACTION = {
-    START: 5,
+    START: 0,
     MIN: 0,
     MAX: 10,
     FAST_SERVE: +1,
     RAGE_QUIT: -2,
     NORMAL_SERVE: 0,
 };
-
 export const SPAWN = {
     INTERVAL_BASE: 10000,    // Basis-Intervall (Zufriedenheit = Mitte)
     INTERVAL_MIN: 4000,      // bei Zufriedenheit = MAX
-    INTERVAL_MAX: 20000,     // bei Zufriedenheit = MIN
+    INTERVAL_MAX: 35000,     // bei Zufriedenheit = MIN
     // Max gleichzeitige Kunden abhängig von Zufriedenheit
     MAX_CUSTOMERS_LOW: 1,    // bei niedriger Zufriedenheit
     MAX_CUSTOMERS_HIGH: 4,   // bei hoher Zufriedenheit
     // Wahrscheinlichkeit für Multi-Item-Bestellungen (0..1)
     MULTI_ITEM_CHANCE_PER_SAT: 0.04, // +4% pro Zufriedenheits-Punkt über Start
-    MAX_ORDER_SIZE: 3,
+    MAX_ORDER_SIZE: 4,
 };
