@@ -105,3 +105,35 @@ export const SPAWN = {
     MULTI_ITEM_CHANCE_PER_SAT: 0.04, // +4% pro Zufriedenheits-Punkt über Start
     MAX_ORDER_SIZE: 4,
 };
+export const BUILD = {
+    // Preise pro Typ, Index = wieviele davon schon existieren
+    // Also: erstes Beet = 10€, zweites = 50€, drittes = 250€ ...
+    PRICES: {
+        bed:      [10, 50, 250, 1000, 4000],
+        register: [10, 100, 500, 2000],
+        storage:  [5, 15, 40, 100],
+    },
+    // Vordefinierte Positionen auf dem Grid
+    SLOTS: [
+        // Beete (Reihe oben-mitte)
+        { type: 'bed', gridX: 2, gridY: 3 },
+        { type: 'bed', gridX: 4, gridY: 3 },
+        { type: 'bed', gridX: 6, gridY: 3 },
+        { type: 'bed', gridX: 8, gridY: 3 },
+        { type: 'bed', gridX: 3, gridY: 5 },
+        { type: 'bed', gridX: 5, gridY: 5 },
+        { type: 'bed', gridX: 7, gridY: 5 },
+        { type: 'bed', gridX: 9, gridY: 5 },
+        // Kassen (unterer Bereich)
+        { type: 'register', gridX: 5, gridY: 9 },
+        { type: 'register', gridX: 3, gridY: 9 },
+        { type: 'register', gridX: 7, gridY: 9 },
+        // Storage (neben Kassen)
+        { type: 'storage', gridX: 4, gridY: 9 },
+        { type: 'storage', gridX: 6, gridY: 9 },
+        { type: 'storage', gridX: 2, gridY: 7 },
+        { type: 'storage', gridX: 4, gridY: 7 },
+        { type: 'storage', gridX: 6, gridY: 7 },
+        { type: 'storage', gridX: 8, gridY: 7 },
+    ],
+};
