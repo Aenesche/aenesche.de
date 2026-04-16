@@ -97,6 +97,9 @@ export default class GameScene extends Phaser.Scene {
         };
         updateHUD();
         this.state.onChange(updateHUD);
+        // Debug: rotes Kreuz das zeigt wo das Spiel denkt dass der Player-Fuß ist
+        this.debugMarker = this.add.graphics();
+        this.debugMarker.setDepth(999999);
     }
 
     // Alle interagierbaren Objekte (Stationen + sichtbare BuildSlots)
@@ -196,6 +199,19 @@ export default class GameScene extends Phaser.Scene {
             'WASD bewegen, E interagieren, R = Reset',
             `grid: (${grid.x.toFixed(1)}, ${grid.y.toFixed(1)})`,
         ]);
+        // Debug-Marker: wo denkt das Spiel dass der Player steht?
+        this.debugMarker.clear();
+        this.debugMarker.lineStyle(2, 0xff0000, 1);
+        const debugPos = gridToIsoCenter(Math.floor(grid.x) + 0.5, Math.floor(grid.y) + 0.5, this.originX, this.originY);
+        // Rotes X auf dem Tile wo der Player laut Grid steht
+        this.debugMarker.beginPath(); this.debugMarker.moveTo(debugPos.x - 8, debugPos.y - 8); this.debugMarker.lineTo(debugPos.x + 8, debugPos.y + 8); this.debugMarker.strokePath();
+        this.debugMarker.beginPath(); this.debugMarker.moveTo(debugPos.x + 8, debugPos.y - 8); this.debugMarker.lineTo(debugPos.x - 8, debugPos.y + 8); this.debugMarker.strokePath();
+        // Grüner Punkt wo der Player WIRKLICH ist (Fuß-Position)
+        this.debugMarker.fillStyle(0x00ff00, 1);
+        this.debugMarker.fillCircle(this.player.footX, this.player.footY, 4);
+        // Gelber Punkt: Container-Position
+        this.debugMarker.fillStyle(0xffff00, 1);
+        this.debugMarker.fillCircle(this.player.x, this.player.y, 3);
     }
 
     canMoveTo(screenX, screenY) {
