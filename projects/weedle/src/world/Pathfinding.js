@@ -43,7 +43,8 @@ export function findPath(collision, start, goal) {
         for (const [dx, dy] of NEIGHBORS) {
             const nx = current.x + dx;
             const ny = current.y + dy;
-            if (nx < 0 || nx >= N || ny < 0 || ny >= N) continue;
+            // Erweiterte Bounds für Extra-Tiles (z.B. Tür/Gehweg)
+            if (nx < -2 || nx >= N + 10 || ny < -2 || ny >= N + 10) continue;
             if (closed.has(key(nx, ny))) continue;
             if (!collision.isWalkable(nx, ny)) continue;
 
