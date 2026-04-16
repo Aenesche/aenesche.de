@@ -78,3 +78,9 @@ export const DOOR = {
 export const STORAGE_TABLE = {
     HEIGHT: 15,
 };
+export const CUSTOMER = {
+    SPEED: 120,              // langsamer als Player (200)
+    RAGE_DURATION: 30000,    // 30s Geduld bevor er wütend geht
+    WAIT_AFTER_SERVED: 800,  // ms Pause vor dem Rausgehen
+    QUEUE_SPACING: 1.0,      // Tiles zwischen Kunden in der Schlange
+};
