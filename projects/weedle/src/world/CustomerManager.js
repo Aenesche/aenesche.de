@@ -1,11 +1,11 @@
 import { CUSTOMER, SATISFACTION, SPAWN, ITEMS } from '../config/constants.js';
 import { findPath } from './Pathfinding.js';
+import Register from '../entities/stations/Register.js';
 
 export default class CustomerManager {
-    constructor(scene, door, register, collision, state) {
+    constructor(scene, door, collision, state) {
         this.scene = scene;
         this.door = door;
-        this.register = register;
         this.collision = collision;
         this.state = state;
 
@@ -13,10 +13,18 @@ export default class CustomerManager {
         this.spawnCooldown = this.currentSpawnInterval();
     }
 
+    // Alle Register aus den Scene-Stationen
+    getRegisters() {
+        return this.scene.stations.filter(s => s instanceof Register);
+    }
+
     update(delta) {
         this.spawnCooldown -= delta;
+        const registers = this.getRegisters();
+        if (registers.length === 0) return; // Keine Kassen → keine Kunden
+
         if (this.customers.length < this.currentMaxCustomers() && this.spawnCooldown <= 0) {
-            this.trySpawn();
+            this.trySpawn(registers);
             this.spawnCooldown = this.currentSpawnInterval();
         }
 
@@ -37,10 +45,8 @@ export default class CustomerManager {
             }
         }
 
-        // Rage-Timer nur für Kunde an Slot 0
         this.updateRageFlags();
 
-        // Aufräumen + Queue neu organisieren wenn jemand weg ist
         const before = this.customers.length;
         this.customers = this.customers.filter(c => {
             if (c.state === 'done') {
@@ -50,7 +56,7 @@ export default class CustomerManager {
             return true;
         });
         if (this.customers.length !== before) {
-            this.reassignQueue();
+            this.reassignQueue(registers);
         }
     }
 
@@ -75,91 +81,175 @@ export default class CustomerManager {
         return Array.from({ length: size }, () => ITEMS.PLANT.id);
     }
 
-    trySpawn() {
+    trySpawn(registers) {
         const Customer = this.scene.CustomerClass;
         const spawn = { x: this.door.gridX, y: this.door.gridY + 1 };
 
-        // Nur Kunden zählen, die IN DER WARTESCHLANGE sind (nicht leaving)
-        const queuedCount = this.customers.filter(c =>
-            c.state === 'walking_in' || c.state === 'queueing' || c.state === 'waiting'
-        ).length;
-        const slotIndex = queuedCount;
-        const target = this.getQueueSlot(slotIndex);
+        // Kürzeste Kasse finden (wenigste Kunden zugewiesen)
+        const assignment = this.findShortestQueue(registers);
+        if (!assignment) return;
+
+        const { register, slotIndex, isOutside } = assignment;
+        const target = this.getSlotPosition(register, slotIndex, isOutside);
 
         const path = findPath(this.collision, { x: spawn.x, y: spawn.y - 1 }, target);
         if (!path) return;
 
         const order = this.generateOrder();
         const c = new Customer(this.scene, spawn.x, spawn.y, order);
+        c.assignedRegister = register;
         c.queueIndex = slotIndex;
+        c.isOutside = isOutside;
 
         const fullPath = [{ x: spawn.x, y: spawn.y - 1 }, ...path];
         c.setPath(fullPath);
         this.customers.push(c);
     }
 
-    getQueueSlot(n) {
-        if (n === 0) {
-            // Slot 0: drinnen vor der Kasse
+    // Finde die Kasse mit der kürzesten Schlange
+    findShortestQueue(registers) {
+        let bestRegister = null;
+        let bestCount = Infinity;
+
+        for (const reg of registers) {
+            const count = this.getQueueLength(reg);
+            if (count < bestCount) {
+                bestCount = count;
+                bestRegister = reg;
+            }
+        }
+
+        if (!bestRegister) return null;
+
+        const slotIndex = bestCount;
+        const isOutside = slotIndex >= CUSTOMER.INDOOR_SLOTS_PER_REGISTER;
+
+        return { register: bestRegister, slotIndex, isOutside };
+    }
+
+    // Wie viele Kunden sind einer bestimmten Kasse zugewiesen (noch wartend)
+    getQueueLength(register) {
+        return this.customers.filter(c =>
+            c.assignedRegister === register &&
+            (c.state === 'walking_in' || c.state === 'queueing' || c.state === 'waiting')
+        ).length;
+    }
+
+    // Slot-Position: 0 und 1 drinnen (vor der Kasse), 2+ draußen
+    getSlotPosition(register, slotIndex, isOutside) {
+        if (!isOutside) {
+            // Drinnen: direkt vor der Kasse, gestaffelt
             return {
-                x: this.register.gridX,
-                y: this.register.gridY + 1,
+                x: register.gridX,
+                y: register.gridY + 1 + slotIndex * CUSTOMER.QUEUE_SPACING,
             };
         }
-        // Slot 1+: draußen neben der Tür, seitlich verteilt
-        // Wir stellen sie in einer Reihe rechts vom Eingang auf dem Gehweg auf
-        const outsideY = this.door.gridY + 1; // eine Tile vor der Tür (außerhalb)
-        const offsetX = n; // 1, 2, 3 Tiles rechts neben der Tür
+        // Draußen: neben der Tür, seitlich verteilt
+        const outsideIndex = slotIndex - CUSTOMER.INDOOR_SLOTS_PER_REGISTER;
         return {
-            x: this.door.gridX + offsetX,
-            y: outsideY,
+            x: this.door.gridX + outsideIndex + 1,
+            y: this.door.gridY + 1,
         };
     }
 
-    // Rage nur für Kunde an Slot 0, und nur wenn er wirklich dort steht
     updateRageFlags() {
         for (const c of this.customers) {
             if (c.state !== 'queueing' && c.state !== 'waiting') {
                 c.rageActive = false;
                 continue;
             }
-            // Alle wartenden Kunden werden wütend, egal wo in der Schlange
-            c.rageActive = this.isAtSlot(c, c.queueIndex);
+            // Alle wartenden Kunden an ihrer Slot-Position bekommen Rage
+            const target = this.getSlotPosition(c.assignedRegister, c.queueIndex, c.isOutside);
+            const pos = c.gridPos;
+            const atSlot = Math.abs(pos.x - target.x) < 0.5 && Math.abs(pos.y - target.y) < 0.5;
+            c.rageActive = atSlot;
         }
     }
 
-    // Wird aufgerufen wenn ein Kunde die Schlange verlässt
-    reassignQueue() {
-        const queued = this.customers.filter(c =>
-            c.state === 'walking_in' || c.state === 'queueing' || c.state === 'waiting'
-        );
-        queued.forEach((c, newIndex) => {
-            if (c.queueIndex !== newIndex) {
-                c.queueIndex = newIndex;
-                const slot = this.getQueueSlot(newIndex);
-                const from = c.gridPos;
-                const path = findPath(this.collision, from, slot);
-                if (path) {
-                    c.setPath(path);
-                    // Queueing-Kunden gehen kurz wieder in walking_in, solange sie laufen
-                    if (c.state === 'queueing') c.state = 'walking_in';
+    // Wenn jemand weg ist: Queue für jede Kasse neu ordnen
+    reassignQueue(registers) {
+        for (const reg of registers) {
+            const queued = this.customers.filter(c =>
+                c.assignedRegister === reg &&
+                (c.state === 'walking_in' || c.state === 'queueing' || c.state === 'waiting')
+            );
+            queued.forEach((c, newIndex) => {
+                if (c.queueIndex !== newIndex) {
+                    c.queueIndex = newIndex;
+                    c.isOutside = newIndex >= CUSTOMER.INDOOR_SLOTS_PER_REGISTER;
+                    const slot = this.getSlotPosition(reg, newIndex, c.isOutside);
+                    const from = c.gridPos;
+                    const path = findPath(this.collision, from, slot);
+                    if (path) {
+                        c.setPath(path);
+                        if (c.state === 'queueing') c.state = 'walking_in';
+                    }
+                }
+            });
+        }
+
+        // Kunden von langen Schlangen zu kürzeren umverteilen
+        this.rebalanceQueues(registers);
+    }
+
+    // Wenn eine Kasse deutlich kürzer ist, schicke Kunden von der längeren hin
+    rebalanceQueues(registers) {
+        if (registers.length < 2) return;
+
+        for (const reg of registers) {
+            const queue = this.customers.filter(c =>
+                c.assignedRegister === reg &&
+                (c.state === 'walking_in' || c.state === 'queueing') &&
+                !c.firstItemReceived // Nicht umleiten wenn schon bedient wird
+            );
+            if (queue.length <= 1) continue;
+
+            // Letzten Kunden in der Schlange prüfen ob andere Kasse kürzer ist
+            const last = queue[queue.length - 1];
+            let shortestReg = reg;
+            let shortestLen = this.getQueueLength(reg);
+
+            for (const otherReg of registers) {
+                if (otherReg === reg) continue;
+                const otherLen = this.getQueueLength(otherReg);
+                if (otherLen < shortestLen - 1) { // Mindestens 2 weniger
+                    shortestLen = otherLen;
+                    shortestReg = otherReg;
                 }
             }
-        });
+
+            if (shortestReg !== reg) {
+                last.assignedRegister = shortestReg;
+                last.queueIndex = shortestLen;
+                last.isOutside = last.queueIndex >= CUSTOMER.INDOOR_SLOTS_PER_REGISTER;
+                const slot = this.getSlotPosition(shortestReg, last.queueIndex, last.isOutside);
+                const from = last.gridPos;
+                const path = findPath(this.collision, from, slot);
+                if (path) {
+                    last.setPath(path);
+                    if (last.state === 'queueing') last.state = 'walking_in';
+                }
+            }
+        }
     }
 
-    getActiveCustomer() {
+    // Aktiver Kunde an einer bestimmten Kasse (für Register-Interaktion)
+    getActiveCustomerAt(register) {
         return this.customers.find(c =>
-            (c.state === 'queueing' || c.state === 'waiting')
-            && c.queueIndex === 0
-            && this.isAtSlot(c, 0)
+            c.assignedRegister === register &&
+            (c.state === 'queueing' || c.state === 'waiting') &&
+            c.queueIndex === 0 &&
+            !c.isOutside
         );
     }
 
-    isAtSlot(customer, n) {
-        const slot = this.getQueueSlot(n);
-        const pos = customer.gridPos;
-        return Math.abs(pos.x - slot.x) < 0.5 && Math.abs(pos.y - slot.y) < 0.5;
+    // Backward-compat: getActiveCustomer sucht über alle Kassen
+    getActiveCustomer() {
+        for (const reg of this.getRegisters()) {
+            const c = this.getActiveCustomerAt(reg);
+            if (c) return c;
+        }
+        return null;
     }
 
     onCustomerServed(customer) {
