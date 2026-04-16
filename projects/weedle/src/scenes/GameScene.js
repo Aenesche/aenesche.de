@@ -35,7 +35,7 @@ export default class GameScene extends Phaser.Scene {
 
         // Start-Setup: nur 1 Samen-Terminal (gratis)
         this.stations = [
-            new SeedTerminal(this, 5, 1),
+            new SeedTerminal(this, 5, 0),
         ];
 
         this.stations.forEach(s => {
