@@ -79,8 +79,30 @@ export const STORAGE_TABLE = {
     HEIGHT: 15,
 };
 export const CUSTOMER = {
-    SPEED: 120,              // langsamer als Player (200)
-    RAGE_DURATION: 30000,    // 30s Geduld bevor er wütend geht
-    WAIT_AFTER_SERVED: 800,  // ms Pause vor dem Rausgehen
-    QUEUE_SPACING: 1.0,      // Tiles zwischen Kunden in der Schlange
+    SPEED: 70,               // langsamer
+    RAGE_DURATION: 30000,
+    WAIT_AFTER_SERVED: 800,
+    QUEUE_SPACING: 1.0,
+    FAST_SERVE_THRESHOLD: 0.5, // unter 50% Rage = "schnell bedient"
+};
+
+export const SATISFACTION = {
+    START: 5,
+    MIN: 0,
+    MAX: 10,
+    FAST_SERVE: +1,
+    RAGE_QUIT: -2,
+    NORMAL_SERVE: 0,
+};
+
+export const SPAWN = {
+    INTERVAL_BASE: 10000,    // Basis-Intervall (Zufriedenheit = Mitte)
+    INTERVAL_MIN: 4000,      // bei Zufriedenheit = MAX
+    INTERVAL_MAX: 20000,     // bei Zufriedenheit = MIN
+    // Max gleichzeitige Kunden abhängig von Zufriedenheit
+    MAX_CUSTOMERS_LOW: 1,    // bei niedriger Zufriedenheit
+    MAX_CUSTOMERS_HIGH: 4,   // bei hoher Zufriedenheit
+    // Wahrscheinlichkeit für Multi-Item-Bestellungen (0..1)
+    MULTI_ITEM_CHANCE_PER_SAT: 0.04, // +4% pro Zufriedenheits-Punkt über Start
+    MAX_ORDER_SIZE: 3,
 };
