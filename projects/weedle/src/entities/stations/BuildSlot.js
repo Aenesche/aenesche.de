@@ -65,7 +65,7 @@ export default class BuildSlot extends Station {
         const color = TYPE_COLORS[this.type] || 0xffffff;
         const g = this.graphics;
         const t = this.scene.time?.now || 0;
-        const pulse = 0.3 + 0.2 * Math.sin(t / 12000 * Math.PI * 2);
+        const pulse = 0.3 + 0.2 * Math.sin(t / 6000 * Math.PI * 2);
 
         // Holographisches Boden-Tile: pulsierend, gestrichelt
         g.lineStyle(2, color, pulse);
