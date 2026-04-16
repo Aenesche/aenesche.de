@@ -79,11 +79,12 @@ export const STORAGE_TABLE = {
     HEIGHT: 15,
 };
 export const CUSTOMER = {
-    SPEED: 70,               // langsamer
+    SPEED: 70,
     RAGE_DURATION: 30000,
     WAIT_AFTER_SERVED: 800,
     QUEUE_SPACING: 1.0,
-    FAST_SERVE_THRESHOLD: 0.5, // unter 50% Rage = "schnell bedient"
+    FAST_SERVE_THRESHOLD: 0.5,
+    INDOOR_SLOTS_PER_REGISTER: 2, // max 2 Kunden drinnen pro Kasse
 };
 
 export const SATISFACTION = {
