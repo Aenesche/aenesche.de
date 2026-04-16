@@ -15,6 +15,8 @@ import Door from '../entities/Door.js';
 import { drawStreet } from '../world/Street.js';
 import Customer from '../entities/Customer.js';
 import CustomerManager from '../world/CustomerManager.js';
+import BuildManager from '../world/BuildManager.js';
+import StorageTable from '../entities/stations/StorageTable.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -28,19 +30,13 @@ export default class GameScene extends Phaser.Scene {
         this.collision = new CollisionGrid();
         this.state = new GameState();
 
-        // Reihenfolge wichtig: erst Boden (depth -2000), dann Wände (-1000)
         this.drawGrid();
         drawStreet(this, this.originX, this.originY);
         this.walls = createOuterWalls(this, this.originX, this.originY);
 
+        // Start-Setup: nur 1 Samen-Terminal (gratis)
         this.stations = [
             new SeedTerminal(this, 5, 1),
-            new Bed(this, 3, 5),
-            new Bed(this, 5, 5),
-            new Bed(this, 7, 5),
-            new Register(this, 5, 9),
-            new StorageTable(this, 4, 9), // links neben Kasse
-            new StorageTable(this, 6, 9), // rechts neben Kasse
         ];
 
         this.stations.forEach(s => {
@@ -48,31 +44,32 @@ export default class GameScene extends Phaser.Scene {
         });
 
         this.door = new Door(this);
-        // Customer-System. Wir geben die Klasse durch, damit der Manager
-        // neue Kunden spawnen kann ohne selbst den Import zu brauchen.
-        this.CustomerClass = Customer;
-        const register = this.stations.find(s => s instanceof Register);
-        this.customers = new CustomerManager(this, this.door, register, this.collision, this.state);
 
+        // Build-System
+        this.buildManager = new BuildManager(this);
+        this.buildManager.init(this.stations);
+
+        // Player
         const spawn = gridToIsoCenter(2, 7, this.originX, this.originY);
         this.player = new Player(this, spawn.x, spawn.y);
 
         this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT');
 
-        this.interaction = new InteractionManager(this, this.player, this.stations);
+        // Customer-System: braucht mindestens 1 Register.
+        // Wenn noch keins gebaut → customers wird null, kein Spawning.
+        this.CustomerClass = Customer;
+        this.customers = null;
+        this.tryInitCustomers();
 
+        // Interaction: Stationen + sichtbare BuildSlots
+        this.interaction = new InteractionManager(this, this.player, this.getInteractables());
+
+        // HUD
         this.debugText = this.add.text(20, 20, '', {
             font: '12px monospace',
             color: '#00ff88',
         });
         this.debugText.setDepth(300000);
-        
-        this.moneyText = this.add.text(GAME.WIDTH - 20, 20, '', {
-            font: 'bold 18px monospace',
-            color: '#00ff88',
-        });
-        this.moneyText.setOrigin(1, 0);
-        this.moneyText.setDepth(300000);
 
         this.moneyText = this.add.text(GAME.WIDTH - 20, 20, '', {
             font: 'bold 18px monospace',
@@ -96,6 +93,48 @@ export default class GameScene extends Phaser.Scene {
         updateHUD();
         this.state.onChange(updateHUD);
     }
+
+    // Alle interagierbaren Objekte (Stationen + sichtbare BuildSlots)
+    getInteractables() {
+        return [
+            ...this.stations,
+            ...this.buildManager.getInteractableSlots(),
+        ];
+    }
+
+    // Kunden-System startet erst wenn mindestens 1 Register existiert
+    tryInitCustomers() {
+        if (this.customers) return;
+        const register = this.stations.find(s => s instanceof Register);
+        if (register) {
+            this.customers = new CustomerManager(this, this.door, register, this.collision, this.state);
+        }
+    }
+
+    // Callback von BuildSlot wenn gekauft
+    onBuildSlotPurchased(slot) {
+        let newStation;
+        if (slot.type === 'bed') {
+            newStation = new Bed(this, slot.gridX, slot.gridY);
+        } else if (slot.type === 'register') {
+            newStation = new Register(this, slot.gridX, slot.gridY);
+        } else if (slot.type === 'storage') {
+            newStation = new StorageTable(this, slot.gridX, slot.gridY);
+        }
+
+        if (newStation) {
+            this.stations.push(newStation);
+            newStation.getTiles().forEach(t => this.collision.block(t.x, t.y));
+        }
+
+        this.buildManager.onPurchased(slot);
+
+        // Customer-System starten wenn erstes Register gebaut
+        this.tryInitCustomers();
+
+        // Interaction-Liste aktualisieren
+        this.interaction.stations = this.getInteractables();
+    }
     
     update(time, delta) {
         let dirX = 0, dirY = 0;
@@ -105,24 +144,30 @@ export default class GameScene extends Phaser.Scene {
         if (this.keys.S.isDown || this.keys.DOWN.isDown)  dirY =  1;
 
         this.player.update(delta, dirX, dirY, (x, y) => this.canMoveTo(x, y));
-        // Stations-Logik (Wachstum etc.)
-        this.stations.forEach(s => {
-            if (s.update) s.update(delta);
-        });
-        this.customers.update(delta);
 
+        // Stations-Updates (Wachstum etc.)
+        this.stations.forEach(s => { if (s.update) s.update(delta); });
+
+        // BuildSlot-Animationen
+        this.buildManager.slots.forEach(s => { if (s.update) s.update(delta); });
+
+        // Occlusion
         const px = this.player.x;
         const py = this.player.y;
         this.stations.forEach(s => s.updateOcclusion(px, py));
         this.walls.forEach(w => w.updateOcclusion(px, py));
         this.player.updateOcclusion(this.stations);
 
+        // Kunden
+        if (this.customers) this.customers.update(delta);
+
+        // Interaktion — Liste aktualisiert sich bei Build
         this.interaction.update(delta);
 
         const grid = isoCenterToGrid(px, py, this.originX, this.originY);
         this.debugText.setText([
-            'WEEDLE — Interaktion',
-            'WASD bewegen, E interagieren (halten für Hold)',
+            'WEEDLE — Build-System',
+            'WASD bewegen, E interagieren (halten)',
             `grid: (${grid.x.toFixed(1)}, ${grid.y.toFixed(1)})`,
         ]);
     }
