@@ -10,6 +10,8 @@ import Bed from '../entities/stations/Bed.js';
 import Register from '../entities/stations/Register.js';
 import InteractionManager from '../world/InteractionManager.js';
 import GameState from '../world/GameState.js';
+import StorageTable from '../entities/stations/StorageTable.js';
+import Door from '../entities/Door.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -33,11 +35,15 @@ export default class GameScene extends Phaser.Scene {
             new Bed(this, 5, 5),
             new Bed(this, 7, 5),
             new Register(this, 5, 9),
+            new StorageTable(this, 4, 9), // links neben Kasse
+            new StorageTable(this, 6, 9), // rechts neben Kasse
         ];
 
         this.stations.forEach(s => {
             s.getTiles().forEach(t => this.collision.block(t.x, t.y));
         });
+
+        this.door = new Door(this);
 
         const spawn = gridToIsoCenter(2, 7, this.originX, this.originY);
         this.player = new Player(this, spawn.x, spawn.y);
