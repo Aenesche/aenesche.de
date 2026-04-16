@@ -59,4 +59,10 @@ export const ITEMS = {
         color: 0xffff00,
         label: 'Samen',
     },
+    PLANT: {
+        id: 'plant',
+        color: 0x00ff00,
+        label: 'Pflanze',
+        sellPrice: 25,
+    },
 };
