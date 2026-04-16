@@ -1,5 +1,5 @@
 import Station from './Station.js';
-import { COLORS, ISO } from '../../config/constants.js';
+import { COLORS, ISO, ITEMS } from '../../config/constants.js';
 import { drawIsoCube } from '../../utils/iso.js';
 
 const TABLE_HEIGHT = 15;
@@ -13,18 +13,15 @@ export default class Register extends Station {
 
         g.fillStyle(COLORS.REGISTER, 0.4);
         g.lineStyle(1, COLORS.REGISTER, 1);
-        // Rechte Seite
         g.beginPath();
         g.moveTo(rx, ry); g.lineTo(rx + 10, ry - 5);
         g.lineTo(rx + 10, ry - 15); g.lineTo(rx, ry - 10);
         g.closePath(); g.fillPath(); g.strokePath();
-        // Linke Seite
         g.beginPath();
         g.moveTo(rx, ry); g.lineTo(rx - 10, ry - 5);
         g.lineTo(rx - 10, ry - 15); g.lineTo(rx, ry - 10);
         g.closePath(); g.fillPath(); g.strokePath();
 
-        // Cyanes Display
         g.fillStyle(COLORS.WALL, 1);
         g.beginPath();
         g.moveTo(rx - 8, ry - 7); g.lineTo(rx - 2, ry - 4);
@@ -38,13 +35,44 @@ export default class Register extends Station {
             bottom: this.isoY + ISO.TILE_SIZE,
         };
     }
+
     getInteraction() {
-        return {
-            type: 'hold',
-            duration: 1500,
-            onComplete: () => {
-                console.log('💰 Bestellung aufgenommen (Platzhalter)');
-            },
-        };
+        const customer = this.scene.customers.getActiveCustomer();
+        if (!customer) return null;
+
+        const player = this.scene.player;
+        const state = this.scene.state;
+
+        // 1. Bestellung aufnehmen (Hold 1.5s) — nur wenn noch nicht enthüllt
+        if (!customer.orderRevealed) {
+            return {
+                type: 'hold',
+                duration: 1500,
+                onComplete: () => {
+                    customer.revealOrder();
+                    customer.state = 'waiting';
+                },
+            };
+        }
+
+        // 2. Item übergeben (Tap) — Player trägt was, das der Kunde will
+        if (player.hasItem() && customer.order.includes(player.carriedItem.itemDef.id)) {
+            const itemDef = player.carriedItem.itemDef;
+            return {
+                type: 'tap',
+                duration: 0,
+                onComplete: () => {
+                    if (customer.receiveItem(itemDef)) {
+                        player.dropItem();
+                        // Bezahlung wenn alle Items geliefert
+                        if (customer.order.length === 0 && itemDef.sellPrice) {
+                            state.earn(itemDef.sellPrice);
+                        }
+                    }
+                },
+            };
+        }
+
+        return null;
     }
 }
