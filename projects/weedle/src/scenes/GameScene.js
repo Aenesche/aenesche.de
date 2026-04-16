@@ -47,10 +47,6 @@ export default class GameScene extends Phaser.Scene {
         // Build-System
         this.buildManager = new BuildManager(this);
         this.buildManager.init(this.stations);
-        
-        getSpawnPosition() {
-            return gridToIsoCenter(this.door.gridX, this.door.gridY + 1, this.originX, this.originY);
-        }
 
         // Player
         const spawn = this.getSpawnPosition();
@@ -222,6 +218,9 @@ export default class GameScene extends Phaser.Scene {
         const grid = isoCenterToGrid(screenX, screenY, this.originX, this.originY);
         return this.collision.canStandAt(grid.x, grid.y);
     }
+    getSpawnPosition() {
+            return gridToIsoCenter(this.door.gridX, this.door.gridY + 1, this.originX, this.originY);
+        }
 
     drawGrid() {
         const g = this.add.graphics();
