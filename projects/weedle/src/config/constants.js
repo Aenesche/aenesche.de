@@ -71,3 +71,10 @@ export const GROWTH = {
     GROW_DURATION: 15000, // ms bis erntereif
     ROT_DURATION: 20000,  // ms nach erntereif bis verfault
 };
+export const DOOR = {
+    GRID_X: 6, // wo in der Vorderwand die Lücke ist (0..GRID_SIZE)
+};
+
+export const STORAGE_TABLE = {
+    HEIGHT: 15,
+};
