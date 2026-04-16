@@ -113,9 +113,9 @@ export default class GameScene extends Phaser.Scene {
     // Kunden-System startet erst wenn mindestens 1 Register existiert
     tryInitCustomers() {
         if (this.customers) return;
-        const register = this.stations.find(s => s instanceof Register);
-        if (register) {
-            this.customers = new CustomerManager(this, this.door, register, this.collision, this.state);
+        const registers = this.stations.filter(s => s instanceof Register);
+        if (registers.length > 0) {
+            this.customers = new CustomerManager(this, this.door, this.collision, this.state);
         }
     }
 
