@@ -124,15 +124,35 @@ export default class GameScene extends Phaser.Scene {
         if (newStation) {
             this.stations.push(newStation);
             newStation.getTiles().forEach(t => this.collision.block(t.x, t.y));
+
+            // Eingemauert-Schutz: Player aus dem Tile rausschieben wenn er drinsteht
+            this.pushPlayerOutOf(slot.gridX, slot.gridY);
         }
 
         this.buildManager.onPurchased(slot);
-
-        // Customer-System starten wenn erstes Register gebaut
         this.tryInitCustomers();
-
-        // Interaction-Liste aktualisieren
         this.interaction.stations = this.getInteractables();
+    }
+
+    // Schiebt den Player auf das nächste freie Nachbar-Tile
+    pushPlayerOutOf(gridX, gridY) {
+        const grid = isoCenterToGrid(this.player.footX, this.player.footY, this.originX, this.originY);
+        const px = Math.floor(grid.x);
+        const py = Math.floor(grid.y);
+        if (px !== gridX || py !== gridY) return; // Spieler steht nicht auf dem Tile
+
+        // Nächstes freies Nachbar-Tile suchen
+        const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0], [1, 1], [-1, 1], [1, -1], [-1, -1]];
+        for (const [dx, dy] of dirs) {
+            const nx = gridX + dx;
+            const ny = gridY + dy;
+            if (this.collision.isWalkable(nx, ny)) {
+                const target = gridToIsoCenter(nx, ny, this.originX, this.originY);
+                this.player.container.x = target.x;
+                this.player.container.y = target.y;
+                return;
+            }
+        }
     }
     
     update(time, delta) {
@@ -153,17 +173,17 @@ export default class GameScene extends Phaser.Scene {
         // Occlusion
         const px = this.player.x;
         const py = this.player.y;
+        const fpx = this.player.footX;
+        const fpy = this.player.footY;
+
         this.stations.forEach(s => s.updateOcclusion(px, py));
         this.walls.forEach(w => w.updateOcclusion(px, py));
         this.player.updateOcclusion(this.stations);
 
-        // Kunden
         if (this.customers) this.customers.update(delta);
-
-        // Interaktion — Liste aktualisiert sich bei Build
         this.interaction.update(delta);
 
-        const grid = isoCenterToGrid(px, py, this.originX, this.originY);
+        const grid = isoCenterToGrid(fpx, fpy, this.originX, this.originY);
         this.debugText.setText([
             'WEEDLE — Build-System',
             'WASD bewegen, E interagieren (halten)',
