@@ -11,6 +11,7 @@
 
 import { COLORS, ISO, OCCLUSION, WALLS } from '../config/constants.js';
 import { gridToIso } from '../utils/iso.js';
+import { COLORS, ISO, OCCLUSION, WALLS, DOOR } from '../config/constants.js';
 
 export function createOuterWalls(scene, originX, originY) {
     const N = ISO.GRID_SIZE;
@@ -19,16 +20,20 @@ export function createOuterWalls(scene, originX, originY) {
     const left   = gridToIso(0, N, originX, originY);
     const bottom = gridToIso(N, N, originX, originY);
 
+    // Tür-Lücke auf der right→bottom Wand. Tür ist bei gridX = DOOR.GRID_X, gridY = N.
+    // Wir splitten die Wand in zwei Segmente mit einer Lücke von 1 Tile.
+    const doorBefore = gridToIso(DOOR.GRID_X - 0.5, N, originX, originY);
+    const doorAfter  = gridToIso(DOOR.GRID_X + 0.5, N, originX, originY);
+
     return [
-        // Hintere Wände — gehen NICHT transparent (sind hinter allem)
         new WallSegment(scene, top, right, WALLS.BACK_HEIGHT, COLORS.WALL, false, -1000),
         new WallSegment(scene, top, left,  WALLS.BACK_HEIGHT, COLORS.WALL, false, -1000),
-        // Vordere Wände — gehen transparent, sehr hohe Depth
         new WallSegment(scene, left,  bottom, WALLS.FRONT_HEIGHT, COLORS.WALL, true, 100000),
-        new WallSegment(scene, right, bottom, WALLS.FRONT_HEIGHT, COLORS.WALL, true, 100000),
+        // Vordere Wand mit Tür-Lücke: zwei Segmente
+        new WallSegment(scene, right, doorBefore, WALLS.FRONT_HEIGHT, COLORS.WALL, true, 100000),
+        new WallSegment(scene, doorAfter, bottom, WALLS.FRONT_HEIGHT, COLORS.WALL, true, 100000),
     ];
 }
-
 class WallSegment {
     constructor(scene, from, to, height, color, occludable, depth) {
         this.scene = scene;
