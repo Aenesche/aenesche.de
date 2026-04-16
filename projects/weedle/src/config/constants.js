@@ -66,3 +66,8 @@ export const ITEMS = {
         sellPrice: 25,
     },
 };
+
+export const GROWTH = {
+    GROW_DURATION: 15000, // ms bis erntereif
+    ROT_DURATION: 20000,  // ms nach erntereif bis verfault
+};
