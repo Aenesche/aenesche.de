@@ -37,7 +37,7 @@ export default class Register extends Station {
     }
 
     getInteraction() {
-        const customer = this.scene.customers.getActiveCustomer();
+        const customer = this.scene.customers?.getActiveCustomerAt(this);
         if (!customer) return null;
 
         const player = this.scene.player;
