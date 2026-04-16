@@ -20,16 +20,16 @@ export function isoToGrid(px, py, originX = 0, originY = 0) {
     };
 }
 
-// Tile-Mitte statt Tile-Ecke. Bequemer fürs Platzieren von Figuren/Objekten.
+// Tile-Mitte: das Zentrum des Diamonds bei (gridX, gridY) ist eigentlich
+// der Punkt (gridX + 0.5, gridY + 0.5) im Grid.
 export function gridToIsoCenter(gridX, gridY, originX = 0, originY = 0) {
-    const pos = gridToIso(gridX, gridY, originX, originY);
-    return { x: pos.x, y: pos.y + ISO.TILE_SIZE / 2 };
+    return gridToIso(gridX + 0.5, gridY + 0.5, originX, originY);
 }
 
 export function isoCenterToGrid(px, py, originX = 0, originY = 0) {
-    return isoToGrid(px, py - ISO.TILE_SIZE / 2, originX, originY);
+    const grid = isoToGrid(px, py, originX, originY);
+    return { x: grid.x - 0.5, y: grid.y - 0.5 };
 }
-
 export function drawIsoTile(g, x, y, size, fillHex, fillAlpha, strokeAlpha) {
     g.beginPath();
     g.moveTo(x, y);
