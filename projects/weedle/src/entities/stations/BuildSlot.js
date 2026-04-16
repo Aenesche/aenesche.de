@@ -65,11 +65,11 @@ export default class BuildSlot extends Station {
         const color = TYPE_COLORS[this.type] || 0xffffff;
         const g = this.graphics;
         const t = this.scene.time?.now || 0;
-        const pulse = 0.3 + 0.2 * Math.sin(t / 1200 * Math.PI * 2);
+        const pulse = 0.3 + 0.2 * Math.sin(t / 12000 * Math.PI * 2);
 
         // Holographisches Boden-Tile: pulsierend, gestrichelt
         g.lineStyle(2, color, pulse);
-        g.fillStyle(color, pulse * 1);
+        g.fillStyle(color, pulse * 0.15);
 
         g.beginPath();
         g.moveTo(this.isoX, this.isoY);
@@ -106,7 +106,7 @@ export default class BuildSlot extends Station {
 
         return {
             type: 'hold',
-            duration: 1500,
+            duration: 4000,
             onComplete: () => {
                 if (!this.scene.state.spend(this.price)) return;
                 this.built = true;
