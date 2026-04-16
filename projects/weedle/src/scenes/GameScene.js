@@ -72,6 +72,10 @@ export default class GameScene extends Phaser.Scene {
         if (this.keys.S.isDown || this.keys.DOWN.isDown)  dirY =  1;
 
         this.player.update(delta, dirX, dirY, (x, y) => this.canMoveTo(x, y));
+        // Stations-Logik (Wachstum etc.)
+        this.stations.forEach(s => {
+            if (s.update) s.update(delta);
+        });
 
         const px = this.player.x;
         const py = this.player.y;
