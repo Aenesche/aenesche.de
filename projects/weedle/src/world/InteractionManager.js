@@ -15,6 +15,7 @@
 import { INTERACTION } from '../config/constants.js';
 import { isoCenterToGrid } from '../utils/iso.js';
 import HighlightOverlay from '../entities/HighlightOverlay.js';
+import { INTERACTION, ISO } from '../config/constants.js';
 
 export default class InteractionManager {
     constructor(scene, player, stations) {
@@ -98,19 +99,18 @@ export default class InteractionManager {
     }
 
     findNearestInRange() {
-        const playerGrid = isoCenterToGrid(
-            this.player.x, this.player.y,
-            this.scene.originX, this.scene.originY
-        );
-
         let best = null;
-        let bestDist = INTERACTION.RANGE;
+        let bestDist = Infinity;
+        const rangePixels = INTERACTION.RANGE * ISO.TILE_SIZE;
 
         for (const s of this.stations) {
-            const dx = s.gridX - playerGrid.x;
-            const dy = s.gridY - playerGrid.y;
+            // Screen-Space Distanz: einfach Pixel-Abstand zum Tile-Center
+            const tileCenterX = s.isoX;
+            const tileCenterY = s.isoY + ISO.TILE_SIZE / 2;
+            const dx = this.player.x - tileCenterX;
+            const dy = this.player.y - tileCenterY;
             const dist = Math.hypot(dx, dy);
-            if (dist < bestDist) {
+            if (dist < rangePixels && dist < bestDist) {
                 bestDist = dist;
                 best = s;
             }
