@@ -99,9 +99,20 @@ export default class CustomerManager {
     }
 
     getQueueSlot(n) {
+        if (n === 0) {
+            // Slot 0: drinnen vor der Kasse
+            return {
+                x: this.register.gridX,
+                y: this.register.gridY + 1,
+            };
+        }
+        // Slot 1+: draußen neben der Tür, seitlich verteilt
+        // Wir stellen sie in einer Reihe rechts vom Eingang auf dem Gehweg auf
+        const outsideY = this.door.gridY + 1; // eine Tile vor der Tür (außerhalb)
+        const offsetX = n; // 1, 2, 3 Tiles rechts neben der Tür
         return {
-            x: this.register.gridX,
-            y: this.register.gridY + 1 + n * CUSTOMER.QUEUE_SPACING,
+            x: this.door.gridX + offsetX,
+            y: outsideY,
         };
     }
 
@@ -112,7 +123,8 @@ export default class CustomerManager {
                 c.rageActive = false;
                 continue;
             }
-            c.rageActive = c.queueIndex === 0 && this.isAtSlot(c, 0);
+            // Alle wartenden Kunden werden wütend, egal wo in der Schlange
+            c.rageActive = this.isAtSlot(c, c.queueIndex);
         }
     }
 
