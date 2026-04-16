@@ -12,7 +12,6 @@
 //   { type: 'hold', duration: 2000, onComplete: () => {...} }
 //   oder null wenn momentan nicht interagierbar
 
-import { INTERACTION } from '../config/constants.js';
 import { isoCenterToGrid } from '../utils/iso.js';
 import HighlightOverlay from '../entities/HighlightOverlay.js';
 import { INTERACTION, ISO } from '../config/constants.js';
