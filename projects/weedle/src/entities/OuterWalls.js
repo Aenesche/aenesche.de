@@ -19,18 +19,21 @@ export function createOuterWalls(scene, originX, originY) {
     const left   = gridToIso(0, N, originX, originY);
     const bottom = gridToIso(N, N, originX, originY);
 
-    // Tür-Lücke auf der right→bottom Wand. Tür ist bei gridX = DOOR.GRID_X, gridY = N.
-    // Wir splitten die Wand in zwei Segmente mit einer Lücke von 1 Tile.
+    // Die Tür liegt bei gridX = DOOR.GRID_X auf y = N.
+    // Das ist auf der Wand, die von LEFT(0,N) nach BOTTOM(N,N) läuft.
+    // Dort müssen wir eine Lücke einbauen.
     const doorBefore = gridToIso(DOOR.GRID_X - 0.5, N, originX, originY);
     const doorAfter  = gridToIso(DOOR.GRID_X + 0.5, N, originX, originY);
 
     return [
+        // Hintere Wände (unverändert)
         new WallSegment(scene, top, right, WALLS.BACK_HEIGHT, COLORS.WALL, false, -1000),
         new WallSegment(scene, top, left,  WALLS.BACK_HEIGHT, COLORS.WALL, false, -1000),
-        new WallSegment(scene, left,  bottom, WALLS.FRONT_HEIGHT, COLORS.WALL, true, 100000),
-        // Vordere Wand mit Tür-Lücke: zwei Segmente
-        new WallSegment(scene, right, doorBefore, WALLS.FRONT_HEIGHT, COLORS.WALL, true, 100000),
-        new WallSegment(scene, doorAfter, bottom, WALLS.FRONT_HEIGHT, COLORS.WALL, true, 100000),
+        // Rechte Vorderwand: voll (keine Tür hier)
+        new WallSegment(scene, right, bottom, WALLS.FRONT_HEIGHT, COLORS.WALL, true, 100000),
+        // Linke Vorderwand mit Tür-Lücke: zwei Segmente
+        new WallSegment(scene, left,      doorBefore, WALLS.FRONT_HEIGHT, COLORS.WALL, true, 100000),
+        new WallSegment(scene, doorAfter, bottom,     WALLS.FRONT_HEIGHT, COLORS.WALL, true, 100000),
     ];
 }
 class WallSegment {
