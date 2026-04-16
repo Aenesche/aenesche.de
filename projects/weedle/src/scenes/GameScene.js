@@ -12,6 +12,7 @@ import InteractionManager from '../world/InteractionManager.js';
 import GameState from '../world/GameState.js';
 import StorageTable from '../entities/stations/StorageTable.js';
 import Door from '../entities/Door.js';
+import { drawStreet } from '../world/Street.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -27,6 +28,7 @@ export default class GameScene extends Phaser.Scene {
 
         // Reihenfolge wichtig: erst Boden (depth -2000), dann Wände (-1000)
         this.drawGrid();
+        drawStreet(this, this.originX, this.originY);
         this.walls = createOuterWalls(this, this.originX, this.originY);
 
         this.stations = [
