@@ -35,7 +35,7 @@ export default class Player {
         // Aber der visuelle Body ragt 24px nach oben — dadurch wirkt es
         // als ob die Kollision "zu tief" sitzt. Wir shiften den Footprint
         // leicht nach oben, damit es sich visuell richtig anfühlt.
-        this.footOffsetY = -6;
+        this.footOffsetY = 6;
         // Inventar — exakt 1 Item-Slot (1-Item-Regel)
         this.carriedItem = null;
     }
