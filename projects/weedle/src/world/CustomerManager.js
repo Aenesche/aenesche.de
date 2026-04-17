@@ -61,9 +61,11 @@ export default class CustomerManager {
     }
 
     currentMaxCustomers() {
+        const registerCount = this.getRegisters().length;
+        const base = CUSTOMER.BASE_MAX + (registerCount - 1) * CUSTOMER.PER_REGISTER_BONUS;
+        // Satisfaction kann es noch leicht nach oben/unten skalieren
         const r = this.state.satisfactionRatio;
-        const v = SPAWN.MAX_CUSTOMERS_LOW + (SPAWN.MAX_CUSTOMERS_HIGH - SPAWN.MAX_CUSTOMERS_LOW) * r;
-        return Math.max(1, Math.round(v));
+        return Math.max(1, Math.round(base * (0.5 + r * 0.5)));
     }
 
     currentSpawnInterval() {
