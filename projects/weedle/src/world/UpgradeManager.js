@@ -2,47 +2,59 @@
 
 import { INTERACTION, ISO } from '../config/constants.js';
 import UpgradePopup from '../entities/UpgradePopup.js';
+import HiringPopup from '../entities/HiringPopup.js';
+import HiringStation from '../entities/stations/HiringStation.js';
 
 export default class UpgradeManager {
     constructor(scene, player) {
         this.scene = scene;
         this.player = player;
         this.popup = new UpgradePopup(scene);
+        this.hiringPopup = new HiringPopup(scene);
 
         this.qKey = scene.input.keyboard.addKey('Q');
         this.qKey.on('down', () => this.onQ());
     }
 
     onQ() {
+        // Schließe alles wenn was offen ist
         if (this.popup.visible) {
-            // Popup offen → kaufen versuchen
             const success = this.popup.tryPurchase(this.scene.state);
-            if (!success && this.popup.visible) {
-                // Nicht kaufbar → schließen
-                this.popup.hide();
-            }
+            if (!success) this.popup.hide();
+            return;
+        }
+        if (this.hiringPopup.visible) {
+            this.hiringPopup.hide();
+            return;
+        }
+
+        // Nächste Station finden
+        const station = this.findNearestUpgradeable();
+        if (!station) return;
+
+        if (station instanceof HiringStation) {
+            this.hiringPopup.show(station);
         } else {
-            // Nächste Station finden und Popup öffnen
-            const station = this.findNearestUpgradeable();
-            if (station) {
-                this.popup.show(station);
-            }
+            this.popup.show(station);
         }
     }
 
     update() {
-        if (!this.popup.visible) return;
-
-        // Wegbewegen → schließen
-        const station = this.popup.station;
-        if (station) {
-            const rangePixels = INTERACTION.RANGE * ISO.TILE_SIZE;
-            const dx = this.player.x - station.isoX;
-            const dy = this.player.y - (station.isoY + ISO.TILE_SIZE / 2);
-            if (Math.hypot(dx, dy) > rangePixels * 1.2) {
-                this.popup.hide();
-            }
+        if (this.popup.visible) {
+            const station = this.popup.station;
+            if (station && this.outOfRange(station)) this.popup.hide();
         }
+        if (this.hiringPopup.visible) {
+            const station = this.hiringPopup.station;
+            if (station && this.outOfRange(station)) this.hiringPopup.hide();
+        }
+    }
+
+    outOfRange(station) {
+        const rangePixels = INTERACTION.RANGE * ISO.TILE_SIZE;
+        const dx = this.player.x - station.isoX;
+        const dy = this.player.y - (station.isoY + ISO.TILE_SIZE / 2);
+        return Math.hypot(dx, dy) > rangePixels * 1.2;
     }
 
     findNearestUpgradeable() {
