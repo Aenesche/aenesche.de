@@ -76,4 +76,7 @@ export default class Register extends Station {
 
         return null;
     }
+    onUpgrade(level) {
+        // Effekt wird von Customer.update() gelesen via assignedRegister.upgradeLevel
+    }
 }
