@@ -151,4 +151,7 @@ export default class Bed extends Station {
 
         return null;
     }
+    onUpgrade(level) {
+        // Visuell: nichts nötig, Effekt ist passiv (schnelleres Wachstum)
+    }
 }
