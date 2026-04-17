@@ -20,6 +20,7 @@ import UpgradeManager from '../world/UpgradeManager.js';
 import JobBoard from '../world/JobBoard.js';
 import Employee from '../entities/Employee.js';
 import HiringStation from '../entities/stations/HiringStation.js';
+import TrashCan from '../entities/stations/TrashCan.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -34,6 +35,7 @@ export default class GameScene extends Phaser.Scene {
         this.state = new GameState();
         this.jobBoard = new JobBoard();
         this.employees = [];
+        this.employeeSpeedLevel = 0;
 
         this.drawGrid();
         drawStreet(this, this.originX, this.originY);
@@ -137,6 +139,8 @@ export default class GameScene extends Phaser.Scene {
             newStation = new StorageTable(this, slot.gridX, slot.gridY);
         } else if (slot.type === 'hiring') {
             newStation = new HiringStation(this, slot.gridX, slot.gridY);
+        } else if (slot.type === 'trash') {
+            newStation = new TrashCan(this, slot.gridX, slot.gridY);
         }
 
         if (newStation) {
