@@ -16,6 +16,7 @@ import Customer from '../entities/Customer.js';
 import CustomerManager from '../world/CustomerManager.js';
 import BuildManager from '../world/BuildManager.js';
 import StorageTable from '../entities/stations/StorageTable.js';
+import UpgradeManager from '../world/UpgradeManager.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -68,6 +69,7 @@ export default class GameScene extends Phaser.Scene {
 
         // Interaction: Stationen + sichtbare BuildSlots
         this.interaction = new InteractionManager(this, this.player, this.getInteractables());
+        this.upgrades = new UpgradeManager(this, this.player);
 
         // HUD
         this.debugText = this.add.text(20, 20, '', {
@@ -192,6 +194,7 @@ export default class GameScene extends Phaser.Scene {
 
         if (this.customers) this.customers.update(delta);
         this.interaction.update(delta);
+        this.upgrades.update();
 
         const grid = isoCenterToGrid(fpx, fpy, this.originX, this.originY);
         this.debugText.setText([
