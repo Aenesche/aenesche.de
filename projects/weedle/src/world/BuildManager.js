@@ -12,7 +12,7 @@ export default class BuildManager {
         this.slots = [];
 
         // Pro Typ: wie viele davon existieren (Start-Stationen zählen)
-        this.builtCount = { bed: 0, register: 0, storage: 0 };
+        this.builtCount = { bed: 0, register: 0, storage: 0, hiring: 0 };
     }
 
     // Wird von der Scene aufgerufen, nachdem Start-Stationen platziert sind
@@ -23,6 +23,7 @@ export default class BuildManager {
             if (name.includes('bed')) this.builtCount.bed++;
             else if (name.includes('register')) this.builtCount.register++;
             else if (name.includes('storage')) this.builtCount.storage++;
+            else if (name.includes('hiring')) this.builtCount.hiring++;
         }
 
         // BuildSlots aus der Config erstellen.
