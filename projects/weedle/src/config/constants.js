@@ -113,9 +113,12 @@ export const BUILD = {
         bed:      [10, 50, 250, 1000, 4000],
         register: [10, 100, 500, 2000],
         storage:  [5, 15, 40, 100],
+        hiring: [0], // kostenlos, die Angestellten selbst kosten
     },
     // Vordefinierte Positionen auf dem Grid
     SLOTS: [
+        // Hiring Station (hinten rechts an der Wand)
+        { type: 'hiring', gridX: 9, gridY: 0 },
         // Beete (Reihe oben-mitte)
         { type: 'bed', gridX: 2, gridY: 3 },
         { type: 'bed', gridX: 4, gridY: 3 },
@@ -172,4 +175,12 @@ export const UPGRADES = {
         effect: (lvl) => Math.min(1 + lvl, 4), // 1 → 2 → 3 → 4 Slots
         maxLevel: 3, // 3 Upgrades = 4 Slots
     },
+};
+export const EMPLOYEE = {
+    SPEED: 100,          // zwischen Kunde (70) und Player (200)
+    HOLD_DURATION: 1500, // wie lange Hold-Interaktionen dauern (Terminal, Kasse)
+    GARDENER_PRICE_BASE: 50,
+    GARDENER_PRICE_MULT: 3,
+    CASHIER_PRICE_BASE: 75,
+    CASHIER_PRICE_MULT: 3,
 };
