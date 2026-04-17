@@ -17,6 +17,9 @@ import CustomerManager from '../world/CustomerManager.js';
 import BuildManager from '../world/BuildManager.js';
 import StorageTable from '../entities/stations/StorageTable.js';
 import UpgradeManager from '../world/UpgradeManager.js';
+import JobBoard from '../world/JobBoard.js';
+import Employee from '../entities/Employee.js';
+import HiringStation from '../entities/stations/HiringStation.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -29,6 +32,8 @@ export default class GameScene extends Phaser.Scene {
 
         this.collision = new CollisionGrid();
         this.state = new GameState();
+        this.jobBoard = new JobBoard();
+        this.employees = [];
 
         this.drawGrid();
         drawStreet(this, this.originX, this.originY);
@@ -130,6 +135,8 @@ export default class GameScene extends Phaser.Scene {
             newStation = new Register(this, slot.gridX, slot.gridY);
         } else if (slot.type === 'storage') {
             newStation = new StorageTable(this, slot.gridX, slot.gridY);
+        } else if (slot.type === 'hiring') {
+            newStation = new HiringStation(this, slot.gridX, slot.gridY);
         }
 
         if (newStation) {
@@ -195,6 +202,8 @@ export default class GameScene extends Phaser.Scene {
         if (this.customers) this.customers.update(delta);
         this.interaction.update(delta);
         this.upgrades.update();
+        // Angestellte
+        this.employees.forEach(e => e.update(delta, this.jobBoard));
 
         const grid = isoCenterToGrid(fpx, fpy, this.originX, this.originY);
         this.debugText.setText([
@@ -236,5 +245,13 @@ export default class GameScene extends Phaser.Scene {
                 drawIsoTile(g, pos.x, pos.y, ISO.TILE_SIZE, COLORS.GRID, 0, 0.5);
             }
         }
+    }
+    hireEmployee(role) {
+        // Spawne neben der Hiring-Station
+        const hiring = this.stations.find(s => s instanceof HiringStation);
+        const gx = hiring ? hiring.gridX - 1 : 5;
+        const gy = hiring ? hiring.gridY + 1 : 5;
+        const emp = new Employee(this, gx, gy, role);
+        this.employees.push(emp);
     }
 }
