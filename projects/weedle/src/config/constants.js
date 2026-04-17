@@ -1,5 +1,3 @@
-// Zentrale Spielkonstanten. Hier alles ändern, nirgends hardcoden.
-
 export const GAME = {
     WIDTH: 1280,
     HEIGHT: 720,
@@ -9,7 +7,6 @@ export const GAME = {
 export const ISO = {
     TILE_SIZE: 40,
     GRID_SIZE: 12,
-    // Offset wird in der Scene berechnet, damit das Grid zentriert ist
 };
 
 export const COLORS = {
@@ -26,16 +23,17 @@ export const COLORS = {
     DOOR:        0x00ffff,
     TIMER_GROW:  0x00ffff,
     TIMER_RAGE:  0xff0000,
+    TRASH:       0x888888,
 };
 
 export const PLAYER = {
-    SPEED: 200, // px/s
+    SPEED: 200,
 };
 
 export const OCCLUSION = {
-    ALPHA: 0.5,        // Transparenz wenn verdeckt
-    LERP: 0.15,        // Geschwindigkeit der Alpha-Änderung pro Frame
-    PLAYER_THRESHOLD: 30, // Wieviel Pixel muss Objekt vor Player sein, damit es transparent wird
+    ALPHA: 0.5,
+    LERP: 0.15,
+    PLAYER_THRESHOLD: 30,
 };
 
 export const WALLS = {
@@ -44,8 +42,8 @@ export const WALLS = {
 };
 
 export const INTERACTION = {
-    RANGE: 1.5,          // Max Distanz in Tiles (Center zu Center)
-    HIGHLIGHT_PULSE: 1500, // Pulse-Periode in ms
+    RANGE: 1.5,
+    HIGHLIGHT_PULSE: 1500,
 };
 
 export const ECONOMY = {
@@ -65,26 +63,27 @@ export const ITEMS = {
         label: 'Pflanze',
         sellPrice: 25,
     },
+    ROTTEN: {
+        id: 'rotten',
+        color: 0xff4400,
+        label: 'Verfault',
+    },
 };
 
 export const GROWTH = {
-    GROW_DURATION: 15000, // ms bis erntereif
-    ROT_DURATION: 20000,  // ms nach erntereif bis verfault
-};
-export const DOOR = {
-    GRID_X: 6, // wo in der Vorderwand die Lücke ist (0..GRID_SIZE)
+    GROW_DURATION: 15000,
+    ROT_DURATION: 20000,
 };
 
-export const STORAGE_TABLE = {
-    HEIGHT: 15,
-};
 export const CUSTOMER = {
     SPEED: 70,
     RAGE_DURATION: 30000,
     WAIT_AFTER_SERVED: 800,
     QUEUE_SPACING: 1.0,
     FAST_SERVE_THRESHOLD: 0.5,
-    INDOOR_SLOTS_PER_REGISTER: 2, // max 2 Kunden drinnen pro Kasse
+    INDOOR_SLOTS_PER_REGISTER: 2,
+    BASE_MAX: 4,           // Basis max Kunden (bei 1 Kasse)
+    PER_REGISTER_BONUS: 2, // +2 pro weitere Kasse
 };
 
 export const SATISFACTION = {
@@ -95,31 +94,50 @@ export const SATISFACTION = {
     RAGE_QUIT: -2,
     NORMAL_SERVE: 0,
 };
+
 export const SPAWN = {
-    INTERVAL_BASE: 10000,    // Basis-Intervall (Zufriedenheit = Mitte)
-    INTERVAL_MIN: 4000,      // bei Zufriedenheit = MAX
-    INTERVAL_MAX: 35000,     // bei Zufriedenheit = MIN
-    // Max gleichzeitige Kunden abhängig von Zufriedenheit
-    MAX_CUSTOMERS_LOW: 1,    // bei niedriger Zufriedenheit
-    MAX_CUSTOMERS_HIGH: 4,   // bei hoher Zufriedenheit
-    // Wahrscheinlichkeit für Multi-Item-Bestellungen (0..1)
-    MULTI_ITEM_CHANCE_PER_SAT: 0.04, // +4% pro Zufriedenheits-Punkt über Start
-    MAX_ORDER_SIZE: 4,
+    INTERVAL_BASE: 10000,
+    INTERVAL_MIN: 4000,
+    INTERVAL_MAX: 20000,
+    MULTI_ITEM_CHANCE_PER_SAT: 0.04,
+    MAX_ORDER_SIZE: 3,
 };
+
+export const DOOR = {
+    GRID_X: 6,
+};
+
+export const STORAGE_TABLE = {
+    HEIGHT: 15,
+};
+
+export const EMPLOYEE = {
+    SPEED_BASE: 40,          // sehr langsam start
+    SPEED_PER_LEVEL: 15,     // +15 pro Upgrade
+    SPEED_MAX: 180,           // knapp unter Player (200)
+    HOLD_DURATION: 1500,
+    GARDENER_PRICE_BASE: 100,
+    GARDENER_PRICE_MULT: 3,
+    CASHIER_PRICE_BASE: 150,
+    CASHIER_PRICE_MULT: 3,
+};
+
+export const TRASH = {
+    HOLD_DURATION: 5000,
+    GRID_X: 5,           // links neben der Tür
+    GRID_Y: 11,
+};
+
 export const BUILD = {
-    // Preise pro Typ, Index = wieviele davon schon existieren
-    // Also: erstes Beet = 10€, zweites = 50€, drittes = 250€ ...
     PRICES: {
-        bed:      [10, 50, 250, 1000, 4000],
-        register: [10, 100, 500, 2000],
-        storage:  [5, 15, 40, 100],
-        hiring: [0], // kostenlos, die Angestellten selbst kosten
+        bed:      [10, 100, 500, 2000, 8000],
+        register: [10, 200, 1000, 5000],
+        storage:  [25, 75, 200, 600],
+        hiring:   [0],
+        trash:    [0],
     },
-    // Vordefinierte Positionen auf dem Grid
     SLOTS: [
-        // Hiring Station (hinten rechts an der Wand)
-        { type: 'hiring', gridX: 9, gridY: 0 },
-        // Beete (Reihe oben-mitte)
+        // Beete
         { type: 'bed', gridX: 2, gridY: 3 },
         { type: 'bed', gridX: 4, gridY: 3 },
         { type: 'bed', gridX: 6, gridY: 3 },
@@ -128,59 +146,63 @@ export const BUILD = {
         { type: 'bed', gridX: 5, gridY: 5 },
         { type: 'bed', gridX: 7, gridY: 5 },
         { type: 'bed', gridX: 9, gridY: 5 },
-        // Kassen (unterer Bereich)
-        { type: 'register', gridX: 5, gridY: 9 },
+        // Kassen
         { type: 'register', gridX: 3, gridY: 9 },
+        { type: 'register', gridX: 5, gridY: 9 },
         { type: 'register', gridX: 7, gridY: 9 },
-        // Storage (neben Kassen)
-        { type: 'storage', gridX: 4, gridY: 9 },
-        { type: 'storage', gridX: 6, gridY: 9 },
+        // Storage
         { type: 'storage', gridX: 2, gridY: 7 },
         { type: 'storage', gridX: 4, gridY: 7 },
         { type: 'storage', gridX: 6, gridY: 7 },
         { type: 'storage', gridX: 8, gridY: 7 },
+        { type: 'storage', gridX: 3, gridY: 8 },
+        { type: 'storage', gridX: 7, gridY: 8 },
+        // Hiring (hinten rechts)
+        { type: 'hiring', gridX: 9, gridY: 0 },
+        // Mülleimer (neben Tür)
+        { type: 'trash', gridX: 5, gridY: 11 },
     ],
 };
 
 export const UPGRADES = {
     bed: {
         label: 'BEET',
-        description: (lvl) => `Wachstum ${Math.round((1 - UPGRADES.bed.effect(lvl)) * 100)}% schneller`,
-        basePrice: 20,
-        priceMultiplier: 2.5,    // jedes Level 2.5x teurer
-        effect: (lvl) => Math.pow(0.85, lvl), // Multiplikator auf Grow-Duration: 0.85^lvl
+        description: (lvl) => `Wachstum ${Math.round((1 - Math.pow(0.85, lvl)) * 100)}% schneller`,
+        basePrice: 40,
+        priceMultiplier: 2.5,
+        effect: (lvl) => Math.pow(0.85, lvl),
         maxLevel: Infinity,
     },
     register: {
         label: 'KASSE',
-        description: (lvl) => `Rage ${Math.round((1 - UPGRADES.register.effect(lvl)) * 100)}% langsamer`,
-        basePrice: 30,
+        description: (lvl) => `Rage ${Math.round((1 - Math.pow(0.85, lvl)) * 100)}% langsamer`,
+        basePrice: 50,
         priceMultiplier: 2.5,
-        effect: (lvl) => Math.pow(0.85, lvl), // Multiplikator auf Rage-Speed: 0.85^lvl → Timer läuft langsamer
+        effect: (lvl) => Math.pow(0.85, lvl),
         maxLevel: Infinity,
     },
     seedTerminal: {
         label: 'SAMEN',
-        description: (lvl) => `Ertrag +${Math.round((UPGRADES.seedTerminal.effect(lvl) - 1) * 100)}%`,
-        basePrice: 25,
+        description: (lvl) => `Ertrag +${Math.round(lvl * 25)}%`,
+        basePrice: 50,
         priceMultiplier: 2.5,
-        effect: (lvl) => 1 + lvl * 0.25, // Sell-Price-Multiplikator: +25% pro Level
+        effect: (lvl) => 1 + lvl * 0.25,
         maxLevel: Infinity,
     },
     storage: {
         label: 'LAGER',
-        description: (lvl) => `${UPGRADES.storage.effect(lvl)} Slots`,
-        basePrice: 20,
+        description: (lvl) => `${Math.min(1 + lvl, 4)} Slots`,
+        basePrice: 40,
         priceMultiplier: 2,
-        effect: (lvl) => Math.min(1 + lvl, 4), // 1 → 2 → 3 → 4 Slots
-        maxLevel: 3, // 3 Upgrades = 4 Slots
+        effect: (lvl) => Math.min(1 + lvl, 4),
+        maxLevel: 3,
     },
-};
-export const EMPLOYEE = {
-    SPEED: 100,          // zwischen Kunde (70) und Player (200)
-    HOLD_DURATION: 1500, // wie lange Hold-Interaktionen dauern (Terminal, Kasse)
-    GARDENER_PRICE_BASE: 50,
-    GARDENER_PRICE_MULT: 3,
-    CASHIER_PRICE_BASE: 75,
-    CASHIER_PRICE_MULT: 3,
+    trash: {
+        label: 'MÜLLEIMER',
+        description: (lvl) => `${Math.max(1, 5 - lvl)}s Haltezeit`,
+        basePrice: 30,
+        priceMultiplier: 2,
+        effect: (lvl) => Math.max(1000, 5000 - lvl * 1000), // ms
+        maxLevel: 4,
+    },
 };
