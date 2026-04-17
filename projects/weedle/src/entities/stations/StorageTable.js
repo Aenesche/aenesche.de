@@ -6,7 +6,7 @@ import CarriedItem from '../CarriedItem.js';
 export default class StorageTable extends Station {
     constructor(scene, gridX, gridY) {
         super(scene, gridX, gridY);
-        this.slots = [null]; // Start: 1 Slot, upgraden bis 4
+        this.slots = [null];
         this.itemGfx = scene.add.graphics();
         this.itemGfx.setDepth(this.isoY + ISO.TILE_SIZE / 2 + 1);
     }
@@ -14,7 +14,6 @@ export default class StorageTable extends Station {
     drawSelf(g) {
         drawIsoCube(g, this.isoX, this.isoY, ISO.TILE_SIZE, STORAGE_TABLE.HEIGHT, COLORS.BED, 0.05, 0.05);
         drawIsoTile(g, this.isoX, this.isoY - STORAGE_TABLE.HEIGHT, ISO.TILE_SIZE, COLORS.BED, 0.05, 0.6);
-
         this.bounds = {
             left:   this.isoX - ISO.TILE_SIZE,
             right:  this.isoX + ISO.TILE_SIZE,
@@ -55,7 +54,6 @@ export default class StorageTable extends Station {
     getInteraction() {
         const player = this.scene.player;
 
-        // Ablegen: Player trägt was, Tisch hat freie Slots
         if (this.freeSlots > 0 && player.hasItem()) {
             return {
                 type: 'tap',
@@ -69,7 +67,6 @@ export default class StorageTable extends Station {
             };
         }
 
-        // Aufheben: Tisch hat was, Player ist leer
         if (this.usedSlots > 0 && !player.hasItem()) {
             return {
                 type: 'tap',
@@ -78,7 +75,6 @@ export default class StorageTable extends Station {
                     const idx = this.slots.findIndex(s => s !== null);
                     const itemDef = this.slots[idx];
                     this.slots[idx] = null;
-                    const CarriedItem = require('../CarriedItem.js').default;
                     const item = new CarriedItem(this.scene, itemDef);
                     player.pickUp(item);
                     this.drawItem();
@@ -88,3 +84,4 @@ export default class StorageTable extends Station {
 
         return null;
     }
+}
