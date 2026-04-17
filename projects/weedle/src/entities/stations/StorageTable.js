@@ -2,7 +2,6 @@ import Station from './Station.js';
 import { COLORS, ISO, STORAGE_TABLE } from '../../config/constants.js';
 import { drawIsoTile, drawIsoCube } from '../../utils/iso.js';
 import CarriedItem from '../CarriedItem.js';
-import CarriedItem from '../CarriedItem.js';
 
 export default class StorageTable extends Station {
     constructor(scene, gridX, gridY) {
