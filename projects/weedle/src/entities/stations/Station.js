@@ -27,6 +27,7 @@ export default class Station {
         };
 
         this.drawSelf(this.graphics);
+        this.upgradeLevel = 0;
     }
 
     drawSelf(g) {}
