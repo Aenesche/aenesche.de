@@ -50,7 +50,9 @@ export default class Bed extends Station {
         this.stateTime += delta;
 
         if (this.state === 'growing') {
-            const progress = Math.min(this.stateTime / GROWTH.GROW_DURATION, 1);
+            const growMultiplier = Math.pow(0.85, this.upgradeLevel);
+            const adjustedDuration = GROWTH.GROW_DURATION * growMultiplier;
+            const progress = Math.min(this.stateTime / adjustedDuration, 1);
             this.timer.setColor(COLORS.TIMER_GROW);
             this.timer.show(progress);
             this.drawPlant(progress, COLORS.BED_PLANT);
