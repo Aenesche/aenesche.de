@@ -59,13 +59,17 @@ export default class Register extends Station {
         // Item übergeben
         if (player.hasItem() && customer.order.includes(player.carriedItem.itemDef.id)) {
             const itemDef = player.carriedItem.itemDef;
+            // Ertrag-Bonus vom Samen-Terminal (wo der Samen herkam)
+            const seedTerminal = this.scene.stations.find(s => s.constructor.name === 'SeedTerminal');
+            const yieldMultiplier = seedTerminal ? (1 + (seedTerminal.upgradeLevel || 0) * 0.25) : 1;
+            const price = Math.round((itemDef.sellPrice || 0) * yieldMultiplier);
             return {
                 type: 'tap',
                 duration: 0,
                 onComplete: () => {
-                    if (customer.receiveItem(itemDef)) {
-                        player.dropItem();
-                        if (itemDef.sellPrice) state.earn(itemDef.sellPrice);
+                    const dropped = player.dropItem();
+                    if (dropped && customer.receiveItem(itemDef)) {
+                        state.earn(price);
                         if (customer.order.length === 0) {
                             customerManager.onCustomerServed(customer);
                         }
@@ -73,7 +77,6 @@ export default class Register extends Station {
                 },
             };
         }
-
         return null;
     }
     onUpgrade(level) {
