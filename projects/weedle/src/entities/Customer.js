@@ -59,7 +59,11 @@ export default class Customer {
                             && !this.firstItemReceived;
 
         if (timerShouldRun) {
-            this.rageTime += delta;
+            // Kassen-Upgrade verlangsamt den Rage-Timer
+            const rageMultiplier = this.assignedRegister
+                ? Math.pow(0.85, this.assignedRegister.upgradeLevel || 0)
+                : 1;
+            this.rageTime += delta * rageMultiplier;
             const progress = 1 - Math.min(this.rageTime / CUSTOMER.RAGE_DURATION, 1);
             this.timer.setPosition(this.container.x, this.container.y - 50);
             this.timer.show(progress);
