@@ -138,3 +138,38 @@ export const BUILD = {
         { type: 'storage', gridX: 8, gridY: 7 },
     ],
 };
+
+export const UPGRADES = {
+    bed: {
+        label: 'BEET',
+        description: (lvl) => `Wachstum ${Math.round((1 - UPGRADES.bed.effect(lvl)) * 100)}% schneller`,
+        basePrice: 20,
+        priceMultiplier: 2.5,    // jedes Level 2.5x teurer
+        effect: (lvl) => Math.pow(0.85, lvl), // Multiplikator auf Grow-Duration: 0.85^lvl
+        maxLevel: Infinity,
+    },
+    register: {
+        label: 'KASSE',
+        description: (lvl) => `Rage ${Math.round((1 - UPGRADES.register.effect(lvl)) * 100)}% langsamer`,
+        basePrice: 30,
+        priceMultiplier: 2.5,
+        effect: (lvl) => Math.pow(0.85, lvl), // Multiplikator auf Rage-Speed: 0.85^lvl → Timer läuft langsamer
+        maxLevel: Infinity,
+    },
+    seedTerminal: {
+        label: 'SAMEN',
+        description: (lvl) => `Ertrag +${Math.round((UPGRADES.seedTerminal.effect(lvl) - 1) * 100)}%`,
+        basePrice: 25,
+        priceMultiplier: 2.5,
+        effect: (lvl) => 1 + lvl * 0.25, // Sell-Price-Multiplikator: +25% pro Level
+        maxLevel: Infinity,
+    },
+    storage: {
+        label: 'LAGER',
+        description: (lvl) => `${UPGRADES.storage.effect(lvl)} Slots`,
+        basePrice: 20,
+        priceMultiplier: 2,
+        effect: (lvl) => Math.min(1 + lvl, 4), // 1 → 2 → 3 → 4 Slots
+        maxLevel: 3, // 3 Upgrades = 4 Slots
+    },
+};
