@@ -185,7 +185,8 @@ export default class Employee {
         const dx = targetScreen.x - this.container.x;
         const dy = targetScreen.y - this.container.y;
         const dist = Math.hypot(dx, dy);
-        const step = (EMPLOYEE.SPEED * delta) / 1000;
+        const speed = this.getSpeed();
+        const step = (speed * delta) / 1000;
 
         if (dist <= step) {
             this.container.x = targetScreen.x;
@@ -336,5 +337,13 @@ export default class Employee {
         }
         this.scene.jobBoard.releaseAll(this);
         this.container.destroy();
+    }
+    
+    getSpeed() {
+        const level = this.scene.employeeSpeedLevel || 0;
+        return Math.min(
+            EMPLOYEE.SPEED_BASE + level * EMPLOYEE.SPEED_PER_LEVEL,
+            EMPLOYEE.SPEED_MAX
+        );
     }
 }
