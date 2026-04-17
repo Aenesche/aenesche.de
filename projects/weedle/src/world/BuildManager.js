@@ -12,7 +12,7 @@ export default class BuildManager {
         this.slots = [];
 
         // Pro Typ: wie viele davon existieren (Start-Stationen zählen)
-        this.builtCount = { bed: 0, register: 0, storage: 0, hiring: 0 };
+        this.builtCount = { bed: 0, register: 0, storage: 0, hiring: 0, trash: 0 };
     }
 
     // Wird von der Scene aufgerufen, nachdem Start-Stationen platziert sind
@@ -29,7 +29,7 @@ export default class BuildManager {
         // BuildSlots aus der Config erstellen.
         // Überspringe Positionen die schon belegt sind (Start-Stationen).
         const occupied = new Set(startStations.map(s => `${s.gridX},${s.gridY}`));
-        const indexPerType = { bed: 0, register: 0, storage: 0, hiring: 0 };
+        const indexPerType = { bed: 0, register: 0, storage: 0, hiring: 0, trash: 0 };
 
         for (const def of BUILD.SLOTS) {
             const key = `${def.gridX},${def.gridY}`;
