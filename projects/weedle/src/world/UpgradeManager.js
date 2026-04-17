@@ -1,6 +1,6 @@
 // Verwaltet Q-Taste: öffnet/schließt Upgrade-Popup für die nächste Station.
 
-import { INTERACTION, ISO } from '../config/constants.js';
+import { INTERACTION, ISO, EMPLOYEE } from '../config/constants.js';
 import UpgradePopup from '../entities/UpgradePopup.js';
 import HiringPopup from '../entities/HiringPopup.js';
 import HiringStation from '../entities/stations/HiringStation.js';
@@ -17,24 +17,16 @@ export default class UpgradeManager {
     }
 
     onQ() {
-        // Schließe alles wenn was offen ist
+        // Q = Employee Speed Upgrade kaufen (wenn Angestellte existieren)
         if (this.popup.visible) {
             const success = this.popup.tryPurchase(this.scene.state);
             if (!success) this.popup.hide();
             return;
         }
-        if (this.hiringPopup.visible) {
-            this.hiringPopup.hide();
-            return;
-        }
 
-        // Nächste Station finden
+        // Nächste upgradeable Station (nicht Hiring — die ist jetzt E)
         const station = this.findNearestUpgradeable();
-        if (!station) return;
-
-        if (station instanceof HiringStation) {
-            this.hiringPopup.show(station);
-        } else {
+        if (station && station.constructor.name !== 'HiringStation') {
             this.popup.show(station);
         }
     }
