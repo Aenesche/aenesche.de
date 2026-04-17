@@ -136,12 +136,14 @@ export default class Bed extends Station {
             };
         }
 
-        // Wegräumen: Verfault, Player hat freie Hände → kostenlos clearen
+        // Verfault: Player muss die verfaulte Pflanze aufheben und entsorgen
         if (this.state === 'rotten' && !player.hasItem()) {
             return {
                 type: 'tap',
                 duration: 0,
                 onComplete: () => {
+                    const rotten = new CarriedItem(this.scene, ITEMS.ROTTEN);
+                    player.pickUp(rotten);
                     this.state = 'empty';
                     this.stateTime = 0;
                     this.plantGfx.clear();
