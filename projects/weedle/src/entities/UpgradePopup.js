@@ -107,10 +107,15 @@ export default class UpgradePopup {
         if (!gameState.spend(price)) return false;
 
         this.station.upgradeLevel = (this.station.upgradeLevel || 0) + 1;
+
+        // Spezialfall: HiringStation-Upgrade = globaler Employee-Speed
+        if (this.station.constructor.name === 'HiringStation') {
+            this.scene.employeeSpeedLevel = this.station.upgradeLevel;
+        }
+
         if (this.station.onUpgrade) {
             this.station.onUpgrade(this.station.upgradeLevel);
         }
-
         // Popup refreshen mit neuem Level
         this.show(this.station);
         return true;
@@ -122,6 +127,18 @@ export default class UpgradePopup {
         if (name === 'Register') return UPGRADES.register;
         if (name === 'SeedTerminal') return UPGRADES.seedTerminal;
         if (name === 'StorageTable') return UPGRADES.storage;
+        if (name === 'TrashCan') return UPGRADES.trash;
+        if (name === 'HiringStation') return {
+            label: 'SPEED',
+            description: (lvl) => {
+                const spd = Math.min(EMPLOYEE.SPEED_BASE + lvl * EMPLOYEE.SPEED_PER_LEVEL, EMPLOYEE.SPEED_MAX);
+                return `${spd} px/s`;
+            },
+            basePrice: 50,
+            priceMultiplier: 2,
+            effect: (lvl) => Math.min(EMPLOYEE.SPEED_BASE + lvl * EMPLOYEE.SPEED_PER_LEVEL, EMPLOYEE.SPEED_MAX),
+            maxLevel: Math.ceil((EMPLOYEE.SPEED_MAX - EMPLOYEE.SPEED_BASE) / EMPLOYEE.SPEED_PER_LEVEL),
+        };
         return null;
     }
 
