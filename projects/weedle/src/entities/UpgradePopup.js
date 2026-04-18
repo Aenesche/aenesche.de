@@ -1,7 +1,7 @@
 // Upgrade-Popup: erscheint über der Station wenn Q gedrückt wird.
 // Zeigt Level, Effekt, Preis. Nochmal Q oder E zum Kaufen, Wegbewegen schließt.
 
-import { UPGRADES } from '../config/constants.js';
+import { UPGRADES, EMPLOYEE } from '../config/constants.js';
 
 export default class UpgradePopup {
     constructor(scene) {
