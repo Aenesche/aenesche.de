@@ -17,16 +17,18 @@ export default class UpgradeManager {
     }
 
     onQ() {
-        // Q = Employee Speed Upgrade kaufen (wenn Angestellte existieren)
         if (this.popup.visible) {
             const success = this.popup.tryPurchase(this.scene.state);
             if (!success) this.popup.hide();
             return;
         }
+        if (this.hiringPopup.visible) {
+            this.hiringPopup.hide();
+            return;
+        }
 
-        // Nächste upgradeable Station (nicht Hiring — die ist jetzt E)
         const station = this.findNearestUpgradeable();
-        if (station && station.constructor.name !== 'HiringStation') {
+        if (station) {
             this.popup.show(station);
         }
     }
