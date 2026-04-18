@@ -87,10 +87,18 @@ export default class Employee {
     update(delta, jobBoard) {
         this.container.setDepth(this.container.y);
 
+        // Job-Validierung: ist der aktuelle Job noch gültig?
+        if (this.currentJob && !this.isJobStillValid()) {
+            this.abandonJob();
+            return;
+        }
+
         if (this.state === 'walking') {
             this.followPath(delta);
             return;
         }
+
+        //
 
         if (this.state === 'hold_interact') {
             this.holdTimer -= delta;
@@ -345,5 +353,52 @@ export default class Employee {
             EMPLOYEE.SPEED_BASE + level * EMPLOYEE.SPEED_PER_LEVEL,
             EMPLOYEE.SPEED_MAX
         );
+    }
+    isJobStillValid() {
+        const job = this.currentJob;
+        if (!job) return false;
+
+        // Kunde noch da und noch wartend?
+        if (job.customer) {
+            if (job.customer.state === 'done' ||
+                job.customer.state === 'leaving' ||
+                job.customer.state === 'rage_leaving') {
+                return false;
+            }
+        }
+
+        // Bestellung aufnehmen: Kunde noch nicht bestellt?
+        if (job.type === 'take_order' && job.customer?.orderRevealed) {
+            return false;
+        }
+
+        // Deliver: Item noch auf dem Tisch?
+        if (job.type === 'deliver_item' && !this.hasItem()) {
+            if (!job.target.slots[job.slotIndex]) {
+                return false;
+            }
+        }
+
+        // Harvest: Beet noch erntereif?
+        if (job.type === 'harvest' && job.target.state !== 'ready') {
+            return false;
+        }
+
+        // Plant: Beet noch leer?
+        if (job.type === 'plant_seed' && job.target.state !== 'empty') {
+            return false;
+        }
+
+        // Clear rotten: Beet noch verfault?
+        if (job.type === 'clear_rotten' && job.target.state !== 'rotten') {
+            return false;
+        }
+
+        // Store: Tisch noch frei?
+        if (job.type === 'store_item' && job.target.freeSlots <= 0) {
+            return false;
+        }
+
+        return true;
     }
 }
