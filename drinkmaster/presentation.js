@@ -22,7 +22,7 @@ let isGraphView = false;
 let presentationChart = null; 
 let autoSwitchTimer = null; 
 
-// NEU: Scroll Variablen
+// Scroll Variablen
 let autoScrollTimer = null;
 let scrollDirection = 1; // 1 = rechts, -1 = links
 let scrollSpeed = 1;
@@ -43,7 +43,6 @@ async function initLeaderboard() {
         autoSwitchTimer = setInterval(toggleView, payload.payload.seconds * 1000);
       }
     })
-    // NEU: Hört auf das Auto-Scroll Signal
     .on('broadcast', { event: 'autoscroll' }, (payload) => {
       clearInterval(autoScrollTimer);
       if (payload.payload.active) {
@@ -105,21 +104,20 @@ function toggleView() {
   }
 }
 
-// NEU: Sanftes Ping-Pong Scrollen
+// Sanftes Ping-Pong Scrollen
 function startAutoScroll() {
   const container = document.getElementById('live-stats');
   if (!container) return;
 
   clearInterval(autoScrollTimer);
   autoScrollTimer = setInterval(() => {
-    if (isGraphView) return; // Nicht scrollen, wenn das Diagramm offen ist
+    if (isGraphView) return; 
 
     let maxScroll = container.scrollWidth - container.clientWidth;
-    if (maxScroll <= 0) return; // Nichts zu scrollen, alles passt auf den Bildschirm
+    if (maxScroll <= 0) return; 
 
     container.scrollLeft += scrollDirection * scrollSpeed;
 
-    // Wenn am rechten oder linken Rand angekommen: Pausieren und umdrehen
     if (scrollDirection === 1 && container.scrollLeft >= maxScroll - 1) {
       scrollDirection = -1;
       pauseAndResumeScroll();
@@ -127,14 +125,12 @@ function startAutoScroll() {
       scrollDirection = 1;
       pauseAndResumeScroll();
     }
-  }, 20); // 50 FPS für weiche Bewegung
+  }, 20); 
 }
 
 function pauseAndResumeScroll() {
   clearInterval(autoScrollTimer);
-  setTimeout(() => {
-    startAutoScroll();
-  }, 2000); // 2 Sekunden Pause am Rand
+  setTimeout(() => { startAutoScroll(); }, 2000); 
 }
 
 function renderGlobalChart() {
@@ -214,11 +210,15 @@ function getContinuousColor(alc) {
   return rgbToHex(r, g, b);
 }
 
+// ==========================================
+// WICHTIG: DIE SKALIERUNGS-LOGIK
+// ==========================================
 function renderLeaderboard() {
   const container = document.getElementById('live-stats');
   container.innerHTML = '';
   const sortedUserIds = Object.keys(userDataMap).sort((a, b) => userDataMap[b].score - userDataMap[a].score);
 
+  // 1. ZUERST: Den absolut höchsten Turm finden (Roh-Pixel)
   let maxRawTowerHeight = 0;
   sortedUserIds.forEach(userId => {
     let rawHeight = 0;
@@ -226,8 +226,26 @@ function renderLeaderboard() {
     if (rawHeight > maxRawTowerHeight) maxRawTowerHeight = rawHeight;
   });
 
-  const maxAllowedPixels = container.clientHeight * 0.8; 
-  let scaleFactor = maxAllowedPixels / (maxRawTowerHeight || 1);
+  // 2. SKALIERUNGS-FAKTOR BERECHNEN:
+  // Wir messen, wie viel Platz die Spalte für den Turm hat (height minus padding-bottom).
+  const colElement = document.createElement('div');
+  colElement.className = 'player-column';
+  container.appendChild(colElement);
+  
+  // Die tatsächliche Höhe der flexiblen Spalte (das was flex-end nutzt)
+  const availableHeightForStack = colElement.clientHeight - 120; // 120px ist das padding-bottom für die Namen
+  container.removeChild(colElement);
+
+  // Wir wollen den höchsten Turm auf max. 80% dieser verfügbaren Höhe begrenzen
+  const maxAllowedPixels = availableHeightForStack * 0.8; 
+  
+  // Wenn der höchste Roh-Turm höher als erlaubt ist, berechnen wir den Verkürzungs-Faktor
+  let scaleFactor = 1;
+  if (maxRawTowerHeight > maxAllowedPixels) {
+    scaleFactor = maxAllowedPixels / maxRawTowerHeight;
+  }
+  
+  // Wir skalieren aber niemals GRÖSSER als 1.2 (Sicherheitsgrenze)
   if (scaleFactor > 1.2) scaleFactor = 1.2; 
 
   sortedUserIds.forEach((userId) => {
@@ -238,6 +256,7 @@ function renderLeaderboard() {
     const col = document.createElement('div');
     col.className = 'player-column';
     
+    // WIEDER DA: Gesamt-Zahl ganz oben
     const scoreLabel = document.createElement('div');
     scoreLabel.className = 'player-score';
     scoreLabel.innerText = Math.round(user.score);
@@ -252,6 +271,8 @@ function renderLeaderboard() {
       block.title = `${drink.volume_ml} ml | ${drink.alcohol_percent}% Vol.`;
       
       let rawH = Math.max(15, drink.volume_ml * 0.2);
+      
+      // HIER WIRD SKALIERT (VERKÜRZT)
       block.style.height = `${rawH * scaleFactor}px`;
       
       let blockW = 40 + (drink.volume_ml / 500) * 70;
