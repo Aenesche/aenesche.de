@@ -160,7 +160,7 @@ export const BUILD = {
         // Hiring (hinten rechts)
         { type: 'hiring', gridX: 9, gridY: 0 },
         // Mülleimer (neben Tür)
-        { type: 'trash', gridX: 5, gridY: 11 },
+        { type: 'trash', gridX: 11, gridY: 13 },
     ],
 };
 
