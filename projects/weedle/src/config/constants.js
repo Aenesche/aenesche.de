@@ -124,8 +124,8 @@ export const EMPLOYEE = {
 
 export const TRASH = {
     HOLD_DURATION: 5000,
-    GRID_X: 5,           // links neben der Tür
-    GRID_Y: 11,
+    GRID_X: 11,           // links neben der Tür
+    GRID_Y: 13,
 };
 
 export const BUILD = {
