@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aufgabenanalyse Speedrun // Deutsch Abi</title>
+<style>
+  :root {
+    --bg: #0d0e10;
+    --bg-elev: #15171b;
+    --bg-elev-2: #1c1f24;
+    --border: #2a2e35;
+    --text: #e8e6df;
+    --text-dim: #8a8780;
+    --accent: #ff5722;
+    --accent-2: #f5c518;
+    --good: #4ade80;
+    --bad: #ef4444;
+    --warn: #fbbf24;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  body {
+    padding: 16px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+
+  .title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .title .accent { color: var(--accent); }
+
+  .meta {
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  /* Timer */
+  .timer-bar {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .timer {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent-2);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+  }
+
+  .pb {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .pb b { color: var(--good); }
+
+  .controls { margin-left: auto; display: flex; gap: 8px; }
+
+  button.btn {
+    background: var(--bg-elev);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: all 0.1s;
+  }
+  button.btn:hover { background: var(--bg-elev-2); border-color: var(--accent); }
+  button.btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  button.btn.primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
+  button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  /* Task panel */
+  .task {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    padding: 16px;
+    height: fit-content;
+    position: sticky;
+    top: 70px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+  }
+  .task h2 {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .task .task-title {
+    font-size: 14px;
+    color: var(--accent-2);
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+  .task .task-body {
+    font-size: 13px;
+    color: var(--text);
+    white-space: pre-wrap;
+    line-height: 1.6;
+    border-left: 2px solid var(--accent);
+    padding-left: 12px;
+    margin-bottom: 14px;
+  }
+  .task .materials {
+    border-top: 1px dashed var(--border);
+    padding-top: 12px;
+  }
+  .task .mat {
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .task .mat b { color: var(--text); }
+
+  /* Attributes */
+  .attrs h2 {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+  .attrs h2:first-child { margin-top: 0; }
+  .attr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 4px;
+  }
+  .attr {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 11px;
+    padding: 6px 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.05s;
+    user-select: none;
+  }
+  .attr:hover { background: var(--bg-elev-2); border-color: var(--accent); }
+  .attr.on {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .attr.review-correct {
+    background: rgba(74, 222, 128, 0.15);
+    border-color: var(--good);
+    color: var(--good);
+  }
+  .attr.review-correct.on {
+    background: var(--good);
+    color: var(--bg);
+  }
+  .attr.review-missed {
+    border-color: var(--good);
+    color: var(--good);
+    border-style: dashed;
+  }
+  .attr.review-wrong {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: var(--bad);
+    color: var(--bad);
+  }
+
+  /* Result modal */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 20px;
+  }
+  .modal-bg.active { display: flex; }
+  .modal {
+    background: var(--bg-elev);
+    border: 1px solid var(--accent);
+    padding: 24px;
+    max-width: 500px;
+    width: 100%;
+  }
+  .modal h2 {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .modal .score {
+    font-size: 56px;
+    font-weight: 700;
+    color: var(--accent-2);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .modal .score-suffix {
+    font-size: 24px;
+    color: var(--text-dim);
+  }
+  .modal .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .modal .stat-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .modal .stat-val {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .modal .stat-val.good { color: var(--good); }
+  .modal .stat-val.bad { color: var(--bad); }
+  .modal .stat-val.warn { color: var(--warn); }
+  .modal .verdict {
+    margin: 12px 0;
+    color: var(--text);
+    font-size: 13px;
+  }
+  .modal .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  /* Start screen */
+  .start-screen {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+  }
+  .start-screen .ascii {
+    color: var(--accent);
+    font-size: 11px;
+    line-height: 1.2;
+    white-space: pre;
+    margin-bottom: 20px;
+  }
+  .start-screen h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+  .start-screen p {
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+  .start-screen .hint {
+    color: var(--text-dim);
+    margin: 16px auto;
+    max-width: 500px;
+    font-size: 12px;
+    text-align: left;
+    border-left: 2px solid var(--accent);
+    padding: 8px 12px;
+  }
+  .start-screen .hint b { color: var(--accent-2); }
+  .start-screen button {
+    margin-top: 16px;
+    font-size: 14px;
+    padding: 10px 24px;
+  }
+
+  .blink { animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title"><span class="accent">▸</span> AUFGABENANALYSE_SPEEDRUN<span class="blink">_</span></div>
+  <div class="meta">v1.0 // dt-abi-bln // by aenesche</div>
+</div>
+
+<div id="app"></div>
+
+<!-- Result Modal -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>// run complete</h2>
+    <div>
+      <span class="score" id="resScore">--</span><span class="score-suffix">%</span>
+    </div>
+    <div class="verdict" id="resVerdict"></div>
+    <div class="stats">
+      <div>
+        <div class="stat-label">Time</div>
+        <div class="stat-val" id="resTime">0:00</div>
+      </div>
+      <div>
+        <div class="stat-label">Hits</div>
+        <div class="stat-val good" id="resHits">0/0</div>
+      </div>
+      <div>
+        <div class="stat-label">Wrong</div>
+        <div class="stat-val bad" id="resWrong">0</div>
+      </div>
+    </div>
+    <div class="meta" id="resPb"></div>
+    <div class="actions">
+      <button class="btn" onclick="reviewMode()">Review</button>
+      <button class="btn primary" onclick="startNewRun()">Next Run ▸</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// AUFGABEN-DATENSATZ
+// Jede Aufgabe hat ein "correct"-Set von Attribut-IDs,
+// die der Prüfling in der Aufgabenanalyse erkennen muss.
+// =====================================================
+const TASKS = [
+  {
+    id: 1,
+    title: "Gendern – Pflicht oder Bevormundung?",
+    body: "Verfassen Sie für die Wochenendbeilage einer überregionalen Tageszeitung einen Kommentar, in dem Sie auf der Grundlage der Materialien M1–M4 Stellung zu der Frage nehmen, ob geschlechtergerechte Sprache verbindlich vorgeschrieben werden sollte.",
+    materials: [
+      { id: "M1", desc: "Linguistik-Studie (Universität Mannheim) zu Effekten generischen Maskulinums" },
+      { id: "M2", desc: "Kolumne (FAZ): scharfe Kritik am Gendern als „Sprachverhunzung\"" },
+      { id: "M3", desc: "Statistik (forsa): Mehrheit der Bevölkerung lehnt Gender-Pflicht ab" },
+      { id: "M4", desc: "Essay einer Soziolinguistin: Sprache prägt Wahrnehmung (Sapir-Whorf)" }
+    ],
+    correct: ["argumentierend", "kommentar", "tageszeitung", "stellungnahme", "sprachpolitik", "gendern", "m1-pro", "m2-contra", "m3-contra", "m4-pro", "linguistik", "statistik", "meinungsstark", "pointiert"]
+  },
+  {
+    id: 2,
+    title: "Jugendsprache zwischen Identität und Verfall",
+    body: "Schreiben Sie für eine Schülerzeitung einen informierenden Artikel, in dem Sie auf der Grundlage der Materialien M1–M5 erläutern, wie sich Jugendsprache entwickelt hat und welche Funktionen sie erfüllt.",
+    materials: [
+      { id: "M1", desc: "Sachtext (Duden-Redaktion): Begriffsbestimmung Jugendsprache" },
+      { id: "M2", desc: "Liste „Jugendwort des Jahres\" (2015–2024)" },
+      { id: "M3", desc: "Interview mit Linguist über Soziolekt-Funktion" },
+      { id: "M4", desc: "Glosse: Klage über „Sprachverfall\" der Jugend" },
+      { id: "M5", desc: "Studie zu digitaler Kommunikation und Sprachwandel" }
+    ],
+    correct: ["informierend", "artikel", "schulerzeitung", "jugendliche", "sprachwandel", "jugendsprache", "soziolekt", "m1-neutral", "m2-neutral", "m3-pro", "m4-contra", "m5-neutral", "linguistik", "verstandlich", "lebensweltbezug"]
+  },
+  {
+    id: 3,
+    title: "Hate Speech im Netz",
+    body: "Halten Sie auf einem Schulkongress zum Thema „Demokratie und digitale Öffentlichkeit\" eine Rede, in der Sie auf der Grundlage der Materialien M1–M4 darlegen, warum Hate Speech eine Gefahr für die demokratische Debatte darstellt, und Lösungsansätze entwickeln.",
+    materials: [
+      { id: "M1", desc: "Studie der Amadeu-Antonio-Stiftung: Reichweite digitaler Hassrede" },
+      { id: "M2", desc: "Zeitungsartikel: Auswirkungen auf Betroffene (Rückzug aus Debatten)" },
+      { id: "M3", desc: "Auszug NetzDG mit Erläuterung" },
+      { id: "M4", desc: "Kommentar: Plädoyer für Meinungsfreiheit gegen Overblocking" }
+    ],
+    correct: ["argumentierend", "rede", "schulkongress", "appell", "sprachpolitik", "hatespeech", "digitale-medien", "m1-pro", "m2-pro", "m3-pro", "m4-contra", "rhetorische-mittel", "anrede", "meinungsstark"]
+  },
+  {
+    id: 4,
+    title: "Anglizismen – Bereicherung oder Bedrohung?",
+    body: "Verfassen Sie einen Essay, in dem Sie sich auf der Grundlage der Materialien M1–M4 mit der Frage auseinandersetzen, ob die Zunahme von Anglizismen im Deutschen eine Bedrohung der Sprache darstellt.",
+    materials: [
+      { id: "M1", desc: "Auszug aus „Verein Deutsche Sprache\": Forderung nach Sprachschutz" },
+      { id: "M2", desc: "Linguistischer Aufsatz: historische Lehnwortwellen (Französisch, Latein)" },
+      { id: "M3", desc: "Statistik: Anteil englischer Lehnwörter im aktiven Wortschatz" },
+      { id: "M4", desc: "Kolumne: Lob der sprachlichen Vielfalt durch globale Einflüsse" }
+    ],
+    correct: ["argumentierend", "essay", "uberregional", "stellungnahme", "sprachwandel", "anglizismen", "m1-contra", "m2-pro", "m3-neutral", "m4-pro", "linguistik", "assoziativ", "personlicher-stil"]
+  },
+  {
+    id: 5,
+    title: "Politische Sprache und Manipulation",
+    body: "Verfassen Sie für eine politisch interessierte Leserschaft einen informierenden Artikel, in dem Sie auf der Grundlage der Materialien M1–M4 erläutern, mit welchen sprachlichen Mitteln in politischer Kommunikation Meinungen beeinflusst werden.",
+    materials: [
+      { id: "M1", desc: "Auszug aus Klemperer „LTI\": Beispiele für Nazi-Sprache" },
+      { id: "M2", desc: "Linguistischer Fachartikel: Framing-Theorie nach Wehling" },
+      { id: "M3", desc: "Analyse aktueller Wahlkampfreden mit rhetorischen Figuren" },
+      { id: "M4", desc: "Glossar: Euphemismen, Kampfbegriffe, Dysphemismen" }
+    ],
+    correct: ["informierend", "artikel", "uberregional", "sprachpolitik", "manipulation", "framing", "rhetorik", "m1-neutral", "m2-neutral", "m3-neutral", "m4-neutral", "linguistik", "verstandlich", "fachbegriffe"]
+  },
+  {
+    id: 6,
+    title: "Leichte Sprache – Inklusion vs. Verflachung?",
+    body: "Verfassen Sie einen Leserbrief als Reaktion auf den in Material M1 abgedruckten Artikel, in dem Sie auf der Grundlage der Materialien M1–M4 Stellung zu der Frage nehmen, ob Leichte Sprache in Behörden flächendeckend eingeführt werden sollte.",
+    materials: [
+      { id: "M1", desc: "Anlass-Artikel: kritische Bewertung Leichter Sprache als „Verflachung\"" },
+      { id: "M2", desc: "Bundesteilhabegesetz, Auszug zu Barrierefreiheit" },
+      { id: "M3", desc: "Erfahrungsbericht eines Inklusionsbeauftragten" },
+      { id: "M4", desc: "Beispieltext in Leichter Sprache (Vergleich Original/Übersetzung)" }
+    ],
+    correct: ["argumentierend", "leserbrief", "uberregional", "stellungnahme", "sprachpolitik", "inklusion", "leichte-sprache", "m1-contra", "m2-pro", "m3-pro", "m4-neutral", "direkter-bezug", "emotional-erlaubt", "meinungsstark"]
+  },
+  {
+    id: 7,
+    title: "Sprache der sozialen Medien",
+    body: "Verfassen Sie für eine Schülerzeitung einen informierenden Artikel, in dem Sie auf der Grundlage der Materialien M1–M4 die sprachlichen Besonderheiten der Kommunikation in sozialen Medien beschreiben.",
+    materials: [
+      { id: "M1", desc: "Linguistische Studie: Emojis, Memes, Abkürzungen als Zeichensystem" },
+      { id: "M2", desc: "Korpus-Analyse von Tweets und Posts" },
+      { id: "M3", desc: "Glosse: Kritik an „Verarmung\" der Sprache durch Social Media" },
+      { id: "M4", desc: "Interview mit Soziolinguistin zu konzeptioneller Mündlichkeit" }
+    ],
+    correct: ["informierend", "artikel", "schulerzeitung", "jugendliche", "digitale-medien", "sprachwandel", "soziale-medien", "m1-neutral", "m2-neutral", "m3-contra", "m4-neutral", "linguistik", "verstandlich", "lebensweltbezug"]
+  },
+  {
+    id: 8,
+    title: "Dialekt und Identität",
+    body: "Halten Sie auf einer Kulturveranstaltung zur regionalen Vielfalt eine Rede, in der Sie auf der Grundlage der Materialien M1–M4 die Bedeutung von Dialekten für die individuelle und kollektive Identität herausstellen.",
+    materials: [
+      { id: "M1", desc: "Studie zur abnehmenden Sprecherzahl deutscher Dialekte" },
+      { id: "M2", desc: "Kulturwissenschaftlicher Essay: Dialekt als Heimat" },
+      { id: "M3", desc: "Statistik: Diskriminierung am Arbeitsmarkt aufgrund Dialekts" },
+      { id: "M4", desc: "Interview mit Mundart-Autor*innen zu literarischer Verwendung" }
+    ],
+    correct: ["argumentierend", "rede", "kulturveranstaltung", "appell", "identitat", "dialekt", "m1-neutral", "m2-pro", "m3-contra", "m4-pro", "rhetorische-mittel", "anrede", "personlicher-stil"]
+  },
+  {
+    id: 9,
+    title: "Cancel Culture und Sprachverbote",
+    body: "Verfassen Sie für eine überregionale Tageszeitung einen Kommentar, in dem Sie auf der Grundlage der Materialien M1–M4 Stellung zu der Frage nehmen, ob das Tilgen historisch belasteter Begriffe aus Kinderbüchern eine Form von Zensur darstellt.",
+    materials: [
+      { id: "M1", desc: "Pressemitteilung Verlag: Streichung des N-Worts aus Kinderbuch" },
+      { id: "M2", desc: "Essay: Plädoyer für sensible Sprache im Umgang mit Kindern" },
+      { id: "M3", desc: "Kommentar: Vorwurf der Geschichtsklitterung und Zensur" },
+      { id: "M4", desc: "Stellungnahme einer Antidiskriminierungsstelle" }
+    ],
+    correct: ["argumentierend", "kommentar", "tageszeitung", "stellungnahme", "sprachpolitik", "diskriminierung", "m1-neutral", "m2-pro", "m3-contra", "m4-pro", "meinungsstark", "pointiert"]
+  },
+  {
+    id: 10,
+    title: "Mehrsprachigkeit als Ressource",
+    body: "Verfassen Sie für eine bildungspolitisch interessierte Leserschaft einen informierenden Artikel, in dem Sie auf der Grundlage der Materialien M1–M4 darstellen, welche Chancen und Herausforderungen Mehrsprachigkeit für das Bildungssystem mit sich bringt.",
+    materials: [
+      { id: "M1", desc: "PISA-Auswertung: Leistungen mehrsprachiger Schüler*innen" },
+      { id: "M2", desc: "Sprachwissenschaftlicher Aufsatz: kognitive Vorteile von Bilingualismus" },
+      { id: "M3", desc: "Bericht: Herkunftssprachenunterricht an Berliner Schulen" },
+      { id: "M4", desc: "Erfahrungsbericht einer mehrsprachigen Lehrerin" }
+    ],
+    correct: ["informierend", "artikel", "uberregional", "bildungspolitik", "mehrsprachigkeit", "identitat", "m1-neutral", "m2-pro", "m3-neutral", "m4-pro", "linguistik", "statistik", "verstandlich"]
+  }
+];
+
+// =====================================================
+// ATTRIBUT-LISTE
+// Gegliedert in Kategorien. Insgesamt ~80 Attribute.
+// =====================================================
+const ATTR_GROUPS = [
+  {
+    label: "01 // Aufgabentyp",
+    attrs: [
+      { id: "informierend", label: "informierend" },
+      { id: "argumentierend", label: "argumentierend" },
+      { id: "appellativ", label: "appellativ" },
+      { id: "stellungnahme", label: "Stellungnahme" }
+    ]
+  },
+  {
+    label: "02 // Textsorte",
+    attrs: [
+      { id: "kommentar", label: "Kommentar" },
+      { id: "essay", label: "Essay" },
+      { id: "leserbrief", label: "Leserbrief" },
+      { id: "artikel", label: "Artikel" },
+      { id: "rede", label: "Rede" },
+      { id: "glosse", label: "Glosse" },
+      { id: "reportage", label: "Reportage" },
+      { id: "rezension", label: "Rezension" }
+    ]
+  },
+  {
+    label: "03 // Adressat / Medium",
+    attrs: [
+      { id: "tageszeitung", label: "Tageszeitung" },
+      { id: "uberregional", label: "überregional" },
+      { id: "schulerzeitung", label: "Schülerzeitung" },
+      { id: "fachzeitschrift", label: "Fachzeitschrift" },
+      { id: "schulkongress", label: "Schulkongress" },
+      { id: "kulturveranstaltung", label: "Kulturveranstaltung" },
+      { id: "jugendliche", label: "Jugendliche" },
+      { id: "bildungspolitik", label: "bildungspolit. Leser" }
+    ]
+  },
+  {
+    label: "04 // Themenfeld",
+    attrs: [
+      { id: "sprachpolitik", label: "Sprachpolitik" },
+      { id: "sprachwandel", label: "Sprachwandel" },
+      { id: "manipulation", label: "Manipulation" },
+      { id: "identitat", label: "Identität" },
+      { id: "diskriminierung", label: "Diskriminierung" },
+      { id: "digitale-medien", label: "Digitale Medien" },
+      { id: "inklusion", label: "Inklusion" }
+    ]
+  },
+  {
+    label: "05 // Konkretes Thema",
+    attrs: [
+      { id: "gendern", label: "Gendern" },
+      { id: "jugendsprache", label: "Jugendsprache" },
+      { id: "anglizismen", label: "Anglizismen" },
+      { id: "hatespeech", label: "Hate Speech" },
+      { id: "leichte-sprache", label: "Leichte Sprache" },
+      { id: "dialekt", label: "Dialekt" },
+      { id: "mehrsprachigkeit", label: "Mehrsprachigkeit" },
+      { id: "soziale-medien", label: "Soziale Medien" },
+      { id: "framing", label: "Framing" },
+      { id: "soziolekt", label: "Soziolekt" }
+    ]
+  },
+  {
+    label: "06 // Material 1 // Position",
+    attrs: [
+      { id: "m1-pro", label: "M1 → pro" },
+      { id: "m1-contra", label: "M1 → contra" },
+      { id: "m1-neutral", label: "M1 → neutral" }
+    ]
+  },
+  {
+    label: "07 // Material 2 // Position",
+    attrs: [
+      { id: "m2-pro", label: "M2 → pro" },
+      { id: "m2-contra", label: "M2 → contra" },
+      { id: "m2-neutral", label: "M2 → neutral" }
+    ]
+  },
+  {
+    label: "08 // Material 3 // Position",
+    attrs: [
+      { id: "m3-pro", label: "M3 → pro" },
+      { id: "m3-contra", label: "M3 → contra" },
+      { id: "m3-neutral", label: "M3 → neutral" }
+    ]
+  },
+  {
+    label: "09 // Material 4 // Position",
+    attrs: [
+      { id: "m4-pro", label: "M4 → pro" },
+      { id: "m4-contra", label: "M4 → contra" },
+      { id: "m4-neutral", label: "M4 → neutral" }
+    ]
+  },
+  {
+    label: "10 // Material 5 // Position",
+    attrs: [
+      { id: "m5-pro", label: "M5 → pro" },
+      { id: "m5-contra", label: "M5 → contra" },
+      { id: "m5-neutral", label: "M5 → neutral" }
+    ]
+  },
+  {
+    label: "11 // Argumentationsbasis",
+    attrs: [
+      { id: "linguistik", label: "Linguistik / Studien" },
+      { id: "statistik", label: "Statistik" },
+      { id: "rhetorik", label: "Rhetorik-Theorie" },
+      { id: "fachbegriffe", label: "Fachbegriffe nutzen" }
+    ]
+  },
+  {
+    label: "12 // Stilanforderungen",
+    attrs: [
+      { id: "meinungsstark", label: "meinungsstark" },
+      { id: "pointiert", label: "pointiert" },
+      { id: "verstandlich", label: "verständlich" },
+      { id: "lebensweltbezug", label: "Lebensweltbezug" },
+      { id: "personlicher-stil", label: "persönlicher Stil" },
+      { id: "assoziativ", label: "assoziativ" },
+      { id: "rhetorische-mittel", label: "rhetorische Mittel" },
+      { id: "anrede", label: "Anrede / Appell" },
+      { id: "appell", label: "Appell am Schluss" },
+      { id: "direkter-bezug", label: "direkter Textbezug" },
+      { id: "emotional-erlaubt", label: "emotional erlaubt" }
+    ]
+  }
+];
+
+// =====================================================
+// STATE
+// =====================================================
+let state = {
+  currentTask: null,
+  selected: new Set(),
+  startTime: null,
+  timerInterval: null,
+  finished: false,
+  reviewing: false
+};
+
+// =====================================================
+// RENDERING
+// =====================================================
+function renderStart() {
+  const pb = getPB();
+  const pbStr = pb ? `<b>${pb.score}%</b> @ ${formatTime(pb.time)}` : "noch keine";
+  document.getElementById('app').innerHTML = `
+    <div class="start-screen">
+      <pre class="ascii">    █▀▀ █▀█ █▀▀ █▀▀ █▀▄ █▀█ █ █ █▄ █
+    ▄██ █▀▀ ██▄ ██▄ █▄▀ █▀▄ █▄█ █ ▀█</pre>
+      <h1>Aufgabenanalyse // Speedrun</h1>
+      <p>10 zufällige Aufgaben „materialgestütztes Schreiben"</p>
+      <p>Identifiziere die Attribute. So schnell wie möglich. So genau wie möglich.</p>
+      <div class="hint">
+        <b>So spielst du:</b><br>
+        ▸ Du bekommst eine zufällige Aufgabe + Materialien<br>
+        ▸ Klicke alle zutreffenden Attribute an (Aufgabentyp, Textsorte, Adressat, Themen, Materialpositionen, Stil)<br>
+        ▸ Drücke <b>FINISH</b> wenn fertig<br>
+        ▸ Score = % der korrekt erkannten Attribute (Falschklicks ziehen ab)<br>
+        ▸ Timer läuft mit – Personal Best wird gespeichert
+      </div>
+      <p style="color: var(--text-dim); font-size: 12px;">Personal Best: ${pbStr}</p>
+      <button class="btn primary" onclick="startNewRun()">▸ START RUN</button>
+    </div>
+  `;
+}
+
+function renderRun() {
+  const t = state.currentTask;
+  document.getElementById('app').innerHTML = `
+    <div class="timer-bar">
+      <div class="timer" id="timer">0:00.0</div>
+      <div class="pb">PB: ${formatPB()}</div>
+      <div class="controls">
+        <button class="btn" onclick="abortRun()">Abort</button>
+        <button class="btn primary" onclick="finishRun()">Finish ▸</button>
+      </div>
+    </div>
+    <div class="layout">
+      <div class="task">
+        <h2>// task #${t.id}</h2>
+        <div class="task-title">${t.title}</div>
+        <div class="task-body">${t.body}</div>
+        <div class="materials">
+          <h2 style="margin-bottom:8px;">// materialien</h2>
+          ${t.materials.map(m => `<div class="mat"><b>${m.id}:</b> ${m.desc}</div>`).join('')}
+        </div>
+      </div>
+      <div class="attrs" id="attrs"></div>
+    </div>
+  `;
+  renderAttrs();
+}
+
+function renderAttrs() {
+  const html = ATTR_GROUPS.map(group => {
+    const buttons = group.attrs.map(a => {
+      const on = state.selected.has(a.id) ? 'on' : '';
+      return `<button class="attr ${on}" data-id="${a.id}" onclick="toggleAttr('${a.id}')">${a.label}</button>`;
+    }).join('');
+    return `<h2>${group.label}</h2><div class="attr-grid">${buttons}</div>`;
+  }).join('');
+  document.getElementById('attrs').innerHTML = html;
+}
+
+function renderReview() {
+  state.reviewing = true;
+  const correct = new Set(state.currentTask.correct);
+  document.getElementById('modalBg').classList.remove('active');
+  // Re-render attrs with review classes
+  const html = ATTR_GROUPS.map(group => {
+    const buttons = group.attrs.map(a => {
+      const isCorrect = correct.has(a.id);
+      const isSelected = state.selected.has(a.id);
+      let cls = '';
+      if (isCorrect && isSelected) cls = 'review-correct on';
+      else if (isCorrect && !isSelected) cls = 'review-missed';
+      else if (!isCorrect && isSelected) cls = 'review-wrong on';
+      return `<button class="attr ${cls}" data-id="${a.id}">${a.label}</button>`;
+    }).join('');
+    return `<h2>${group.label}</h2><div class="attr-grid">${buttons}</div>`;
+  }).join('');
+  document.getElementById('attrs').innerHTML = html;
+
+  // Replace timer bar with review bar
+  document.querySelector('.timer-bar').innerHTML = `
+    <div class="timer" style="font-size:18px;color:var(--text);">REVIEW MODE</div>
+    <div class="pb"><span style="color:var(--good);">■</span> hit &nbsp; <span style="color:var(--good);border:1px dashed var(--good);padding:0 4px;">□</span> missed &nbsp; <span style="color:var(--bad);">■</span> wrong</div>
+    <div class="controls">
+      <button class="btn primary" onclick="startNewRun()">Next Run ▸</button>
+    </div>
+  `;
+}
+
+// =====================================================
+// LOGIC
+// =====================================================
+function startNewRun() {
+  // Pick task that is different from last one if possible
+  let pool = TASKS.slice();
+  const last = state.currentTask?.id;
+  if (last) pool = pool.filter(t => t.id !== last);
+  state.currentTask = pool[Math.floor(Math.random() * pool.length)];
+  state.selected = new Set();
+  state.finished = false;
+  state.reviewing = false;
+  state.startTime = performance.now();
+  document.getElementById('modalBg').classList.remove('active');
+  renderRun();
+  startTimer();
+}
+
+function toggleAttr(id) {
+  if (state.finished) return;
+  if (state.selected.has(id)) state.selected.delete(id);
+  else state.selected.add(id);
+  // Update single button
+  const btn = document.querySelector(`[data-id="${id}"]`);
+  if (btn) btn.classList.toggle('on');
+}
+
+function startTimer() {
+  if (state.timerInterval) clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(updateTimer, 50);
+}
+
+function updateTimer() {
+  const el = document.getElementById('timer');
+  if (!el) return;
+  const elapsed = (performance.now() - state.startTime) / 1000;
+  el.textContent = formatTime(elapsed);
+}
+
+function stopTimer() {
+  if (state.timerInterval) clearInterval(state.timerInterval);
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  const ms = Math.floor((sec % 1) * 10);
+  return `${m}:${s.toString().padStart(2, '0')}.${ms}`;
+}
+
+function finishRun() {
+  if (state.finished) return;
+  state.finished = true;
+  stopTimer();
+  const elapsed = (performance.now() - state.startTime) / 1000;
+
+  const correct = new Set(state.currentTask.correct);
+  let hits = 0, wrongs = 0;
+  state.selected.forEach(id => {
+    if (correct.has(id)) hits++;
+    else wrongs++;
+  });
+  const total = correct.size;
+  const missed = total - hits;
+
+  // Score: hits/total minus penalty for wrongs (capped at 0)
+  // Each wrong = -5% of total possible
+  let score = (hits / total) * 100 - wrongs * (100 / total);
+  score = Math.max(0, Math.round(score));
+
+  showResult({ score, time: elapsed, hits, total, wrongs, missed });
+}
+
+function showResult(r) {
+  document.getElementById('resScore').textContent = r.score;
+  document.getElementById('resTime').textContent = formatTime(r.time);
+  document.getElementById('resHits').textContent = `${r.hits}/${r.total}`;
+  document.getElementById('resWrong').textContent = r.wrongs;
+
+  let verdict;
+  if (r.score === 100 && r.wrongs === 0) verdict = "▸ FLAWLESS RUN. Aufgabenanalyse perfekt.";
+  else if (r.score >= 90) verdict = "▸ Excellent. Bist abi-ready für diese Aufgabe.";
+  else if (r.score >= 75) verdict = "▸ Solide. Ein paar Details übersehen.";
+  else if (r.score >= 50) verdict = "▸ Geht so. Aufgabenstellung beim nächsten Mal genauer lesen.";
+  else verdict = "▸ Autsch. Aufgabenanalyse nochmal üben.";
+  document.getElementById('resVerdict').textContent = verdict;
+
+  // Personal best logic: best score, tiebreaker: faster time
+  const pb = getPB();
+  let pbStr = "";
+  let isNewPB = false;
+  if (!pb || r.score > pb.score || (r.score === pb.score && r.time < pb.time)) {
+    setPB({ score: r.score, time: r.time });
+    isNewPB = true;
+    pbStr = `<span style="color:var(--accent-2);">★ NEW PERSONAL BEST</span>`;
+  } else {
+    pbStr = `Personal Best: <b>${pb.score}%</b> @ ${formatTime(pb.time)}`;
+  }
+  document.getElementById('resPb').innerHTML = pbStr;
+
+  document.getElementById('modalBg').classList.add('active');
+}
+
+function reviewMode() {
+  renderReview();
+}
+
+function abortRun() {
+  if (!confirm("Run abbrechen? Fortschritt geht verloren.")) return;
+  stopTimer();
+  state.currentTask = null;
+  renderStart();
+}
+
+// =====================================================
+// PERSISTENCE (in-memory only – localStorage not allowed)
+// =====================================================
+let _pb = null;
+function getPB() { return _pb; }
+function setPB(v) { _pb = v; }
+function formatPB() {
+  const pb = getPB();
+  return pb ? `${pb.score}% @ ${formatTime(pb.time)}` : "—";
+}
+
+// =====================================================
+// BOOT
+// =====================================================
+renderStart();
+</script>
+</body>
+</html>
