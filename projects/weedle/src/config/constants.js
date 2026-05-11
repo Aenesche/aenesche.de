@@ -46,23 +46,19 @@ export const INTERACTION = {
     HIGHLIGHT_PULSE: 1500,
 };
 
-export const ECONOMY = {
+eexport const ECONOMY = {
     STARTING_MONEY: 99,
-    SEED_COST: 10,
 };
 
+export const SEED_VARIETIES = [
+    { id: 'mint',    label: 'Mint',    color: 0x00ff88, seedColor: 0x00ff88, seedCost: 10,  sellPrice: 25,  growTime: 15000, requiredTier: 0, terminalPrice: 0 },
+    { id: 'haze',    label: 'Haze',    color: 0xaa44ff, seedColor: 0xaa44ff, seedCost: 25,  sellPrice: 60,  growTime: 20000, requiredTier: 1, terminalPrice: 200 },
+    { id: 'kush',    label: 'Kush',    color: 0xff8800, seedColor: 0xff8800, seedCost: 50,  sellPrice: 130, growTime: 25000, requiredTier: 2, terminalPrice: 800 },
+    { id: 'crystal', label: 'Crystal', color: 0x00ccff, seedColor: 0x00ccff, seedCost: 100, sellPrice: 280, growTime: 30000, requiredTier: 3, terminalPrice: 3000 },
+    { id: 'og',      label: 'OG',      color: 0xff0044, seedColor: 0xff0044, seedCost: 200, sellPrice: 600, growTime: 40000, requiredTier: 4, terminalPrice: 10000 },
+];
+
 export const ITEMS = {
-    SEED: {
-        id: 'seed',
-        color: 0xffff00,
-        label: 'Samen',
-    },
-    PLANT: {
-        id: 'plant',
-        color: 0x00ff00,
-        label: 'Pflanze',
-        sellPrice: 25,
-    },
     ROTTEN: {
         id: 'rotten',
         color: 0xff4400,
@@ -70,9 +66,14 @@ export const ITEMS = {
     },
 };
 
-export const GROWTH = {
-    GROW_DURATION: 15000,
-    ROT_DURATION: 20000,
+// Dynamisch: Seed- und Plant-Items für jede Sorte
+for (const v of SEED_VARIETIES) {
+    ITEMS[`seed_${v.id}`] = { id: `seed_${v.id}`, color: v.seedColor, label: `${v.label} Samen`, variety: v.id };
+    ITEMS[`plant_${v.id}`] = { id: `plant_${v.id}`, color: v.color, label: v.label, variety: v.id, sellPrice: v.sellPrice };
+}
+
+eexport const GROWTH = {
+    ROT_DURATION: 20000, // gleich für alle Sorten
 };
 
 export const CUSTOMER = {
@@ -135,6 +136,11 @@ export const BUILD = {
         storage:  [25, 75, 200, 600],
         hiring:   [0],
         trash:    [0],
+        terminal_mint:    [0],
+        terminal_haze:    [200],
+        terminal_kush:    [800],
+        terminal_crystal: [3000],
+        terminal_og:      [10000],
     },
     SLOTS: [
         // Beete
@@ -151,12 +157,18 @@ export const BUILD = {
         { type: 'register', gridX: 5, gridY: 9 },
         { type: 'register', gridX: 7, gridY: 9 },
         // Storage
-        { type: 'storage', gridX: 2, gridY: 7 },
-        { type: 'storage', gridX: 4, gridY: 7 },
-        { type: 'storage', gridX: 6, gridY: 7 },
-        { type: 'storage', gridX: 8, gridY: 7 },
-        { type: 'storage', gridX: 3, gridY: 8 },
-        { type: 'storage', gridX: 7, gridY: 8 },
+        { type: 'storage', gridX: 2, gridY: 9 },
+        { type: 'storage', gridX: 4, gridY: 9 },
+        { type: 'storage', gridX: 6, gridY: 9 },
+        { type: 'storage', gridX: 8, gridY: 9 },
+        { type: 'storage', gridX: 1, gridY: 9 },
+        { type: 'storage', gridX: 0, gridY: 9 },
+        // Terminals (hinten an der Wand)
+        { type: 'terminal_mint', gridX: 5, gridY: 0 },
+        { type: 'terminal_haze', gridX: 4, gridY: 0 },
+        { type: 'terminal_kush', gridX: 3, gridY: 0 },
+        { type: 'terminal_crystal', gridX: 2, gridY: 0 },
+        { type: 'terminal_og', gridX: 1, gridY: 0 },
         // Hiring (hinten rechts)
         { type: 'hiring', gridX: 9, gridY: 0 },
         // Mülleimer (neben Tür)
@@ -204,5 +216,13 @@ export const UPGRADES = {
         priceMultiplier: 2,
         effect: (lvl) => Math.max(1000, 5000 - lvl * 1000), // ms
         maxLevel: 4,
+    },
+    bedTier: {
+        label: 'BEET TIER',
+        description: (lvl) => `Tier ${lvl} — bis ${SEED_VARIETIES.find(v => v.requiredTier === lvl)?.label || 'Max'}`,
+        basePrice: 50,
+        priceMultiplier: 4,
+        effect: (lvl) => lvl, // Tier-Level
+        maxLevel: SEED_VARIETIES.length - 1, // 4 (Tier 0 ist gratis)
     },
 };
