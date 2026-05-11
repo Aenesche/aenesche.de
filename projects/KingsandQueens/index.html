@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Kings &amp; Queens</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+  <style>
+    html, body, #root { margin: 0; padding: 0; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback } = React;
+
+    // ── Data ─────────────────────────────────────────────────────────────────
+
+    const SUITS = ["♠","♥","♦","♣"];
+    const RANKS = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+    const RED_SUITS = new Set(["♥","♦"]);
+
+    const RULES = {
+      "2":  { title:"Hand Out",          icon:"🥃", tagline:"Vergib einen Shot",             body:"Wähle einen Mitspieler – er oder sie trinkt einen Shot.",                                                                                                              sips:"1 Shot für jemanden anderen" },
+      "3":  { title:"Drink!",            icon:"🍺", tagline:"Trink selbst",                  body:"Du trinkst.",                                                                                                                                                         sips:"1 Shot" },
+      "4":  { title:"Kategorie",         icon:"🎯", tagline:"Denke dir eine Kategorie aus",  body:"Alle nennen der Reihe nach etwas aus dieser Kategorie (z.B. Automarken, Länder). Wer nichts weiß, zu langsam ist oder sich wiederholt – trinkt.",                    sips:null },
+      "5":  { title:"Thumbmaster",       icon:"👍", tagline:"Du bist Thumbmaster",           body:"Lege jederzeit deinen Daumen auf den Tisch – alle müssen folgen. Der Letzte trinkt. Das Recht verfällt, sobald jemand eine neue 5 zieht.",                           sips:null },
+      "6":  { title:"Trinkpartner",      icon:"🤝", tagline:"Wähle deinen Trinkpartner",     body:"Wähle einen Mitspieler. Wann immer du trinkst, trinkt er oder sie mit – und umgekehrt.",                                                                            sips:null },
+      "7":  { title:"Keine Sieben",      icon:"🔢", tagline:"Zählen ohne Sieben",            body:"Alle zählen reihum ab 1. Überspringe alle Vielfachen von 7 (7, 14, 21…) und alle Zahlen, die eine 7 enthalten (17, 27, 71…). Wer sich vertut, trinkt.",              sips:null },
+      "8":  { title:"Regel",             icon:"📜", tagline:"Erfinde eine Regel",            body:"Denke dir eine beliebige Regel aus – sie gilt ab sofort bis sie durch eine 9 aufgehoben wird oder das Spiel endet. Sei kreativ!",                                    sips:null },
+      "9":  { title:"Regel löschen",     icon:"❌", tagline:"Eine Regel fällt weg",          body:"Hebe eine aktive Regel auf. Gibt es keine Regeln, passiert nichts.",                                                                                                  sips:null },
+      "10": { title:"Quizmaster",        icon:"🎓", tagline:"Du bist Quizmaster",            body:"Wer dir antwortet, wenn du eine Frage stellst – trinkt. Das Amt endet, wenn jemand anderes eine 10 zieht.",                                                         sips:null },
+      "J":  { title:"Zeigen",            icon:"👉", tagline:"Alle zeigen auf jemanden",      body:"Alle heben einen Finger. Auf 3 zeigt jeder auf jemanden. Wer am meisten Finger bekommt, trinkt.",                                                                   sips:null },
+      "Q":  { title:"Rise of the Queen", icon:"👑", tagline:"RISE OF THE QUEEN!",            body:'Ruf laut "RISE OF THE QUEEN!" – alle müssen aufspringen und mitrufen. Der Letzte trinkt. Das Recht verfällt, wenn jemand eine neue Dame zieht.',                     sips:null },
+      "K":  { title:"König",             icon:"♚",  tagline:"König auf das Mittelgetränk",   body:"Stelle den König auf das Getränk in der Mitte. Fällt ein König um, muss derjenige es austrinken – Spiel vorbei! Der 4. König beendet das Spiel sofort.",            sips:null },
+      "A":  { title:"Richtungswechsel",  icon:"🔄", tagline:"Die Reihenfolge dreht sich um", body:"Ab sofort wird in umgekehrter Reihenfolge gespielt.",                                                                                                                sips:null },
+    };
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function createDeck() {
+      return shuffle(SUITS.flatMap(suit => RANKS.map(rank => ({ suit, rank, id: `${rank}${suit}` }))));
+    }
+
+    function useWindowSize() {
+      const [size, setSize] = useState({ w: window.innerWidth, h: window.innerHeight });
+      useEffect(() => {
+        const fn = () => setSize({ w: window.innerWidth, h: window.innerHeight });
+        window.addEventListener("resize", fn);
+        return () => window.removeEventListener("resize", fn);
+      }, []);
+      return size;
+    }
+
+    // ── CSS ───────────────────────────────────────────────────────────────────
+
+    const CSS = `
+      *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+      :root{--bg:#080f09;--gold:#c9a850;--gold2:#e8c96a;--cream:#f2ecda;--red:#8f1a1a;--text:#e2d9c0;--muted:#7a6e50;--border:rgba(201,168,80,0.28);}
+      body{background:var(--bg);color:var(--text);font-family:'Lora',Georgia,serif;user-select:none;-webkit-user-select:none;overscroll-behavior:none;overflow:hidden;}
+      .app{width:100vw;height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        background:radial-gradient(ellipse 60% 50% at 15% 10%,rgba(40,80,20,.18) 0%,transparent 100%),
+        radial-gradient(ellipse 50% 60% at 85% 90%,rgba(60,30,5,.18) 0%,transparent 100%),
+        radial-gradient(ellipse 80% 80% at 50% 50%,rgba(13,31,16,.9) 0%,transparent 100%),var(--bg);
+        position:relative;overflow:hidden;}
+      .app::before{content:'';position:absolute;inset:0;
+        background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        background-size:200px 200px;opacity:.35;pointer-events:none;z-index:0;}
+      .app>*{position:relative;z-index:1;}
+
+      .menu{display:flex;flex-direction:column;align-items:center;gap:1.8rem;padding:2rem 1.5rem;max-width:420px;width:100%;text-align:center;}
+      .menu-suits{font-size:1.6rem;letter-spacing:.6rem;color:var(--muted);margin-bottom:.4rem;}
+      .menu-suits span:nth-child(2),.menu-suits span:nth-child(3){color:var(--red);}
+      .menu-title{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(2.4rem,9vw,3.8rem);color:var(--gold);letter-spacing:.04em;line-height:1;text-shadow:0 0 60px rgba(201,168,80,.35),0 2px 4px rgba(0,0,0,.6);}
+      .menu-sub{font-style:italic;color:var(--muted);font-size:.9rem;letter-spacing:.08em;margin-top:.3rem;}
+      .deck-art{position:relative;width:90px;height:120px;margin:.5rem auto;}
+      .deck-art-card{position:absolute;width:58px;height:84px;border-radius:6px;border:1.5px solid;box-shadow:0 4px 12px rgba(0,0,0,.6);}
+      .deck-art-card:nth-child(1){background:linear-gradient(145deg,#4a0e0e,#300808);border-color:rgba(201,168,80,.2);transform:rotate(-10deg) translate(0px,8px);left:0;top:0;}
+      .deck-art-card:nth-child(2){background:linear-gradient(145deg,#620f0f,#420a0a);border-color:rgba(201,168,80,.3);transform:rotate(-5deg) translate(5px,4px);left:6px;top:0;}
+      .deck-art-card:nth-child(3){background:linear-gradient(145deg,#8a1a1a,#5e0e0e);border-color:var(--gold);transform:rotate(2deg);left:16px;top:0;display:flex;align-items:center;justify-content:center;}
+      .deck-art-card:nth-child(3)::after{content:'✦';font-size:1.4rem;color:rgba(201,168,80,.5);}
+      .section-label{font-family:'Cinzel',serif;font-size:.72rem;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:.9rem;}
+      .player-btns{display:flex;gap:.55rem;justify-content:center;flex-wrap:wrap;}
+      .pbtn{width:50px;height:50px;border-radius:50%;border:1.5px solid var(--muted);background:transparent;color:var(--text);font-family:'Cinzel',serif;font-size:1.15rem;font-weight:700;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;}
+      .pbtn:active{transform:scale(.92);}
+      .pbtn.sel{background:var(--gold);border-color:var(--gold);color:#060d07;box-shadow:0 0 24px rgba(201,168,80,.45);transform:scale(1.12);}
+      .start-btn{width:100%;padding:1.05rem 2rem;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#060d07;border:none;border-radius:6px;font-family:'Cinzel',serif;font-size:1.05rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .18s;box-shadow:0 4px 24px rgba(201,168,80,.3),inset 0 1px 0 rgba(255,255,255,.15);}
+      .start-btn:active{transform:scale(.98);}
+
+      .game{width:100%;height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;gap:0;padding:.8rem .8rem .6rem;}
+      .player-bar{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1.2rem;background:rgba(13,31,16,.85);border:1px solid var(--border);border-radius:50px;backdrop-filter:blur(12px);width:100%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+      .pbar-arrow{font-size:1rem;color:var(--gold);opacity:.7;}
+      .pbar-center{text-align:center;}
+      .pbar-name{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:700;color:var(--gold);letter-spacing:.04em;}
+      .pbar-sub{font-size:.72rem;color:var(--muted);font-style:italic;margin-top:1px;}
+      .arena{flex:1;display:flex;align-items:center;justify-content:center;}
+      .circle-wrap{position:relative;flex-shrink:0;}
+      .card-slot{position:absolute;cursor:pointer;transform-origin:center center;transition:opacity .35s ease;}
+      .card-slot.gone{opacity:0;pointer-events:none;}
+      .card-slot:not(.gone):active{filter:brightness(1.6);}
+      .card-back-face{width:100%;height:100%;border-radius:4px;background:linear-gradient(150deg,#8e1b1b 0%,#5c0e0e 60%,#3a0808 100%);border:1px solid rgba(201,168,80,.55);box-shadow:0 2px 8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+      .card-back-face::before{content:'';position:absolute;inset:3px;border:.5px solid rgba(201,168,80,.25);border-radius:2px;}
+      .card-back-face::after{content:'✦';font-size:.55em;color:rgba(201,168,80,.3);}
+      .center-info{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:.4rem;pointer-events:none;}
+      .kings-row{display:flex;gap:4px;}
+      .k-dot{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--gold);background:transparent;transition:background .3s;}
+      .k-dot.lit{background:var(--gold);box-shadow:0 0 8px var(--gold);}
+      .c-label{font-family:'Cinzel',serif;font-size:.65rem;color:var(--muted);letter-spacing:.1em;}
+      .status-row{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center;min-height:28px;padding:0 .5rem;}
+      .s-badge{padding:.22rem .7rem;background:rgba(13,31,16,.9);border:1px solid var(--border);border-radius:50px;font-size:.68rem;color:var(--muted);font-style:italic;animation:fadeSlide .3s ease;}
+      @keyframes fadeSlide{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+      .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:flex-end;justify-content:center;z-index:200;animation:bgIn .2s ease;}
+      @keyframes bgIn{from{opacity:0}to{opacity:1}}
+      .modal-sheet{width:100%;max-width:500px;background:linear-gradient(160deg,#162c1b 0%,#0d1f10 100%);border:1px solid var(--border);border-bottom:none;border-radius:22px 22px 0 0;padding:.8rem 1.4rem 2.2rem;animation:sheetUp .32s cubic-bezier(.34,1.4,.64,1);box-shadow:0 -8px 40px rgba(0,0,0,.5);}
+      @keyframes sheetUp{from{transform:translateY(110%)}to{transform:translateY(0)}}
+      .modal-handle{width:38px;height:4px;border-radius:2px;background:rgba(201,168,80,.25);margin:0 auto 1.3rem;}
+      .card-reveal{display:flex;gap:1.1rem;align-items:flex-start;margin-bottom:1.4rem;}
+      .card-face{flex-shrink:0;width:72px;height:104px;background:var(--cream);border-radius:9px;border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 8px 32px rgba(0,0,0,.55),0 0 24px rgba(201,168,80,.18);font-family:'Cinzel',serif;position:relative;}
+      .cf-rank{font-size:2.1rem;font-weight:900;line-height:1;}
+      .cf-suit{font-size:1.5rem;line-height:1;}
+      .card-face.red .cf-rank,.card-face.red .cf-suit{color:var(--red);}
+      .card-face.black .cf-rank,.card-face.black .cf-suit{color:#1a1a1a;}
+      .card-face::before,.card-face::after{content:attr(data-pip);position:absolute;font-family:'Cinzel',serif;font-size:.6rem;font-weight:700;line-height:1;}
+      .card-face.red::before,.card-face.red::after{color:var(--red);}
+      .card-face.black::before,.card-face.black::after{color:#1a1a1a;}
+      .card-face::before{top:5px;left:6px;}
+      .card-face::after{bottom:5px;right:6px;transform:rotate(180deg);}
+      .card-info{flex:1;min-width:0;}
+      .ci-title{font-family:'Cinzel',serif;font-size:1.35rem;font-weight:700;color:var(--gold);line-height:1.1;margin-bottom:.15rem;}
+      .ci-tagline{font-style:italic;font-size:.95rem;color:var(--text);margin-bottom:.7rem;}
+      .ci-body{font-size:.88rem;color:var(--muted);line-height:1.65;}
+      .ci-sips{display:inline-block;margin-top:.65rem;padding:.25rem .8rem;background:rgba(201,168,80,.13);border:1px solid rgba(201,168,80,.4);border-radius:4px;color:var(--gold);font-size:.82rem;}
+      .confirm-btn{width:100%;padding:1rem;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#060d07;border:none;border-radius:9px;font-family:'Cinzel',serif;font-size:1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:transform .12s;box-shadow:0 4px 20px rgba(201,168,80,.25);}
+      .confirm-btn:active{transform:scale(.97);}
+
+      .gameover{display:flex;flex-direction:column;align-items:center;gap:1.8rem;padding:2.5rem 2rem;max-width:420px;width:100%;text-align:center;}
+      .go-crown{font-size:3.5rem;animation:wobble .6s ease;}
+      @keyframes wobble{0%{transform:rotate(-15deg)}40%{transform:rotate(10deg)}70%{transform:rotate(-6deg)}100%{transform:rotate(0)}}
+      .go-title{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(2rem,8vw,3rem);color:#c94c4c;text-shadow:0 0 50px rgba(200,76,76,.45);}
+      .go-msg{color:var(--text);font-size:1.05rem;line-height:1.65;font-style:italic;border:1px solid rgba(200,76,76,.25);padding:1rem 1.2rem;border-radius:8px;background:rgba(200,76,76,.07);}
+    `;
+
+    // ── Components ────────────────────────────────────────────────────────────
+
+    function PlayerBar({ name, direction }) {
+      return (
+        <div className="player-bar">
+          <span className="pbar-arrow">{direction === 1 ? "→" : "←"}</span>
+          <div className="pbar-center">
+            <div className="pbar-name">{name}</div>
+            <div className="pbar-sub">ist dran · Karte ziehen</div>
+          </div>
+          <span className="pbar-arrow">{direction === 1 ? "→" : "←"}</span>
+        </div>
+      );
+    }
+
+    function RuleModal({ card, onClose }) {
+      const rule = RULES[card.rank];
+      const isRed = RED_SUITS.has(card.suit);
+      const pip = `${card.rank}${card.suit}`;
+      return (
+        <div className="modal-bg" onClick={e => e.target === e.currentTarget && onClose()}>
+          <div className="modal-sheet">
+            <div className="modal-handle" />
+            <div className="card-reveal">
+              <div className={`card-face ${isRed ? "red" : "black"}`} data-pip={pip}>
+                <div className="cf-rank">{card.rank}</div>
+                <div className="cf-suit">{card.suit}</div>
+              </div>
+              <div className="card-info">
+                <div className="ci-title">{rule.icon} {rule.title}</div>
+                <div className="ci-tagline">{rule.tagline}</div>
+                <div className="ci-body">{rule.body}</div>
+                {rule.sips && <div className="ci-sips">{rule.sips}</div>}
+              </div>
+            </div>
+            <button className="confirm-btn" onClick={onClose}>Verstanden ✓</button>
+          </div>
+        </div>
+      );
+    }
+
+    function MenuScreen({ playerCount, setPlayerCount, onStart }) {
+      return (
+        <div className="app">
+          <style>{CSS}</style>
+          <div className="menu">
+            <div>
+              <div className="menu-suits">
+                <span>♠</span><span>♥</span><span>♦</span><span>♣</span>
+              </div>
+              <div className="menu-title">Kings &amp;<br />Queens</div>
+              <div className="menu-sub">Das Trinkkartenspiel</div>
+            </div>
+            <div className="deck-art">
+              <div className="deck-art-card" />
+              <div className="deck-art-card" />
+              <div className="deck-art-card" />
+            </div>
+            <div>
+              <div className="section-label">Anzahl Spieler</div>
+              <div className="player-btns">
+                {[2,3,4,5,6,7,8].map(n => (
+                  <button key={n} className={`pbtn ${playerCount === n ? "sel" : ""}`}
+                    onClick={() => setPlayerCount(n)}>{n}</button>
+                ))}
+              </div>
+            </div>
+            <button className="start-btn" onClick={onStart}>Spiel starten ♠</button>
+          </div>
+        </div>
+      );
+    }
+
+    function GameOverScreen({ msg, onRestart }) {
+      return (
+        <div className="app">
+          <style>{CSS}</style>
+          <div className="gameover">
+            <div className="go-crown">♚</div>
+            <div className="go-title">Game Over</div>
+            {msg && <div className="go-msg">{msg}</div>}
+            <button className="start-btn" onClick={onRestart}>Nochmal spielen ↺</button>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Main App ──────────────────────────────────────────────────────────────
+
+    function App() {
+      const [phase, setPhase] = useState("menu");
+      const [playerCount, setPlayerCount] = useState(4);
+      const [deck, setDeck] = useState([]);
+      const [drawnIds, setDrawnIds] = useState(new Set());
+      const [currentIdx, setCurrentIdx] = useState(0);
+      const [direction, setDirection] = useState(1);
+      const [activeCard, setActiveCard] = useState(null);
+      const [showModal, setShowModal] = useState(false);
+      const [status, setStatus] = useState({ kings:0, quizmaster:null, thumbmaster:null, queen:null });
+      const [gameOverMsg, setGameOverMsg] = useState("");
+      const { w, h } = useWindowSize();
+
+      const players = useMemo(
+        () => Array.from({ length: playerCount }, (_, i) => `Spieler ${i + 1}`),
+        [playerCount]
+      );
+
+      const containerSize = Math.min(w * 0.9, h * 0.56, 420);
+      const radius = containerSize / 2 - 16;
+      const cardW = Math.max(20, Math.min(34, containerSize * 0.075));
+      const cardH = cardW * 1.52;
+      const cx = containerSize / 2;
+      const cy = containerSize / 2;
+
+      const startGame = useCallback(() => {
+        setDeck(createDeck());
+        setDrawnIds(new Set());
+        setCurrentIdx(0);
+        setDirection(1);
+        setActiveCard(null);
+        setShowModal(false);
+        setStatus({ kings:0, quizmaster:null, thumbmaster:null, queen:null });
+        setGameOverMsg("");
+        setPhase("game");
+      }, []);
+
+      const drawCard = useCallback((card) => {
+        if (showModal || drawnIds.has(card.id)) return;
+        setDrawnIds(prev => new Set([...prev, card.id]));
+        setActiveCard(card);
+        let ns = { ...status };
+        let over = "";
+        if (card.rank === "K") {
+          ns.kings += 1;
+          if (ns.kings >= 4) over = `${players[currentIdx]} zieht den 4. König! Das Mittelgetränk muss ausgetrunken werden – Spiel vorbei! 🍺`;
+        }
+        if (card.rank === "10") ns.quizmaster = currentIdx;
+        if (card.rank === "5")  ns.thumbmaster = currentIdx;
+        if (card.rank === "Q")  ns.queen = currentIdx;
+        setStatus(ns);
+        if (over) setGameOverMsg(over);
+        setShowModal(true);
+      }, [showModal, drawnIds, status, players, currentIdx]);
+
+      const closeModal = useCallback(() => {
+        setShowModal(false);
+        if (gameOverMsg) { setPhase("gameover"); return; }
+        let nextDir = direction;
+        if (activeCard?.rank === "A") nextDir = direction * -1;
+        setDirection(nextDir);
+        setCurrentIdx(prev => ((prev + nextDir) + players.length) % players.length);
+        setActiveCard(null);
+      }, [gameOverMsg, direction, activeCard, players.length]);
+
+      if (phase === "menu") return <MenuScreen playerCount={playerCount} setPlayerCount={setPlayerCount} onStart={startGame} />;
+      if (phase === "gameover") return <GameOverScreen msg={gameOverMsg} onRestart={() => setPhase("menu")} />;
+
+      const remaining = deck.length - drawnIds.size;
+
+      return (
+        <div className="app">
+          <style>{CSS}</style>
+          <div className="game">
+            <PlayerBar name={players[currentIdx]} direction={direction} />
+            <div className="arena">
+              <div className="circle-wrap" style={{ width: containerSize, height: containerSize }}>
+                {deck.map((card, i) => {
+                  const angle = (i / deck.length) * Math.PI * 2 - Math.PI / 2;
+                  const x = cx + radius * Math.cos(angle) - cardW / 2;
+                  const y = cy + radius * Math.sin(angle) - cardH / 2;
+                  const rot = angle * (180 / Math.PI) + 90;
+                  const drawn = drawnIds.has(card.id);
+                  return (
+                    <div key={card.id}
+                      className={`card-slot ${drawn ? "gone" : ""}`}
+                      style={{ left: x, top: y, width: cardW, height: cardH, transform: `rotate(${rot}deg)`, zIndex: drawn ? 0 : 1 }}
+                      onClick={() => drawCard(card)}>
+                      <div className="card-back-face" />
+                    </div>
+                  );
+                })}
+                <div className="center-info">
+                  <div className="kings-row">
+                    {[0,1,2,3].map(i => <div key={i} className={`k-dot ${i < status.kings ? "lit" : ""}`} />)}
+                  </div>
+                  <div className="c-label">{remaining} Karten</div>
+                </div>
+              </div>
+            </div>
+            <div className="status-row">
+              {status.quizmaster !== null && <div className="s-badge">🎓 {players[status.quizmaster]} ist Quizmaster</div>}
+              {status.thumbmaster !== null && <div className="s-badge">👍 {players[status.thumbmaster]} ist Thumbmaster</div>}
+              {status.queen !== null && <div className="s-badge">👑 {players[status.queen]} ist Queen</div>}
+            </div>
+          </div>
+          {showModal && activeCard && <RuleModal card={activeCard} onClose={closeModal} />}
+        </div>
+      );
+    }
+
+    // ── Mount ─────────────────────────────────────────────────────────────────
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
