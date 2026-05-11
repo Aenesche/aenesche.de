@@ -84,9 +84,24 @@ export default class JobBoard {
         const seedJobsClaimed = [...this.claims.keys()].filter(k => k.startsWith('buy_seed')).length;
         const plantJobsClaimed = [...this.claims.keys()].filter(k => k.startsWith('plant_')).length;
 
-        if (terminal && emptyBeds > seedJobsClaimed + plantJobsClaimed) {
-            if (scene.state.canAfford(10)) { // SEED_COST
-                jobs.push({ type: 'buy_seed', target: terminal, targetId: `buy_seed_${Date.now()}`, priority: 0 });
+        // Samen kaufen: für jedes freie Beet prüfen welche Sorten möglich sind
+        const terminals = scene.stations.filter(s => s.constructor.name === 'SeedTerminal');
+        const emptyBeds = beds.filter(b => b.state === 'empty');
+
+        for (const terminal of terminals) {
+            // Gibt es leere Beete die diese Sorte aufnehmen können?
+            const compatibleBeds = emptyBeds.filter(b => b.canPlant(terminal.variety));
+            const alreadyClaimed = [...this.claims.keys()].filter(k =>
+                k.startsWith(`buy_seed_${terminal.variety.id}`) || k.startsWith(`plant_`)
+            ).length;
+
+            if (compatibleBeds.length > alreadyClaimed && scene.state.canAfford(terminal.variety.seedCost)) {
+                jobs.push({
+                    type: 'buy_seed',
+                    target: terminal,
+                    targetId: `buy_seed_${terminal.variety.id}_${Date.now()}`,
+                    priority: 0,
+                });
             }
         }
 
