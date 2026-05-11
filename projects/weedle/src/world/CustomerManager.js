@@ -80,7 +80,23 @@ export default class CustomerManager {
             if (Math.random() < multiChance) size++;
             else break;
         }
-        return Array.from({ length: size }, () => ITEMS.PLANT.id);
+
+        // Welche Sorten sind verfügbar? (Terminals die gebaut sind)
+        const terminals = this.scene.stations.filter(s => s.constructor.name === 'SeedTerminal');
+        const availableVarieties = terminals.map(t => t.variety.id);
+        if (availableVarieties.length === 0) return ['plant_mint']; // Fallback
+
+        return Array.from({ length: size }, () => {
+            // Höhere Sorten seltener: gewichtet nach umgekehrter Position
+            const weights = availableVarieties.map((id, i) => Math.pow(0.6, i));
+            const totalWeight = weights.reduce((a, b) => a + b, 0);
+            let roll = Math.random() * totalWeight;
+            for (let i = 0; i < availableVarieties.length; i++) {
+                roll -= weights[i];
+                if (roll <= 0) return `plant_${availableVarieties[i]}`;
+            }
+            return `plant_${availableVarieties[0]}`;
+        });
     }
 
     trySpawn(registers) {
