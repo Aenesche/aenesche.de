@@ -72,7 +72,7 @@ for (const v of SEED_VARIETIES) {
     ITEMS[`plant_${v.id}`] = { id: `plant_${v.id}`, color: v.color, label: v.label, variety: v.id, sellPrice: v.sellPrice };
 }
 
-eexport const GROWTH = {
+export const GROWTH = {
     ROT_DURATION: 20000, // gleich für alle Sorten
 };
 
