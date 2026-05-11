@@ -46,7 +46,7 @@ export const INTERACTION = {
     HIGHLIGHT_PULSE: 1500,
 };
 
-eexport const ECONOMY = {
+export const ECONOMY = {
     STARTING_MONEY: 99,
 };
 
