@@ -59,10 +59,14 @@ export default class Register extends Station {
         // Item übergeben
         if (player.hasItem() && customer.order.includes(player.carriedItem.itemDef.id)) {
             const itemDef = player.carriedItem.itemDef;
-            // Ertrag-Bonus vom Samen-Terminal (wo der Samen herkam)
-            const seedTerminal = this.scene.stations.find(s => s.constructor.name === 'SeedTerminal');
-            const yieldMultiplier = seedTerminal ? (1 + (seedTerminal.upgradeLevel || 0) * 0.25) : 1;
-            const price = Math.round((itemDef.sellPrice || 0) * yieldMultiplier);
+            // Basis-Preis aus der Sorten-Definition
+            const basePrice = itemDef.sellPrice || 0;
+            // Ertrag-Bonus vom Terminal dieser Sorte
+            const terminal = this.scene.stations.find(s =>
+                s.constructor.name === 'SeedTerminal' && s.variety?.id === itemDef.variety
+            );
+            const yieldMult = terminal ? (1 + (terminal.upgradeLevel || 0) * 0.25) : 1;
+            const price = Math.round(basePrice * yieldMult);
             return {
                 type: 'tap',
                 duration: 0,
