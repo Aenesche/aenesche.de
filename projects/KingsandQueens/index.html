@@ -325,7 +325,9 @@
       const activeRing = useMemo(() => {
         let offset = 0;
         for (let r = 0; r < RING_DEFS.length; r++) {
-          if (deck.slice(offset, offset + RING_DEFS[r].count).some(c => !drawnIds.has(c.id))) return r;
+          const ringCards = deck.slice(offset, offset + RING_DEFS[r].count);
+          const remaining = ringCards.filter(c => !drawnIds.has(c.id)).length;
+          if (remaining > 3) return r;
           offset += RING_DEFS[r].count;
         }
         return RING_DEFS.length - 1;
