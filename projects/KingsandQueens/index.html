@@ -27,20 +27,27 @@
     const RANKS = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
     const RED_SUITS = new Set(["♥","♦"]);
 
+    // 24 + 16 + 12 = 52 cards across 3 rings, outer → inner
+    const RING_DEFS = [
+      { count: 24, rf: 1.00 },
+      { count: 16, rf: 0.63 },
+      { count: 12, rf: 0.32 },
+    ];
+
     const RULES = {
-      "2":  { title:"Hand Out",          icon:"🥃", tagline:"Vergib einen Shot",             body:"Wähle einen Mitspieler – er oder sie trinkt einen Shot.",                                                                                                              sips:"1 Shot für jemanden anderen" },
+      "2":  { title:"Hand Out",          icon:"🥃", tagline:"Vergib einen Shot",             body:"Wähle einen Mitspieler – die Person trinkt einen Shot.",                                                                                                              sips:"1 Shot für jemanden anderen" },
       "3":  { title:"Drink!",            icon:"🍺", tagline:"Trink selbst",                  body:"Du trinkst.",                                                                                                                                                         sips:"1 Shot" },
-      "4":  { title:"Kategorie",         icon:"🎯", tagline:"Denke dir eine Kategorie aus",  body:"Alle nennen der Reihe nach etwas aus dieser Kategorie (z.B. Automarken, Länder). Wer nichts weiß, zu langsam ist oder sich wiederholt – trinkt.",                    sips:null },
-      "5":  { title:"Thumbmaster",       icon:"👍", tagline:"Du bist Thumbmaster",           body:"Lege jederzeit deinen Daumen auf den Tisch – alle müssen folgen. Der Letzte trinkt. Das Recht verfällt, sobald jemand eine neue 5 zieht.",                           sips:null },
-      "6":  { title:"Trinkpartner",      icon:"🤝", tagline:"Wähle deinen Trinkpartner",     body:"Wähle einen Mitspieler. Wann immer du trinkst, trinkt er oder sie mit – und umgekehrt.",                                                                            sips:null },
+      "4":  { title:"Kategorie",         icon:"🎯", tagline:"Denke dir eine Kategorie aus",  body:"Alle nennen der Reihe nach etwas aus dieser Kategorie (z.B. Automarken, Länder). Wer nichts weiß, zu langsam ist oder sich wiederholt -> trinkt.",                    sips:null },
+      "5":  { title:"Thumbmaster",       icon:"👍", tagline:"Du bist Thumbmaster",           body:"Lege jederzeit deinen Daumen auf den Tisch -> alle müssen folgen. Der Letzte Mensch trinkt. Das Recht verfällt, sobald jemand eine neue 5 zieht.",                           sips:null },
+      "6":  { title:"Trinkpartner",      icon:"🤝", tagline:"Wähle deinen Trinkpartner",     body:"Wähle eine Mitspieler*in. Wann immer du trinkst, trinkt die Person mit – und umgekehrt.",                                                                            sips:null },
       "7":  { title:"Keine Sieben",      icon:"🔢", tagline:"Zählen ohne Sieben",            body:"Alle zählen reihum ab 1. Überspringe alle Vielfachen von 7 (7, 14, 21…) und alle Zahlen, die eine 7 enthalten (17, 27, 71…). Wer sich vertut, trinkt.",              sips:null },
-      "8":  { title:"Regel",             icon:"📜", tagline:"Erfinde eine Regel",            body:"Denke dir eine beliebige Regel aus – sie gilt ab sofort bis sie durch eine 9 aufgehoben wird oder das Spiel endet. Sei kreativ!",                                    sips:null },
+      "8":  { title:"Regel",             icon:"📜", tagline:"Erfinde eine Regel",            body:"Denke dir eine beliebige Regel aus - sie gilt ab sofort bis sie durch eine 9 aufgehoben wird oder das Spiel endet. Sei kreativ!",                                    sips:null },
       "9":  { title:"Regel löschen",     icon:"❌", tagline:"Eine Regel fällt weg",          body:"Hebe eine aktive Regel auf. Gibt es keine Regeln, passiert nichts.",                                                                                                  sips:null },
-      "10": { title:"Quizmaster",        icon:"🎓", tagline:"Du bist Quizmaster",            body:"Wer dir antwortet, wenn du eine Frage stellst – trinkt. Das Amt endet, wenn jemand anderes eine 10 zieht.",                                                         sips:null },
+      "10": { title:"Quizmaster",        icon:"🎓", tagline:"Du bist Quizmaster",            body:"Wer dir antwortet, wenn du eine Frage stellst -> trinkt. Das Amt endet, wenn jemand anderes eine 10 zieht.",                                                         sips:null },
       "J":  { title:"Zeigen",            icon:"👉", tagline:"Alle zeigen auf jemanden",      body:"Alle heben einen Finger. Auf 3 zeigt jeder auf jemanden. Wer am meisten Finger bekommt, trinkt.",                                                                   sips:null },
-      "Q":  { title:"Rise of the Queen", icon:"👑", tagline:"RISE OF THE QUEEN!",            body:'Ruf laut "RISE OF THE QUEEN!" – alle müssen aufspringen und mitrufen. Der Letzte trinkt. Das Recht verfällt, wenn jemand eine neue Dame zieht.',                     sips:null },
-      "K":  { title:"König",             icon:"♚",  tagline:"König auf das Mittelgetränk",   body:"Stelle den König auf das Getränk in der Mitte. Fällt ein König um, muss derjenige es austrinken – Spiel vorbei! Der 4. König beendet das Spiel sofort.",            sips:null },
-      "A":  { title:"Richtungswechsel",  icon:"🔄", tagline:"Die Reihenfolge dreht sich um", body:"Ab sofort wird in umgekehrter Reihenfolge gespielt.",                                                                                                                sips:null },
+      "Q":  { title:"Rise of the Queen", icon:"👑", tagline:"RISE OF THE QUEEN!",            body:'Ruf laut "ALL HAIL TO THE QUEEN!" - alle müssen aufspringen und mitrufen. Der Letzte trinkt. Das Recht verfällt, wenn jemand eine neue Dame zieht. Es wird empfohlen diese Karte in Bars und anderen belebten Orten auszulassen..',                     sips:null },
+      "K":  { title:"König",             icon:"♚",  tagline:"König auf das Mittelgetränk",   body:"Stelle den König auf das Getränk in der Mitte. Der 4. König beendet das Spiel sofort. (passiert automatisch, du musst nix machen:)",            sips:null },
+      "A":  { title:"Richtungswechsel",  icon:"🔄", tagline:"Die Reihenfolge dreht sich um", body:"RICHTUNGSWECHSEL",                                                                                                                sips:null },
     };
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -84,12 +91,13 @@
         background-size:200px 200px;opacity:.35;pointer-events:none;z-index:0;}
       .app>*{position:relative;z-index:1;}
 
-      .menu{display:flex;flex-direction:column;align-items:center;gap:1.8rem;padding:2rem 1.5rem;max-width:420px;width:100%;text-align:center;}
+      /* ── MENU ── */
+      .menu{display:flex;flex-direction:column;align-items:center;gap:1.5rem;padding:2rem 1.5rem;max-width:420px;width:100%;text-align:center;}
       .menu-suits{font-size:1.6rem;letter-spacing:.6rem;color:var(--muted);margin-bottom:.4rem;}
       .menu-suits span:nth-child(2),.menu-suits span:nth-child(3){color:var(--red);}
       .menu-title{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(2.4rem,9vw,3.8rem);color:var(--gold);letter-spacing:.04em;line-height:1;text-shadow:0 0 60px rgba(201,168,80,.35),0 2px 4px rgba(0,0,0,.6);}
       .menu-sub{font-style:italic;color:var(--muted);font-size:.9rem;letter-spacing:.08em;margin-top:.3rem;}
-      .deck-art{position:relative;width:90px;height:120px;margin:.5rem auto;}
+      .deck-art{position:relative;width:90px;height:120px;margin:.2rem auto;}
       .deck-art-card{position:absolute;width:58px;height:84px;border-radius:6px;border:1.5px solid;box-shadow:0 4px 12px rgba(0,0,0,.6);}
       .deck-art-card:nth-child(1){background:linear-gradient(145deg,#4a0e0e,#300808);border-color:rgba(201,168,80,.2);transform:rotate(-10deg) translate(0px,8px);left:0;top:0;}
       .deck-art-card:nth-child(2){background:linear-gradient(145deg,#620f0f,#420a0a);border-color:rgba(201,168,80,.3);transform:rotate(-5deg) translate(5px,4px);left:6px;top:0;}
@@ -100,9 +108,16 @@
       .pbtn{width:50px;height:50px;border-radius:50%;border:1.5px solid var(--muted);background:transparent;color:var(--text);font-family:'Cinzel',serif;font-size:1.15rem;font-weight:700;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;}
       .pbtn:active{transform:scale(.92);}
       .pbtn.sel{background:var(--gold);border-color:var(--gold);color:#060d07;box-shadow:0 0 24px rgba(201,168,80,.45);transform:scale(1.12);}
+      .names-toggle{margin-top:.8rem;background:none;border:none;color:var(--muted);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;cursor:pointer;display:flex;align-items:center;gap:.4rem;width:100%;justify-content:center;padding:.4rem;transition:color .15s;}
+      .names-toggle:hover{color:var(--text);}
+      .names-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;margin-top:.6rem;width:100%;animation:fadeSlide .2s ease;}
+      .name-input{background:rgba(13,31,16,.9);border:1px solid var(--border);border-radius:6px;padding:.55rem .8rem;color:var(--text);font-family:'Lora',Georgia,serif;font-size:.9rem;outline:none;width:100%;transition:border-color .15s;}
+      .name-input::placeholder{color:var(--muted);}
+      .name-input:focus{border-color:rgba(201,168,80,.7);}
       .start-btn{width:100%;padding:1.05rem 2rem;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#060d07;border:none;border-radius:6px;font-family:'Cinzel',serif;font-size:1.05rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .18s;box-shadow:0 4px 24px rgba(201,168,80,.3),inset 0 1px 0 rgba(255,255,255,.15);}
       .start-btn:active{transform:scale(.98);}
 
+      /* ── GAME ── */
       .game{width:100%;height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;gap:0;padding:.8rem .8rem .6rem;}
       .player-bar{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1.2rem;background:rgba(13,31,16,.85);border:1px solid var(--border);border-radius:50px;backdrop-filter:blur(12px);width:100%;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,.4);}
       .pbar-arrow{font-size:1rem;color:var(--gold);opacity:.7;}
@@ -113,7 +128,8 @@
       .circle-wrap{position:relative;flex-shrink:0;}
       .card-slot{position:absolute;cursor:pointer;transform-origin:center center;transition:opacity .35s ease;}
       .card-slot.gone{opacity:0;pointer-events:none;}
-      .card-slot:not(.gone):active{filter:brightness(1.6);}
+      .card-slot.locked{opacity:.22;pointer-events:none;}
+      .card-slot:not(.gone):not(.locked):active{filter:brightness(1.6);}
       .card-back-face{width:100%;height:100%;border-radius:4px;background:linear-gradient(150deg,#8e1b1b 0%,#5c0e0e 60%,#3a0808 100%);border:1px solid rgba(201,168,80,.55);box-shadow:0 2px 8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
       .card-back-face::before{content:'';position:absolute;inset:3px;border:.5px solid rgba(201,168,80,.25);border-radius:2px;}
       .card-back-face::after{content:'✦';font-size:.55em;color:rgba(201,168,80,.3);}
@@ -126,6 +142,7 @@
       .s-badge{padding:.22rem .7rem;background:rgba(13,31,16,.9);border:1px solid var(--border);border-radius:50px;font-size:.68rem;color:var(--muted);font-style:italic;animation:fadeSlide .3s ease;}
       @keyframes fadeSlide{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
+      /* ── MODAL ── */
       .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:flex-end;justify-content:center;z-index:200;animation:bgIn .2s ease;}
       @keyframes bgIn{from{opacity:0}to{opacity:1}}
       .modal-sheet{width:100%;max-width:500px;background:linear-gradient(160deg,#162c1b 0%,#0d1f10 100%);border:1px solid var(--border);border-bottom:none;border-radius:22px 22px 0 0;padding:.8rem 1.4rem 2.2rem;animation:sheetUp .32s cubic-bezier(.34,1.4,.64,1);box-shadow:0 -8px 40px rgba(0,0,0,.5);}
@@ -150,6 +167,7 @@
       .confirm-btn{width:100%;padding:1rem;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#060d07;border:none;border-radius:9px;font-family:'Cinzel',serif;font-size:1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:transform .12s;box-shadow:0 4px 20px rgba(201,168,80,.25);}
       .confirm-btn:active{transform:scale(.97);}
 
+      /* ── GAME OVER ── */
       .gameover{display:flex;flex-direction:column;align-items:center;gap:1.8rem;padding:2.5rem 2rem;max-width:420px;width:100%;text-align:center;}
       .go-crown{font-size:3.5rem;animation:wobble .6s ease;}
       @keyframes wobble{0%{transform:rotate(-15deg)}40%{transform:rotate(10deg)}70%{transform:rotate(-6deg)}100%{transform:rotate(0)}}
@@ -198,7 +216,17 @@
       );
     }
 
-    function MenuScreen({ playerCount, setPlayerCount, onStart }) {
+    function MenuScreen({ playerCount, setPlayerCount, playerNames, setPlayerNames, onStart }) {
+      const [showNames, setShowNames] = useState(false);
+
+      const updateName = (idx, val) => {
+        const updated = [...playerNames];
+        while (updated.length <= idx) updated.push("");
+        updated[idx] = val;
+        setPlayerNames(updated);
+        try { localStorage.setItem("kq_names", JSON.stringify(updated)); } catch {}
+      };
+
       return (
         <div className="app">
           <style>{CSS}</style>
@@ -215,7 +243,7 @@
               <div className="deck-art-card" />
               <div className="deck-art-card" />
             </div>
-            <div>
+            <div style={{ width: "100%" }}>
               <div className="section-label">Anzahl Spieler</div>
               <div className="player-btns">
                 {[2,3,4,5,6,7,8].map(n => (
@@ -223,6 +251,19 @@
                     onClick={() => setPlayerCount(n)}>{n}</button>
                 ))}
               </div>
+              <button className="names-toggle" onClick={() => setShowNames(s => !s)}>
+                {showNames ? "▲" : "▼"}&nbsp; Namen eintragen (optional)
+              </button>
+              {showNames && (
+                <div className="names-grid">
+                  {Array.from({ length: playerCount }, (_, i) => (
+                    <input key={i} className="name-input"
+                      placeholder={`Spieler ${i + 1}`}
+                      value={playerNames[i] || ""}
+                      onChange={e => updateName(i, e.target.value)} />
+                  ))}
+                </div>
+              )}
             </div>
             <button className="start-btn" onClick={onStart}>Spiel starten ♠</button>
           </div>
@@ -249,6 +290,10 @@
     function App() {
       const [phase, setPhase] = useState("menu");
       const [playerCount, setPlayerCount] = useState(4);
+      const [playerNames, setPlayerNames] = useState(() => {
+        try { return JSON.parse(localStorage.getItem("kq_names") || "[]"); }
+        catch { return []; }
+      });
       const [deck, setDeck] = useState([]);
       const [drawnIds, setDrawnIds] = useState(new Set());
       const [currentIdx, setCurrentIdx] = useState(0);
@@ -260,13 +305,35 @@
       const { w, h } = useWindowSize();
 
       const players = useMemo(
-        () => Array.from({ length: playerCount }, (_, i) => `Spieler ${i + 1}`),
-        [playerCount]
+        () => Array.from({ length: playerCount }, (_, i) =>
+          playerNames[i]?.trim() || `Spieler ${i + 1}`),
+        [playerCount, playerNames]
       );
 
-      const containerSize = Math.min(w * 0.9, h * 0.56, 420);
-      const radius = containerSize / 2 - 16;
-      const cardW = Math.max(20, Math.min(34, containerSize * 0.075));
+      // Map each card id → ring index (0 = outer)
+      const cardRingMap = useMemo(() => {
+        const map = new Map();
+        let offset = 0;
+        RING_DEFS.forEach((def, r) => {
+          deck.slice(offset, offset + def.count).forEach(c => map.set(c.id, r));
+          offset += def.count;
+        });
+        return map;
+      }, [deck]);
+
+      // Outermost ring that still has undrawn cards
+      const activeRing = useMemo(() => {
+        let offset = 0;
+        for (let r = 0; r < RING_DEFS.length; r++) {
+          if (deck.slice(offset, offset + RING_DEFS[r].count).some(c => !drawnIds.has(c.id))) return r;
+          offset += RING_DEFS[r].count;
+        }
+        return RING_DEFS.length - 1;
+      }, [deck, drawnIds]);
+
+      const containerSize = Math.min(w * 0.9, h * 0.56, 460);
+      const radius = containerSize / 2 - 10;
+      const cardW = Math.max(20, Math.min(36, containerSize * 0.078));
       const cardH = cardW * 1.52;
       const cx = containerSize / 2;
       const cy = containerSize / 2;
@@ -285,6 +352,7 @@
 
       const drawCard = useCallback((card) => {
         if (showModal || drawnIds.has(card.id)) return;
+        if ((cardRingMap.get(card.id) ?? 0) > activeRing) return;
         setDrawnIds(prev => new Set([...prev, card.id]));
         setActiveCard(card);
         let ns = { ...status };
@@ -299,7 +367,7 @@
         setStatus(ns);
         if (over) setGameOverMsg(over);
         setShowModal(true);
-      }, [showModal, drawnIds, status, players, currentIdx]);
+      }, [showModal, drawnIds, status, players, currentIdx, cardRingMap, activeRing]);
 
       const closeModal = useCallback(() => {
         setShowModal(false);
@@ -311,7 +379,13 @@
         setActiveCard(null);
       }, [gameOverMsg, direction, activeCard, players.length]);
 
-      if (phase === "menu") return <MenuScreen playerCount={playerCount} setPlayerCount={setPlayerCount} onStart={startGame} />;
+      if (phase === "menu") return (
+        <MenuScreen
+          playerCount={playerCount} setPlayerCount={setPlayerCount}
+          playerNames={playerNames} setPlayerNames={setPlayerNames}
+          onStart={startGame}
+        />
+      );
       if (phase === "gameover") return <GameOverScreen msg={gameOverMsg} onRestart={() => setPhase("menu")} />;
 
       const remaining = deck.length - drawnIds.size;
@@ -324,14 +398,21 @@
             <div className="arena">
               <div className="circle-wrap" style={{ width: containerSize, height: containerSize }}>
                 {deck.map((card, i) => {
-                  const angle = (i / deck.length) * Math.PI * 2 - Math.PI / 2;
-                  const x = cx + radius * Math.cos(angle) - cardW / 2;
-                  const y = cy + radius * Math.sin(angle) - cardH / 2;
+                  let offset = 0, ring = 0, posInRing = i;
+                  for (let r = 0; r < RING_DEFS.length; r++) {
+                    if (i < offset + RING_DEFS[r].count) { ring = r; posInRing = i - offset; break; }
+                    offset += RING_DEFS[r].count;
+                  }
+                  const ringRadius = radius * RING_DEFS[ring].rf;
+                  const angle = (posInRing / RING_DEFS[ring].count) * Math.PI * 2 - Math.PI / 2;
+                  const x = cx + ringRadius * Math.cos(angle) - cardW / 2;
+                  const y = cy + ringRadius * Math.sin(angle) - cardH / 2;
                   const rot = angle * (180 / Math.PI) + 90;
                   const drawn = drawnIds.has(card.id);
+                  const locked = ring > activeRing;
                   return (
                     <div key={card.id}
-                      className={`card-slot ${drawn ? "gone" : ""}`}
+                      className={`card-slot ${drawn ? "gone" : ""} ${locked ? "locked" : ""}`}
                       style={{ left: x, top: y, width: cardW, height: cardH, transform: `rotate(${rot}deg)`, zIndex: drawn ? 0 : 1 }}
                       onClick={() => drawCard(card)}>
                       <div className="card-back-face" />
