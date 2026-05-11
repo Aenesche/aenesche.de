@@ -1,29 +1,23 @@
 import Station from './Station.js';
-import { COLORS, ISO, ITEMS, GROWTH } from '../../config/constants.js';
+import { COLORS, ISO, ITEMS, SEED_VARIETIES, GROWTH, UPGRADES } from '../../config/constants.js';
 import { drawIsoTile, drawIsoCube } from '../../utils/iso.js';
 import CarriedItem from '../CarriedItem.js';
 import PieTimer from '../PieTimer.js';
 
 const HEIGHT = 15;
 
-// State-Machine:
-//   empty   → (Samen einpflanzen) → growing
-//   growing → (Timer abgelaufen)  → ready
-//   ready   → (zu lange gewartet) → rotten
-//   ready   → (geerntet)          → empty
-//   rotten  → (geerntet)          → empty (kein Item, weil wertlos)
-
 export default class Bed extends Station {
     constructor(scene, gridX, gridY) {
         super(scene, gridX, gridY);
         this.state = 'empty';
-        this.stateTime = 0; // ms seit aktuellem State
+        this.stateTime = 0;
+        this.plantedVariety = null; // SEED_VARIETIES entry
 
-        // Pflanzen-Visual: eigenes Graphics, das je nach State neugezeichnet wird
+        this.tier = 0; // separater Upgrade-Zweig
+
         this.plantGfx = scene.add.graphics();
-        this.plantGfx.setDepth(this.isoY + ISO.TILE_SIZE / 2 + 1); // Knapp über Beet
+        this.plantGfx.setDepth(this.isoY + ISO.TILE_SIZE / 2 + 1);
 
-        // Wachstums-Timer (cyan), wird in update() positioniert
         this.timer = new PieTimer(scene, COLORS.TIMER_GROW);
         this.timer.setPosition(this.isoX, this.isoY - HEIGHT - 30);
     }
@@ -40,7 +34,6 @@ export default class Bed extends Station {
         };
     }
 
-    // Wird von der Scene jedes Frame aufgerufen
     update(delta) {
         if (this.state === 'empty') {
             this.timer.hide();
@@ -49,23 +42,23 @@ export default class Bed extends Station {
 
         this.stateTime += delta;
 
-        if (this.state === 'growing') {
+        if (this.state === 'growing' && this.plantedVariety) {
             const growMultiplier = Math.pow(0.85, this.upgradeLevel);
-            const adjustedDuration = GROWTH.GROW_DURATION * growMultiplier;
+            const baseDuration = this.plantedVariety.growTime;
+            const adjustedDuration = baseDuration * growMultiplier;
             const progress = Math.min(this.stateTime / adjustedDuration, 1);
-            this.timer.setColor(COLORS.TIMER_GROW);
+            this.timer.setColor(this.plantedVariety.color);
             this.timer.show(progress);
-            this.drawPlant(progress, COLORS.BED_PLANT);
+            this.drawPlant(progress, this.plantedVariety.color);
             if (progress >= 1) {
                 this.state = 'ready';
                 this.stateTime = 0;
             }
         } else if (this.state === 'ready') {
-            // Anti-Progress: zeigt wie lange noch bis verfault
             const rotProgress = Math.min(this.stateTime / GROWTH.ROT_DURATION, 1);
-            this.timer.setColor(COLORS.TIMER_GROW);
+            this.timer.setColor(this.plantedVariety?.color || COLORS.TIMER_GROW);
             this.timer.show(1 - rotProgress);
-            this.drawPlant(1, COLORS.BED_PLANT);
+            this.drawPlant(1, this.plantedVariety?.color || COLORS.BED_PLANT);
             if (rotProgress >= 1) {
                 this.state = 'rotten';
                 this.stateTime = 0;
@@ -76,17 +69,13 @@ export default class Bed extends Station {
         }
     }
 
-    // Skaliert die Pflanze von 0 (Sprössling) bis 1 (vollständig)
     drawPlant(scale, color) {
         const g = this.plantGfx;
         g.clear();
-
         const cx = this.isoX;
         const cy = this.isoY + ISO.TILE_SIZE / 2 - HEIGHT;
         const h = 30 * scale;
         const w = 15 * scale;
-
-        // Diamantförmige Kristall-Pflanze (passt zum Neon-Look)
         g.lineStyle(2, color, 1);
         g.fillStyle(color, 0.2);
         g.beginPath();
@@ -97,46 +86,56 @@ export default class Bed extends Station {
         g.closePath();
         g.fillPath();
         g.strokePath();
-
-        // Innere Glow-Ellipse für Detail
         g.fillStyle(color, 1);
         g.fillEllipse(cx, cy - h / 2, w / 2, h / 4);
+    }
+
+    // Kann diese Sorte hier gepflanzt werden?
+    canPlant(variety) {
+        return this.tier >= variety.requiredTier;
     }
 
     getInteraction() {
         const player = this.scene.player;
 
-        // Pflanzen: Player trägt Samen UND Beet ist leer
-        if (this.state === 'empty'
-            && player.hasItem()
-            && player.carriedItem.itemDef.id === ITEMS.SEED.id) {
-            return {
-                type: 'tap',
-                duration: 0,
-                onComplete: () => {
-                    player.dropItem();
-                    this.state = 'growing';
-                    this.stateTime = 0;
-                },
-            };
+        // Pflanzen: Player trägt Samen, Beet ist leer, Tier passt
+        if (this.state === 'empty' && player.hasItem()) {
+            const itemDef = player.carriedItem.itemDef;
+            if (itemDef.variety) {
+                const variety = SEED_VARIETIES.find(v => v.id === itemDef.variety);
+                if (variety && itemDef.id.startsWith('seed_') && this.canPlant(variety)) {
+                    return {
+                        type: 'tap',
+                        duration: 0,
+                        onComplete: () => {
+                            player.dropItem();
+                            this.plantedVariety = variety;
+                            this.state = 'growing';
+                            this.stateTime = 0;
+                        },
+                    };
+                }
+            }
         }
 
-        // Ernten: Beet ist erntereif UND Player hat freie Hände
-        if (this.state === 'ready' && !player.hasItem()) {
+        // Ernten: erntereif, freie Hände
+        if (this.state === 'ready' && !player.hasItem() && this.plantedVariety) {
+            const plantItem = ITEMS[`plant_${this.plantedVariety.id}`];
             return {
                 type: 'tap',
                 duration: 0,
                 onComplete: () => {
-                    const plant = new CarriedItem(this.scene, ITEMS.PLANT);
+                    const plant = new CarriedItem(this.scene, plantItem);
                     player.pickUp(plant);
                     this.state = 'empty';
                     this.stateTime = 0;
+                    this.plantedVariety = null;
                     this.plantGfx.clear();
                 },
             };
         }
 
-        // Verfault: Player muss die verfaulte Pflanze aufheben und entsorgen
+        // Verfault: aufheben zum Entsorgen
         if (this.state === 'rotten' && !player.hasItem()) {
             return {
                 type: 'tap',
@@ -146,6 +145,7 @@ export default class Bed extends Station {
                     player.pickUp(rotten);
                     this.state = 'empty';
                     this.stateTime = 0;
+                    this.plantedVariety = null;
                     this.plantGfx.clear();
                 },
             };
@@ -153,7 +153,6 @@ export default class Bed extends Station {
 
         return null;
     }
-    onUpgrade(level) {
-        // Visuell: nichts nötig, Effekt ist passiv (schnelleres Wachstum)
-    }
+
+    onUpgrade(level) {}
 }
