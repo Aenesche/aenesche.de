@@ -14,6 +14,12 @@ export default class UpgradeManager {
 
         this.qKey = scene.input.keyboard.addKey('Q');
         this.qKey.on('down', () => this.onQ());
+        this.scene.input.keyboard.addKey('TAB').on('down', (e) => {
+            e.originalEvent.preventDefault();
+            if (this.popup.visible && this.popup.station?.constructor.name === 'Bed') {
+                this.popup.toggleMode();
+            }
+        });
     }
 
     onQ() {
