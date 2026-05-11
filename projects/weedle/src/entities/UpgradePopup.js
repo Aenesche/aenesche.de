@@ -62,7 +62,8 @@ export default class UpgradePopup {
         this.station = station;
         this.visible = true;
 
-        const level = station.upgradeLevel || 0;
+        const isTier = this.upgradeMode === 'tier' && station.constructor.name === 'Bed';
+        const level = isTier ? (station.tier || 0) : (station.upgradeLevel || 0);
         const price = this.getPrice(config, level);
         const maxed = level >= config.maxLevel;
 
@@ -70,22 +71,24 @@ export default class UpgradePopup {
         this.levelText.setText(`Level ${level}`);
         this.effectText.setText(maxed ? 'MAX' : config.description(level + 1));
         this.priceText.setText(maxed ? '' : `€${price}`);
-        this.hintText.setText(maxed ? '' : '[Q] kaufen');
 
-        // Position über der Station
+        const isBed = station.constructor.name === 'Bed';
+        const tabHint = isBed ? `[TAB] ${this.upgradeMode === 'primary' ? '→ Tier' : '→ Speed'}  ` : '';
+        this.hintText.setText(maxed ? tabHint : `${tabHint}[Q] kaufen`);
+
         const x = station.isoX;
         const y = (station.bounds?.top ?? station.isoY) - 50;
         this.container.setPosition(x, y);
 
-        // Hintergrund zeichnen
         this.bg.clear();
-        const w = 120, h = 65;
+        const w = 140, h = 65;
         this.bg.fillStyle(0x000000, 0.85);
         this.bg.fillRoundedRect(-w / 2, -42, w, h, 4);
         this.bg.lineStyle(1, 0x00ffff, 0.6);
         this.bg.strokeRoundedRect(-w / 2, -42, w, h, 4);
 
         this.container.setVisible(true);
+        this.upgradeMode = 'primary'; // 'primary' oder 'tier'
     }
 
     hide() {
@@ -100,30 +103,36 @@ export default class UpgradePopup {
         const config = this.getUpgradeConfig(this.station);
         if (!config) return false;
 
-        const level = this.station.upgradeLevel || 0;
+        const isTier = this.upgradeMode === 'tier' && this.station.constructor.name === 'Bed';
+        const level = isTier ? (this.station.tier || 0) : (this.station.upgradeLevel || 0);
         if (level >= config.maxLevel) return false;
 
         const price = this.getPrice(config, level);
         if (!gameState.spend(price)) return false;
 
-        this.station.upgradeLevel = (this.station.upgradeLevel || 0) + 1;
+        if (isTier) {
+            this.station.tier = (this.station.tier || 0) + 1;
+        } else {
+            this.station.upgradeLevel = (this.station.upgradeLevel || 0) + 1;
 
-        // Spezialfall: HiringStation-Upgrade = globaler Employee-Speed
-        if (this.station.constructor.name === 'HiringStation') {
-            this.scene.employeeSpeedLevel = this.station.upgradeLevel;
+            if (this.station.constructor.name === 'HiringStation') {
+                this.scene.employeeSpeedLevel = this.station.upgradeLevel;
+            }
         }
 
         if (this.station.onUpgrade) {
             this.station.onUpgrade(this.station.upgradeLevel);
         }
-        // Popup refreshen mit neuem Level
+
         this.show(this.station);
         return true;
     }
-
     getUpgradeConfig(station) {
         const name = station.constructor.name;
-        if (name === 'Bed') return UPGRADES.bed;
+        if (name === 'Bed') {
+            if (this.upgradeMode === 'tier') return UPGRADES.bedTier;
+            return UPGRADES.bed;
+        }
         if (name === 'Register') return UPGRADES.register;
         if (name === 'SeedTerminal') return UPGRADES.seedTerminal;
         if (name === 'StorageTable') return UPGRADES.storage;
@@ -144,5 +153,14 @@ export default class UpgradePopup {
 
     getPrice(config, level) {
         return Math.round(config.basePrice * Math.pow(config.priceMultiplier, level));
+    }
+    
+    toggleMode() {
+        if (this.upgradeMode === 'primary') {
+            this.upgradeMode = 'tier';
+        } else {
+            this.upgradeMode = 'primary';
+        }
+        if (this.station) this.show(this.station);
     }
 }
