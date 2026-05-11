@@ -2,7 +2,7 @@
 // Bewegt sich per A*-Pathfinding, führt Jobs vom JobBoard aus.
 // Rolle: 'gardener' oder 'cashier'.
 
-import { COLORS, ISO, EMPLOYEE, ECONOMY, ITEMS } from '../config/constants.js';
+import { COLORS, ISO, EMPLOYEE, ITEMS, SEED_VARIETIES } from '../config/constants.js';
 import { gridToIsoCenter, isoCenterToGrid } from '../utils/iso.js';
 import { findPath } from '../world/Pathfinding.js';
 import CarriedItem from './CarriedItem.js';
@@ -256,26 +256,35 @@ export default class Employee {
 
         switch (job.type) {
             case 'buy_seed':
-                if (this.scene.state.spend(ECONOMY.SEED_COST)) {
-                    const seed = new CarriedItem(this.scene, ITEMS.SEED);
+                const variety = job.target.variety;
+                const seedItem = ITEMS[`seed_${variety.id}`];
+                if (seedItem && this.scene.state.spend(variety.seedCost)) {
+                    const seed = new CarriedItem(this.scene, seedItem);
                     this.pickUp(seed);
                 }
                 break;
 
             case 'plant_seed':
                 if (job.target.state === 'empty' && this.hasItem()) {
-                    this.dropItem();
-                    job.target.state = 'growing';
-                    job.target.stateTime = 0;
+                    const itemDef = this.carriedItem.itemDef;
+                    const variety = SEED_VARIETIES.find(v => v.id === itemDef.variety);
+                    if (variety && job.target.canPlant(variety)) {
+                        this.dropItem();
+                        job.target.plantedVariety = variety;
+                        job.target.state = 'growing';
+                        job.target.stateTime = 0;
+                    }
                 }
                 break;
 
             case 'harvest':
-                if (job.target.state === 'ready' && !this.hasItem()) {
-                    const plant = new CarriedItem(this.scene, ITEMS.PLANT);
+                if (job.target.state === 'ready' && !this.hasItem() && job.target.plantedVariety) {
+                    const plantItem = ITEMS[`plant_${job.target.plantedVariety.id}`];
+                    const plant = new CarriedItem(this.scene, plantItem);
                     this.pickUp(plant);
                     job.target.state = 'empty';
                     job.target.stateTime = 0;
+                    job.target.plantedVariety = null;
                     job.target.plantGfx.clear();
                 }
                 break;
