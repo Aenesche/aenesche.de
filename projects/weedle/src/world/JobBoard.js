@@ -80,7 +80,6 @@ export default class JobBoard {
         }
 
         // Samen kaufen: nur wenn es leere Beete gibt UND genug Geld
-        const emptyBeds = beds.filter(b => b.state === 'empty').length;
         const seedJobsClaimed = [...this.claims.keys()].filter(k => k.startsWith('buy_seed')).length;
         const plantJobsClaimed = [...this.claims.keys()].filter(k => k.startsWith('plant_')).length;
 
