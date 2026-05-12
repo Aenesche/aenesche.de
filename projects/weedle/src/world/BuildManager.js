@@ -54,10 +54,34 @@ this.builtCount = {
 
     // Slot N ist sichtbar wenn builtCount >= N (also alle vorherigen gekauft)
     updateVisibility() {
+        // Terminal-Reihenfolge: nur das nächste unbaubare Terminal zeigen
+        const terminalOrder = ['terminal_mint', 'terminal_haze', 'terminal_kush', 'terminal_crystal', 'terminal_og'];
+        let nextTerminalFound = false;
+
         for (const slot of this.slots) {
             if (slot.built) {
                 slot.visible = false;
+                slot.updateVisibility();
+                continue;
+            }
+
+            if (slot.type.startsWith('terminal_')) {
+                // Zeige nur das nächste Terminal in der Reihenfolge
+                if (!nextTerminalFound) {
+                    const typeIndex = terminalOrder.indexOf(slot.type);
+                    const prevType = typeIndex > 0 ? terminalOrder[typeIndex - 1] : null;
+                    // Sichtbar wenn vorheriges gebaut ist (oder es das erste ist)
+                    if (!prevType || this.builtCount[prevType] > 0) {
+                        slot.visible = true;
+                        nextTerminalFound = true;
+                    } else {
+                        slot.visible = false;
+                    }
+                } else {
+                    slot.visible = false;
+                }
             } else {
+                // Nicht-Terminal: bisherige Logik
                 slot.visible = slot.slotIndex <= this.builtCount[slot.type];
             }
             slot.updateVisibility();
