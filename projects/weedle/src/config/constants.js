@@ -136,7 +136,6 @@ export const BUILD = {
         storage:  [25, 75, 200, 600],
         hiring:   [0],
         trash:    [0],
-        terminal_mint:    [0],
         terminal_haze:    [200],
         terminal_kush:    [800],
         terminal_crystal: [3000],
@@ -163,8 +162,7 @@ export const BUILD = {
         { type: 'storage', gridX: 8, gridY: 9 },
         { type: 'storage', gridX: 1, gridY: 9 },
         { type: 'storage', gridX: 0, gridY: 9 },
-        // Terminals (hinten an der Wand)
-        { type: 'terminal_mint', gridX: 5, gridY: 0 },
+        // Terminals (hinten an der Wand) — Mint ist Start-Station, nicht kaufbar
         { type: 'terminal_haze', gridX: 4, gridY: 0 },
         { type: 'terminal_kush', gridX: 3, gridY: 0 },
         { type: 'terminal_crystal', gridX: 2, gridY: 0 },
