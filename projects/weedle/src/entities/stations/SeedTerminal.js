@@ -16,22 +16,17 @@ export default class SeedTerminal extends Station {
     }
 
     drawSelf(g) {
+        // Guard: variety wird erst nach super() gesetzt
+        if (!this.variety) return;
+
         drawIsoCube(g, this.isoX, this.isoY, ISO.TILE_SIZE, HEIGHT, this.variety.color, 0.2, 0.1);
 
-        // Hologramm in Sorten-Farbe
         const cx = this.isoX;
         const cy = this.isoY + ISO.TILE_SIZE / 2 - HEIGHT - 10;
         g.lineStyle(2, this.variety.color, 1);
         g.strokeEllipse(cx, cy, 16, 8);
         g.fillStyle(this.variety.color, 1);
         g.fillCircle(cx, cy, 3);
-
-        // Sorten-Label
-        this.label = this.scene.add.text(this.isoX, this.isoY + ISO.TILE_SIZE + 4, this.variety.label, {
-            font: '10px monospace',
-            color: '#' + this.variety.color.toString(16).padStart(6, '0'),
-            align: 'center',
-        }).setOrigin(0.5, 0).setDepth(200);
 
         this.bounds = {
             left:   this.isoX - ISO.TILE_SIZE,
