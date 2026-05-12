@@ -9,6 +9,10 @@ export default class SeedTerminal extends Station {
     constructor(scene, gridX, gridY, varietyId) {
         super(scene, gridX, gridY);
         this.variety = SEED_VARIETIES.find(v => v.id === varietyId) || SEED_VARIETIES[0];
+        // drawSelf wurde schon von super() aufgerufen, aber ohne variety.
+        // Nochmal zeichnen jetzt wo variety gesetzt ist.
+        this.graphics.clear();
+        this.drawSelf(this.graphics);
     }
 
     drawSelf(g) {
