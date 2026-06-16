@@ -793,13 +793,23 @@ function scoreVoice(v){
   return s;
 }
 
+let voiceTries=0;
 function refreshVoices(){
   if(!("speechSynthesis" in window)){ if(voiceField) voiceField.style.display="none"; return; }
+  const testBtn=document.getElementById("btnVoiceTest");
   voices = speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang)).sort((a,b)=>scoreVoice(b)-scoreVoice(a));
+  if(voiceField) voiceField.style.display="";
   if(!voices.length){
-    if(voiceField){ voiceField.style.display=""; voiceSelect.innerHTML=""; voiceNote.textContent="Auf diesem Gerät ist keine spanische Stimme installiert. Tipp: am Handy unter Einstellungen → Sprachausgabe eine Spanisch-Stimme laden (oder Chrome/Edge nutzen)."; voiceSelect.style.display="none"; document.getElementById("btnVoiceTest").style.display="none"; }
+    voiceSelect.style.display="none"; if(testBtn) testBtn.style.display="none";
+    if(voiceTries++ < 25){                          // Handy lädt Stimmen verzögert -> erneut versuchen
+      voiceNote.textContent="Stimmen werden geladen …";
+      setTimeout(refreshVoices,250);
+    } else {
+      voiceNote.textContent="Noch keine spanische Stimme gefunden. Tippe einmal auf 🔊 (das lädt die Stimmen nach) oder lade in den Systemeinstellungen eine Spanisch-Stimme.";
+    }
     return;
   }
+  voiceSelect.style.display=""; if(testBtn) testBtn.style.display="";
   voiceSelect.innerHTML="";
   voices.forEach((v,i)=>{
     const o=document.createElement("option");
@@ -809,7 +819,7 @@ function refreshVoices(){
   });
   currentVoice = voices.find(v=>v.voiceURI===settings.voiceURI) || voices[0];
   voiceSelect.value=currentVoice.voiceURI;
-  voiceNote.textContent="Klingt je nach Gerät unterschiedlich. Am natürlichsten sind meist Google- und Microsoft-Stimmen. Probier per Test-Knopf durch, was am besten klingt.";
+  voiceNote.textContent="Klingt je nach Gerät unterschiedlich. Offline-Stimmen stottern seltener, Online-Stimmen klingen oft natürlicher.";
 }
 
 if(voiceSelect){
@@ -844,6 +854,7 @@ function speak(text){
     if(currentVoice) u.voice=currentVoice;
     u.rate = parseFloat(settings.rate)||0.95;
     u.pitch=1.0; u.volume=1;
+    u.onstart=()=>{ if(voiceSelect && !voiceSelect.options.length) refreshVoices(); };
     u.onend=()=>clearInterval(keepAlive);
     u.onerror=()=>clearInterval(keepAlive);
     synth.speak(u);
