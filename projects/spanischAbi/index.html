@@ -100,6 +100,13 @@
   .switch input:checked + .track{background:var(--blue)}
   .switch input:checked + .track::after{transform:translateX(19px)}
 
+  .voice-row{display:flex;gap:8px}
+  .voice-select{flex:1;font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line-strong);border-radius:13px;padding:11px 12px;cursor:pointer;appearance:none;-webkit-appearance:none}
+  .voice-test{border:1px solid var(--line-strong);background:var(--card);color:var(--blue);font:inherit;font-weight:600;font-size:14px;padding:0 16px;border-radius:13px;cursor:pointer;white-space:nowrap}
+  .voice-test:hover{border-color:var(--blue)}
+  .voice-test:active{background:var(--blue-soft)}
+  .voice-note{font-size:11.5px;color:var(--ink-soft);margin-top:8px;line-height:1.45}
+
   .start-btn{
     margin-top:auto;width:100%;border:none;cursor:pointer;
     background:var(--ink);color:#fff;font:inherit;font-weight:700;font-size:17px;
@@ -218,7 +225,8 @@
       <div class="seg" id="segSet">
         <button data-v="A" aria-pressed="true">Teil A<small>Universal</small></button>
         <button data-v="B" aria-pressed="false">Teil B<small>Themen</small></button>
-        <button data-v="all" aria-pressed="false">Alle<small>A + B</small></button>
+        <button data-v="C" aria-pressed="false">Teil C<small>Vokabeln</small></button>
+        <button data-v="all" aria-pressed="false">Alle<small>A · B · C</small></button>
       </div>
     </div>
 
@@ -247,6 +255,15 @@
     <div class="toggle-row">
       <div class="t-txt"><b>Auto-Vorlesen</b><span>Spanisch beim Umdrehen abspielen</span></div>
       <label class="switch"><input type="checkbox" id="tglAuto"><span class="track"></span></label>
+    </div>
+
+    <div class="field" id="voiceField">
+      <label>Stimme</label>
+      <div class="voice-row">
+        <select id="voiceSelect" class="voice-select"></select>
+        <button class="voice-test" id="btnVoiceTest" type="button">▶ Test</button>
+      </div>
+      <p class="voice-note" id="voiceNote"></p>
     </div>
 
     <button class="start-btn" id="btnStart">Lernen starten</button>
@@ -355,6 +372,115 @@ const DECK = [
   {id:"b16", set:"B", es:"Entiendo la frustración del pueblo mapuche, pero creo que la violencia no es la mejor solución.", de:"Ich verstehe die Frustration der Mapuche, aber Gewalt ist nicht die beste Lösung."},
   {id:"b17", set:"B", es:"Es mejor el diálogo.", de:"Dialog ist besser."},
   {id:"b18", set:"B", es:"Sin embargo, entiendo que a veces las personas se sienten desesperadas cuando nadie las escucha.", de:"Trotzdem verstehe ich, dass Menschen manchmal verzweifelt sind, wenn niemand ihnen zuhört."},
+  // ---- Teil C · Vokabeln (Quizlet) ----
+  {id:"c1", set:"C", es:"alcanzar", de:"erreichen"},
+  {id:"c2", set:"C", es:"explicar", de:"erklären"},
+  {id:"c3", set:"C", es:"comparar", de:"vergleichen"},
+  {id:"c4", set:"C", es:"comentar", de:"kommentieren"},
+  {id:"c5", set:"C", es:"gitano/a", de:"Roma (Angehörige/r)"},
+  {id:"c6", set:"C", es:"garífuna", de:"Garífuna"},
+  {id:"c7", set:"C", es:"instrumento de percusión", de:"Percussionsinstrument"},
+  {id:"c8", set:"C", es:"maracas", de:"Maracas"},
+  {id:"c9", set:"C", es:"tambores", de:"Trommeln"},
+  {id:"c10", set:"C", es:"gorra", de:"Kappe"},
+  {id:"c11", set:"C", es:"vestido", de:"Kleid"},
+  {id:"c12", set:"C", es:"árbol", de:"Baum"},
+  {id:"c13", set:"C", es:"traje", de:"Tracht / Anzug"},
+  {id:"c14", set:"C", es:"estrella de la música", de:"Musikstar"},
+  {id:"c15", set:"C", es:"pueblo oprimido", de:"unterdrücktes Volk"},
+  {id:"c16", set:"C", es:"visibilizar", de:"sichtbar machen"},
+  {id:"c17", set:"C", es:"cabalgata de Reyes", de:"Dreikönigsumzug"},
+  {id:"c18", set:"C", es:"pajes", de:"Pagen"},
+  {id:"c19", set:"C", es:"mantener", de:"aufrechterhalten"},
+  {id:"c20", set:"C", es:"a nivel individual", de:"auf individueller Ebene"},
+  {id:"c21", set:"C", es:"a nivel social", de:"auf sozialer Ebene"},
+  {id:"c22", set:"C", es:"jóvenes", de:"Jugendliche"},
+  {id:"c23", set:"C", es:"representa", de:"stellt dar"},
+  {id:"c24", set:"C", es:"educación secundaria", de:"Sekundarstufe"},
+  {id:"c25", set:"C", es:"juventud", de:"Jugend"},
+  {id:"c26", set:"C", es:"abandono escolar", de:"Schulabbruch"},
+  {id:"c27", set:"C", es:"desigualdad social", de:"soziale Ungleichheit"},
+  {id:"c28", set:"C", es:"clase trabajadora", de:"Arbeiterklasse"},
+  {id:"c29", set:"C", es:"ropa tradicional mapuche", de:"traditionelle Mapuche-Kleidung"},
+  {id:"c30", set:"C", es:"palmeras", de:"Palmen"},
+  {id:"c31", set:"C", es:"una pared", de:"eine Mauer"},
+  {id:"c32", set:"C", es:"posar", de:"posieren"},
+  {id:"c33", set:"C", es:"un estuche", de:"ein Etui"},
+  {id:"c34", set:"C", es:"un escritorio", de:"ein Schreibtisch"},
+  {id:"c35", set:"C", es:"acostarse sobre la mesa", de:"sich auf den Tisch legen"},
+  {id:"c36", set:"C", es:"un portátil", de:"ein Laptop"},
+  {id:"c37", set:"C", es:"un ratón", de:"eine Maus"},
+  {id:"c38", set:"C", es:"la salud mental", de:"die psychische Gesundheit"},
+  {id:"c39", set:"C", es:"cuyo / cuya", de:"deren / dessen"},
+  {id:"c40", set:"C", es:"en promedio", de:"im Durchschnitt"},
+  {id:"c41", set:"C", es:"que afecta a", de:"was sich auswirkt auf"},
+  {id:"c42", set:"C", es:"rendimiento académico", de:"akademische Leistung"},
+  {id:"c43", set:"C", es:"los alumnos", de:"die Schüler"},
+  {id:"c44", set:"C", es:"memoria", de:"Gedächtnis"},
+  {id:"c45", set:"C", es:"atención", de:"Aufmerksamkeit"},
+  {id:"c46", set:"C", es:"un experimento", de:"ein Versuch"},
+  {id:"c47", set:"C", es:"adecuado", de:"angemessen"},
+  {id:"c48", set:"C", es:"el auge de la inteligencia artificial", de:"der Aufstieg der Künstlichen Intelligenz"},
+  {id:"c49", set:"C", es:"registrar", de:"registrieren"},
+  {id:"c50", set:"C", es:"interrumpir", de:"unterbrechen"},
+  {id:"c51", set:"C", es:"empleado/a", de:"Angestellte/r"},
+  {id:"c52", set:"C", es:"el empleo", de:"die Beschäftigung"},
+  {id:"c53", set:"C", es:"durante décadas", de:"über Jahrzehnte"},
+  {id:"c54", set:"C", es:"el momento", de:"der Moment"},
+  {id:"c55", set:"C", es:"estabilidad emocional", de:"emotionale Stabilität"},
+  {id:"c56", set:"C", es:"riesgo de ansiedad y depresión", de:"Angst- und Depressionsrisiko"},
+  {id:"c57", set:"C", es:"reducir", de:"reduzieren"},
+  {id:"c58", set:"C", es:"implicarse", de:"sich engagieren"},
+  {id:"c59", set:"C", es:"el éxito", de:"der Erfolg"},
+  {id:"c60", set:"C", es:"desempeñar un papel", de:"eine Rolle spielen"},
+  {id:"c61", set:"C", es:"un paño", de:"ein Tuch"},
+  {id:"c62", set:"C", es:"sostener", de:"halten"},
+  {id:"c63", set:"C", es:"un camión", de:"ein Lastwagen"},
+  {id:"c64", set:"C", es:"reocupar", de:"wiederbesetzen"},
+  {id:"c65", set:"C", es:"recuperar", de:"wiedererlangen"},
+  {id:"c66", set:"C", es:"ocupar", de:"besetzen"},
+  {id:"c67", set:"C", es:"antiquísimo", de:"uralt"},
+  {id:"c68", set:"C", es:"buscar", de:"suchen"},
+  {id:"c69", set:"C", es:"encontrar", de:"finden"},
+  {id:"c70", set:"C", es:"asustar", de:"erschrecken"},
+  {id:"c71", set:"C", es:"sentarse", de:"sitzen"},
+  {id:"c72", set:"C", es:"estar de pie", de:"stehen"},
+  {id:"c73", set:"C", es:"estar tumbado", de:"liegen (ausgestreckt)"},
+  {id:"c74", set:"C", es:"tocar el tambor", de:"die Trommel spielen"},
+  {id:"c75", set:"C", es:"buen tiempo", de:"schönes Wetter"},
+  {id:"c76", set:"C", es:"parecen felices", de:"sie wirken fröhlich"},
+  {id:"c77", set:"C", es:"parece enfadado", de:"er wirkt verärgert"},
+  {id:"c78", set:"C", es:"el telar", de:"der Webstuhl"},
+  {id:"c79", set:"C", es:"la farola", de:"die Straßenlaterne"},
+  {id:"c80", set:"C", es:"mirar a la cámara", de:"in die Kamera schauen"},
+  {id:"c81", set:"C", es:"mirarse", de:"einander ansehen"},
+  {id:"c82", set:"C", es:"parecen muy serios", de:"sie wirken sehr ernst"},
+  {id:"c83", set:"C", es:"la propuesta", de:"der Vorschlag"},
+  {id:"c84", set:"C", es:"el campo de juego", de:"das Spielfeld"},
+  {id:"c85", set:"C", es:"la instructora / el instructor", de:"die Kursleiterin / der Kursleiter"},
+  {id:"c86", set:"C", es:"el comportamiento", de:"das Verhalten"},
+  {id:"c87", set:"C", es:"perder", de:"verlieren"},
+  {id:"c88", set:"C", es:"chupete", de:"Schnuller"},
+  {id:"c89", set:"C", es:"el colgante", de:"das Anhängsel / der Anhänger"},
+  {id:"c90", set:"C", es:"sacarnos del presente", de:"uns aus der Gegenwart reißen"},
+  {id:"c91", set:"C", es:"sacar", de:"herausziehen"},
+  {id:"c92", set:"C", es:"el presente", de:"die Gegenwart"},
+  {id:"c93", set:"C", es:"el pasado", de:"die Vergangenheit"},
+  {id:"c94", set:"C", es:"el futuro", de:"die Zukunft"},
+  {id:"c95", set:"C", es:"detenerse", de:"anhalten"},
+  {id:"c96", set:"C", es:"entrar en juego", de:"ins Spiel kommen"},
+  {id:"c97", set:"C", es:"grabar", de:"aufzeichnen"},
+  {id:"c98", set:"C", es:"transcribir", de:"transkribieren"},
+  {id:"c99", set:"C", es:"demasiado frecuente", de:"zu häufig"},
+  {id:"c100", set:"C", es:"ha fracasado", de:"ist gescheitert"},
+  {id:"c101", set:"C", es:"fracasar", de:"scheitern"},
+  {id:"c102", set:"C", es:"bonito", de:"schön"},
+  {id:"c103", set:"C", es:"empoderador", de:"ermächtigend"},
+  {id:"c104", set:"C", es:"tomar medidas", de:"Maßnahmen ergreifen"},
+  {id:"c105", set:"C", es:"dificultar", de:"erschweren"},
+  {id:"c106", set:"C", es:"provenir de", de:"stammen von"},
+  {id:"c107", set:"C", es:"convertirse en", de:"werden zu"},
+  {id:"c108", set:"C", es:"bienestar", de:"Wohlbefinden"},
 ];
 
 /* ============================================================
@@ -363,7 +489,7 @@ const DECK = [
 const STATS_KEY="flashcards_stats_v1";
 const SET_KEY="flashcards_settings_v1";
 let stats = load(STATS_KEY, {});   // {id:{right,wrong,level}}
-let settings = load(SET_KEY, {set:"A", dir:"de-es", count:"10", smart:true, auto:false});
+let settings = load(SET_KEY, {set:"A", dir:"de-es", count:"10", smart:true, auto:false, voiceURI:null});
 
 function load(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
 function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -522,6 +648,7 @@ function renderCard(id){
   let moved=false;
   wrap.addEventListener("pointerdown",(e)=>{
     if(busy) return;
+    if(e.target.closest(".speak")) return;   // tippen auf Lautsprecher dreht NICHT um
     drag={x0:e.clientX,y0:e.clientY,dx:0,dy:0}; moved=false;
     wrap.classList.add("grabbing"); wrap.classList.remove("spring");
     wrap.setPointerCapture(e.pointerId);
@@ -633,21 +760,67 @@ document.getElementById("btnHome").addEventListener("click",goHome);
 function goHome(){ if(cardEl){cardEl.remove();cardEl=null;} renderOverview(); show("screen-start"); }
 
 /* ============================================================
-   TEXT-TO-SPEECH
+   TEXT-TO-SPEECH  (bessere Stimmenauswahl + Picker)
    ============================================================ */
-let esVoice=null;
-function pickVoice(){
-  const vs=speechSynthesis.getVoices();
-  esVoice = vs.find(v=>/es-ES/i.test(v.lang)) || vs.find(v=>/^es/i.test(v.lang)) || null;
+let voices=[], currentVoice=null;
+const voiceSelect=document.getElementById("voiceSelect");
+const voiceNote=document.getElementById("voiceNote");
+const voiceField=document.getElementById("voiceField");
+
+function scoreVoice(v){
+  const n=(v.name+" "+v.voiceURI).toLowerCase();
+  let s=0;
+  if(/es[-_]es/i.test(v.lang)) s+=40;        // Spanien-Spanisch bevorzugen (Abi = europäisches Spanisch)
+  else if(/^es/i.test(v.lang)) s+=18;
+  if(/natural|neural|online|premium|enhanced|wavenet/.test(n)) s+=34;  // hochwertige Stimmen
+  if(/google/.test(n)) s+=24;
+  if(/microsoft/.test(n)) s+=12;
+  if(/female|mujer|femenina|femenino/.test(n)) s+=20;                  // weiblich bevorzugen
+  if(/(mónica|monica|paulina|sabina|helena|elvira|laura|lucia|lucía|paloma|marisol|conchita|penélope|penelope|esperanza|triana|estrella|ximena|dalia|salomé|salome|abril)/.test(n)) s+=18;
+  if(/espeak|festival|pico|roboto?|compact/.test(n)) s-=28;           // bekannte Roboterstimmen abwerten
+  return s;
 }
-if("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+
+function refreshVoices(){
+  if(!("speechSynthesis" in window)){ if(voiceField) voiceField.style.display="none"; return; }
+  voices = speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang)).sort((a,b)=>scoreVoice(b)-scoreVoice(a));
+  if(!voices.length){
+    if(voiceField){ voiceField.style.display=""; voiceSelect.innerHTML=""; voiceNote.textContent="Auf diesem Gerät ist keine spanische Stimme installiert. Tipp: am Handy unter Einstellungen → Sprachausgabe eine Spanisch-Stimme laden (oder Chrome/Edge nutzen)."; voiceSelect.style.display="none"; document.getElementById("btnVoiceTest").style.display="none"; }
+    return;
+  }
+  voiceSelect.innerHTML="";
+  voices.forEach((v,i)=>{
+    const o=document.createElement("option");
+    o.value=v.voiceURI;
+    o.textContent=`${v.name} (${v.lang})`+(i===0?" · empfohlen":"");
+    voiceSelect.appendChild(o);
+  });
+  currentVoice = voices.find(v=>v.voiceURI===settings.voiceURI) || voices[0];
+  voiceSelect.value=currentVoice.voiceURI;
+  voiceNote.textContent="Klingt je nach Gerät unterschiedlich. Am natürlichsten sind meist Google- und Microsoft-Stimmen. Probier per Test-Knopf durch, was am besten klingt.";
+}
+
+if(voiceSelect){
+  voiceSelect.addEventListener("change",()=>{
+    currentVoice = voices.find(v=>v.voiceURI===voiceSelect.value) || currentVoice;
+    settings.voiceURI=voiceSelect.value; save(SET_KEY,settings);
+    speak("Hola, así sueno yo.");
+  });
+}
+const btnVoiceTest=document.getElementById("btnVoiceTest");
+if(btnVoiceTest){ btnVoiceTest.addEventListener("click",()=>speak("Hola, ¿qué tal? Vamos a practicar español.")); }
+
 function speak(text){
   if(!("speechSynthesis" in window)) return;
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text.replace(/[«»„“]/g,"").replace(/\.\.\./g," "));
-  u.lang="es-ES"; if(esVoice) u.voice=esVoice; u.rate=.92;
+  u.lang = currentVoice ? currentVoice.lang : "es-ES";
+  if(currentVoice) u.voice=currentVoice;
+  u.rate=.95; u.pitch=1.0;
   speechSynthesis.speak(u);
 }
+
+if("speechSynthesis" in window){ refreshVoices(); speechSynthesis.onvoiceschanged=refreshVoices; }
 
 /* ============================================================
    GO
