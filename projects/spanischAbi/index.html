@@ -106,6 +106,13 @@
   .voice-test:hover{border-color:var(--blue)}
   .voice-test:active{background:var(--blue-soft)}
   .voice-note{font-size:11.5px;color:var(--ink-soft);margin-top:8px;line-height:1.45}
+  .tempo-row{display:flex;align-items:center;gap:11px;margin-top:12px}
+  .tempo-lab{font-size:12px;font-weight:600;color:var(--ink-soft);white-space:nowrap}
+  .tempo-row input[type=range]{flex:1;accent-color:var(--blue);height:4px}
+  .tempo-val{font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;min-width:38px;text-align:right}
+  .tempo-row{display:flex;align-items:center;gap:12px;margin-top:12px}
+  .tempo-lab{font-size:13px;color:var(--ink-soft);min-width:54px}
+  .tempo-row input[type=range]{flex:1;accent-color:var(--blue);height:4px}
 
   .start-btn{
     margin-top:auto;width:100%;border:none;cursor:pointer;
@@ -262,6 +269,11 @@
       <div class="voice-row">
         <select id="voiceSelect" class="voice-select"></select>
         <button class="voice-test" id="btnVoiceTest" type="button">▶ Test</button>
+      </div>
+      <div class="tempo-row">
+        <span class="tempo-lab">Tempo</span>
+        <input type="range" id="rate" min="0.6" max="1.1" step="0.05" value="0.95">
+        <span class="tempo-val" id="rateVal">0.95×</span>
       </div>
       <p class="voice-note" id="voiceNote"></p>
     </div>
@@ -489,7 +501,7 @@ const DECK = [
 const STATS_KEY="flashcards_stats_v1";
 const SET_KEY="flashcards_settings_v1";
 let stats = load(STATS_KEY, {});   // {id:{right,wrong,level}}
-let settings = load(SET_KEY, {set:"A", dir:"de-es", count:"10", smart:true, auto:false, voiceURI:null});
+let settings = load(SET_KEY, {set:"A", dir:"de-es", count:"10", smart:true, auto:false, voiceURI:null, rate:0.9});
 
 function load(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
 function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -792,7 +804,7 @@ function refreshVoices(){
   voices.forEach((v,i)=>{
     const o=document.createElement("option");
     o.value=v.voiceURI;
-    o.textContent=`${v.name} (${v.lang})`+(i===0?" · empfohlen":"");
+    o.textContent=`${v.name} (${v.lang})`+(v.localService?" · offline":" · online")+(i===0?" · empfohlen":"");
     voiceSelect.appendChild(o);
   });
   currentVoice = voices.find(v=>v.voiceURI===settings.voiceURI) || voices[0];
@@ -810,14 +822,37 @@ if(voiceSelect){
 const btnVoiceTest=document.getElementById("btnVoiceTest");
 if(btnVoiceTest){ btnVoiceTest.addEventListener("click",()=>speak("Hola, ¿qué tal? Vamos a practicar español.")); }
 
+const rateInput=document.getElementById("rate");
+const rateVal=document.getElementById("rateVal");
+function fmtRate(v){ return parseFloat(v).toFixed(2).replace(/0$/,"")+"×"; }
+if(rateInput){
+  rateInput.value = settings.rate || 0.95;
+  if(rateVal) rateVal.textContent=fmtRate(rateInput.value);
+  rateInput.addEventListener("input",()=>{ settings.rate=rateInput.value; if(rateVal) rateVal.textContent=fmtRate(rateInput.value); save(SET_KEY,settings); });
+  rateInput.addEventListener("change",()=>speak("Hola, ¿voy bien así?"));
+}
+
+let speakTimer=null, keepAlive=null;
 function speak(text){
   if(!("speechSynthesis" in window)) return;
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text.replace(/[«»„“]/g,"").replace(/\.\.\./g," "));
-  u.lang = currentVoice ? currentVoice.lang : "es-ES";
-  if(currentVoice) u.voice=currentVoice;
-  u.rate=.95; u.pitch=1.0;
-  speechSynthesis.speak(u);
+  const synth=window.speechSynthesis;
+  synth.cancel();                         // laufende Ausgabe stoppen
+  clearTimeout(speakTimer); clearInterval(keepAlive);
+  speakTimer=setTimeout(()=>{             // kurze Verzögerung: verhindert abgehacktes Einsetzen (cancel/speak-Race)
+    const u=new SpeechSynthesisUtterance(text.replace(/[«»„“]/g,"").replace(/\.\.\./g," "));
+    u.lang = currentVoice ? currentVoice.lang : "es-ES";
+    if(currentVoice) u.voice=currentVoice;
+    u.rate = parseFloat(settings.rate)||0.95;
+    u.pitch=1.0; u.volume=1;
+    u.onend=()=>clearInterval(keepAlive);
+    u.onerror=()=>clearInterval(keepAlive);
+    synth.speak(u);
+    // Keep-alive gegen das Chrome-Stottern: Engine anstupsen, solange gesprochen wird
+    keepAlive=setInterval(()=>{
+      if(!synth.speaking){ clearInterval(keepAlive); return; }
+      synth.pause(); synth.resume();
+    }, 6000);
+  },120);
 }
 
 if("speechSynthesis" in window){ refreshVoices(); speechSynthesis.onvoiceschanged=refreshVoices; }
