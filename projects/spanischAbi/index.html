@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Spanisch Karten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBFAF8;
+    --card:#FFFFFF;
+    --ink:#15233B;
+    --ink-soft:#5A6478;
+    --line:#E8E4DC;
+    --line-strong:#D8D3C8;
+    --blue:#2354E6;
+    --blue-soft:#EAF0FF;
+    --green:#159A5B;
+    --green-soft:#E6F6EE;
+    --red:#E5484D;
+    --red-soft:#FCEBEB;
+    --shadow:0 18px 40px -18px rgba(21,35,59,.28);
+    --shadow-sm:0 4px 14px -6px rgba(21,35,59,.18);
+    --r:22px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:"Inter",system-ui,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    display:flex;justify-content:center;
+    overscroll-behavior:none;
+  }
+  .app{
+    width:100%;max-width:460px;min-height:100dvh;
+    display:flex;flex-direction:column;
+    padding:22px 20px calc(22px + env(safe-area-inset-bottom));
+    position:relative;
+  }
+  .display{font-family:"Bricolage Grotesque",sans-serif;letter-spacing:-.02em}
+  .screen{display:none;flex:1;flex-direction:column}
+  .screen.active{display:flex;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ---------- Header ---------- */
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .brand .dot{width:11px;height:11px;border-radius:50%;background:var(--blue)}
+  .brand h1{font-size:18px;font-weight:700}
+  .brand h1 .es{color:var(--ink-soft);font-weight:500}
+  .tagline{color:var(--ink-soft);font-size:13px;margin-bottom:26px}
+
+  /* ---------- Progress ring ---------- */
+  .overview{
+    display:flex;align-items:center;gap:20px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:var(--r);padding:20px;box-shadow:var(--shadow-sm);
+    margin-bottom:26px;
+  }
+  .ring{position:relative;width:96px;height:96px;flex-shrink:0}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .num b{font-family:"Bricolage Grotesque",sans-serif;font-size:26px;line-height:1}
+  .ring .num span{font-size:11px;color:var(--ink-soft);margin-top:2px}
+  .breakdown{display:flex;flex-direction:column;gap:9px;flex:1}
+  .stat{display:flex;align-items:center;gap:9px;font-size:14px}
+  .stat .pill{width:9px;height:9px;border-radius:3px}
+  .stat b{font-variant-numeric:tabular-nums;min-width:22px;text-align:right}
+  .stat .lab{color:var(--ink-soft)}
+  .pill.g{background:var(--green)} .pill.l{background:var(--blue)} .pill.n{background:var(--line-strong)}
+
+  /* ---------- Settings ---------- */
+  .field{margin-bottom:20px}
+  .field > label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:9px}
+  .seg{display:flex;gap:7px;flex-wrap:wrap}
+  .seg button{
+    flex:1;min-width:fit-content;
+    border:1px solid var(--line-strong);background:var(--card);
+    color:var(--ink);font:inherit;font-size:14px;font-weight:500;
+    padding:11px 12px;border-radius:13px;cursor:pointer;
+    transition:.16s;white-space:nowrap;
+  }
+  .seg button small{display:block;font-size:11px;color:var(--ink-soft);font-weight:400;margin-top:1px}
+  .seg button:hover{border-color:var(--ink-soft)}
+  .seg button[aria-pressed="true"]{
+    background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:var(--shadow-sm);
+  }
+  .seg button[aria-pressed="true"] small{color:rgba(255,255,255,.8)}
+
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;
+    border:1px solid var(--line);background:var(--card);border-radius:14px;padding:13px 15px;margin-bottom:13px}
+  .toggle-row .t-txt b{display:block;font-size:14px;font-weight:600}
+  .toggle-row .t-txt span{font-size:12px;color:var(--ink-soft)}
+  .switch{position:relative;width:46px;height:27px;flex-shrink:0}
+  .switch input{opacity:0;width:0;height:0}
+  .switch .track{position:absolute;inset:0;background:var(--line-strong);border-radius:20px;transition:.2s;cursor:pointer}
+  .switch .track::after{content:"";position:absolute;width:21px;height:21px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .switch input:checked + .track{background:var(--blue)}
+  .switch input:checked + .track::after{transform:translateX(19px)}
+
+  .start-btn{
+    margin-top:auto;width:100%;border:none;cursor:pointer;
+    background:var(--ink);color:#fff;font:inherit;font-weight:700;font-size:17px;
+    padding:17px;border-radius:16px;box-shadow:var(--shadow);
+    display:flex;align-items:center;justify-content:center;gap:8px;transition:.16s;
+  }
+  .start-btn:hover{transform:translateY(-1px)}
+  .start-btn:active{transform:translateY(0)}
+  .start-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .reset-link{margin-top:14px;text-align:center}
+  .reset-link button{background:none;border:none;color:var(--ink-soft);font:inherit;font-size:12.5px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+
+  /* ---------- Quiz ---------- */
+  .quiz-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+  .icon-btn{width:38px;height:38px;flex-shrink:0;border:1px solid var(--line-strong);background:var(--card);border-radius:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);transition:.16s}
+  .icon-btn:hover{border-color:var(--ink-soft)}
+  .pbar-wrap{flex:1}
+  .pbar-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:6px;font-variant-numeric:tabular-nums}
+  .pbar{height:7px;background:var(--line);border-radius:10px;overflow:hidden}
+  .pbar i{display:block;height:100%;width:0;background:var(--blue);border-radius:10px;transition:width .3s ease}
+
+  .stack{position:relative;flex:1;display:flex;align-items:center;justify-content:center;min-height:340px;perspective:1400px}
+  .ghost{position:absolute;width:100%;max-width:380px;height:300px;border-radius:24px;background:var(--card);border:1px solid var(--line)}
+  .ghost.g1{transform:scale(.93) translateY(20px);opacity:.55}
+  .ghost.g2{transform:scale(.86) translateY(40px);opacity:.3}
+
+  .card-wrap{position:absolute;width:100%;max-width:380px;height:300px;cursor:grab;touch-action:none;will-change:transform}
+  .card-wrap.grabbing{cursor:grabbing}
+  .card-wrap.spring{transition:transform .32s cubic-bezier(.2,.8,.3,1)}
+  .card-wrap.fly{transition:transform .4s ease-out, opacity .4s ease-out}
+
+  .flip{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,.1,.2,1)}
+  .card-wrap.flipped .flip{transform:rotateY(180deg)}
+  .face{
+    position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    background:var(--card);border:1px solid var(--line);border-radius:24px;
+    box-shadow:var(--shadow);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:30px 28px;text-align:center;
+  }
+  .face .lang-tag{position:absolute;top:16px;left:18px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  .face .phrase{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:clamp(20px,5.4vw,26px);line-height:1.25;letter-spacing:-.01em}
+  .face.back{transform:rotateY(180deg)}
+  .face.back .phrase{color:var(--blue)}
+  .flip-hint{position:absolute;bottom:16px;font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
+  .speak{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:12px;border:1px solid var(--line-strong);background:var(--card);cursor:pointer;display:none;align-items:center;justify-content:center;color:var(--blue)}
+  .face.back .speak{display:flex}
+  .speak:active{background:var(--blue-soft)}
+
+  /* swipe overlays */
+  .verdict{position:absolute;top:24px;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:24px;letter-spacing:.04em;padding:7px 16px;border-radius:12px;border:3px solid;opacity:0;pointer-events:none}
+  .verdict.yes{right:24px;color:var(--green);border-color:var(--green);transform:rotate(11deg)}
+  .verdict.no{left:24px;color:var(--red);border-color:var(--red);transform:rotate(-11deg)}
+
+  .actions{display:flex;align-items:center;justify-content:center;gap:24px;margin-top:22px}
+  .act{width:64px;height:64px;border-radius:50%;border:2px solid;background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.16s;box-shadow:var(--shadow-sm)}
+  .act:hover{transform:translateY(-2px)}
+  .act:active{transform:scale(.94)}
+  .act.no{color:var(--red);border-color:var(--red-soft)}
+  .act.no:hover{background:var(--red-soft)}
+  .act.yes{color:var(--green);border-color:var(--green-soft)}
+  .act.yes:hover{background:var(--green-soft)}
+  .act.flip{width:54px;height:54px;color:var(--ink);border-color:var(--line-strong)}
+  .act svg{width:28px;height:28px}
+  .act.flip svg{width:22px;height:22px}
+  .tally{display:flex;justify-content:center;gap:18px;margin-top:14px;font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .tally b{color:var(--ink)}
+
+  /* ---------- Results ---------- */
+  .result{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
+  .result .big{font-family:"Bricolage Grotesque",sans-serif;font-size:64px;font-weight:800;line-height:1}
+  .result .acc-label{font-size:15px;color:var(--ink-soft);margin-bottom:8px}
+  .result .rcount{display:flex;gap:26px;margin:18px 0 30px}
+  .result .rcount div{display:flex;flex-direction:column;gap:2px}
+  .result .rcount b{font-family:"Bricolage Grotesque",sans-serif;font-size:30px}
+  .result .rcount span{font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em}
+  .result .rcount .gv{color:var(--green)} .result .rcount .rv{color:var(--red)}
+  .emoji{font-size:54px;margin-bottom:4px}
+  .result-btns{width:100%;display:flex;flex-direction:column;gap:11px;max-width:340px}
+  .btn-primary{border:none;background:var(--ink);color:#fff;font:inherit;font-weight:700;font-size:16px;padding:15px;border-radius:15px;cursor:pointer;box-shadow:var(--shadow);transition:.16s}
+  .btn-primary:hover{transform:translateY(-1px)}
+  .btn-ghost{border:1px solid var(--line-strong);background:var(--card);color:var(--ink);font:inherit;font-weight:600;font-size:15px;padding:14px;border-radius:15px;cursor:pointer}
+  .btn-ghost:hover{border-color:var(--ink-soft)}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001s !important;transition-duration:.08s !important}
+  }
+  :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ START / OVERVIEW ============ -->
+  <section class="screen active" id="screen-start">
+    <div class="brand"><span class="dot"></span><h1>Tarjetas <span class="es">· Spanisch Mündlich</span></h1></div>
+    <p class="tagline">Wisch dich durch deine Prüfungssätze. Rechts = gewusst, links = nochmal.</p>
+
+    <div class="overview">
+      <div class="ring">
+        <svg width="96" height="96" viewBox="0 0 96 96">
+          <circle cx="48" cy="48" r="42" fill="none" stroke="var(--line)" stroke-width="9"/>
+          <circle id="ringFill" cx="48" cy="48" r="42" fill="none" stroke="var(--green)" stroke-width="9" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"/>
+        </svg>
+        <div class="num"><b id="ringPct">0%</b><span>gekonnt</span></div>
+      </div>
+      <div class="breakdown">
+        <div class="stat"><span class="pill g"></span><b id="cGekonnt">0</b><span class="lab">gekonnt</span></div>
+        <div class="stat"><span class="pill l"></span><b id="cLernen">0</b><span class="lab">am Lernen</span></div>
+        <div class="stat"><span class="pill n"></span><b id="cNeu">0</b><span class="lab">neu</span></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Kartenset</label>
+      <div class="seg" id="segSet">
+        <button data-v="A" aria-pressed="true">Teil A<small>Universal</small></button>
+        <button data-v="B" aria-pressed="false">Teil B<small>Themen</small></button>
+        <button data-v="all" aria-pressed="false">Alle<small>A + B</small></button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Richtung</label>
+      <div class="seg" id="segDir">
+        <button data-v="de-es" aria-pressed="true">Deutsch → Español</button>
+        <button data-v="es-de" aria-pressed="false">Español → Deutsch</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Anzahl Karten</label>
+      <div class="seg" id="segCount">
+        <button data-v="10" aria-pressed="true">10</button>
+        <button data-v="20" aria-pressed="false">20</button>
+        <button data-v="30" aria-pressed="false">30</button>
+        <button data-v="all" aria-pressed="false">Alle</button>
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <div class="t-txt"><b>Smart-Modus</b><span>Falsche Karten kommen öfter dran</span></div>
+      <label class="switch"><input type="checkbox" id="tglSmart" checked><span class="track"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div class="t-txt"><b>Auto-Vorlesen</b><span>Spanisch beim Umdrehen abspielen</span></div>
+      <label class="switch"><input type="checkbox" id="tglAuto"><span class="track"></span></label>
+    </div>
+
+    <button class="start-btn" id="btnStart">Lernen starten</button>
+    <div class="reset-link"><button id="btnReset">Fortschritt zurücksetzen</button></div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="screen" id="screen-quiz">
+    <div class="quiz-top">
+      <button class="icon-btn" id="btnQuit" aria-label="Beenden">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="pbar-wrap">
+        <div class="pbar-meta"><span id="pbarLeft">noch 0</span><span id="pbarRight">0 / 0</span></div>
+        <div class="pbar"><i id="pbarFill"></i></div>
+      </div>
+    </div>
+
+    <div class="stack" id="stack">
+      <div class="ghost g2"></div>
+      <div class="ghost g1"></div>
+      <!-- live card injected here -->
+    </div>
+
+    <div class="actions">
+      <button class="act no" id="btnNo" aria-label="Nochmal üben">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <button class="act flip" id="btnFlip" aria-label="Karte umdrehen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+      </button>
+      <button class="act yes" id="btnYes" aria-label="Gewusst">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      </button>
+    </div>
+    <div class="tally"><span>Gewusst <b id="tYes">0</b></span><span>Nochmal <b id="tNo">0</b></span></div>
+  </section>
+
+  <!-- ============ RESULTS ============ -->
+  <section class="screen" id="screen-result">
+    <div class="result">
+      <div class="emoji" id="rEmoji">🎉</div>
+      <div class="big" id="rAcc">0%</div>
+      <div class="acc-label" id="rHeadline">Runde geschafft</div>
+      <div class="rcount">
+        <div><b class="gv" id="rYes">0</b><span>gewusst</span></div>
+        <div><b class="rv" id="rNo">0</b><span>nochmal</span></div>
+      </div>
+      <div class="result-btns">
+        <button class="btn-primary" id="btnAgainWrong">Falsche wiederholen</button>
+        <button class="btn-ghost" id="btnHome">Zurück zur Übersicht</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   DECK
+   ============================================================ */
+const DECK = [
+  // ---- Teil A ----
+  {id:"a1", set:"A", es:"Bueno, voy a hablar sobre este tema.", de:"Nun, ich werde über dieses Thema sprechen."},
+  {id:"a2", set:"A", es:"En primer lugar...", de:"Zuerst..."},
+  {id:"a3", set:"A", es:"El texto trata de...", de:"Der Text handelt von..."},
+  {id:"a4", set:"A", es:"El autor dice que...", de:"Der Autor sagt, dass..."},
+  {id:"a5", set:"A", es:"La idea principal es que...", de:"Die Hauptidee ist, dass..."},
+  {id:"a6", set:"A", es:"Según el texto...", de:"Laut dem Text..."},
+  {id:"a7", set:"A", es:"Por un lado... por otro lado...", de:"Einerseits... andererseits..."},
+  {id:"a8", set:"A", es:"Además...", de:"Außerdem..."},
+  {id:"a9", set:"A", es:"Finalmente...", de:"Schließlich..."},
+  {id:"a10", set:"A", es:"En la imagen se puede ver...", de:"Auf dem Bild sieht man..."},
+  {id:"a11", set:"A", es:"En primer plano hay...", de:"Im Vordergrund gibt es..."},
+  {id:"a12", set:"A", es:"En el fondo se ve...", de:"Im Hintergrund sieht man..."},
+  {id:"a13", set:"A", es:"Las personas parecen...", de:"Die Leute scheinen..."},
+  {id:"a14", set:"A", es:"La imagen muestra...", de:"Das Bild zeigt..."},
+  {id:"a15", set:"A", es:"En mi opinión...", de:"Meiner Meinung nach..."},
+  {id:"a16", set:"A", es:"Creo que...", de:"Ich glaube, dass..."},
+  {id:"a17", set:"A", es:"Pienso que...", de:"Ich denke, dass..."},
+  {id:"a18", set:"A", es:"Para mí, es importante que...", de:"Für mich ist wichtig, dass..."},
+  {id:"a19", set:"A", es:"Estoy de acuerdo.", de:"Ich stimme zu."},
+  {id:"a20", set:"A", es:"No estoy de acuerdo.", de:"Ich stimme nicht zu."},
+  {id:"a21", set:"A", es:"Por ejemplo...", de:"Zum Beispiel..."},
+  {id:"a22", set:"A", es:"Es una pregunta interesante.", de:"Das ist eine interessante Frage."},
+  {id:"a23", set:"A", es:"Es difícil de decir, pero...", de:"Schwer zu sagen, aber..."},
+  {id:"a24", set:"A", es:"En conclusión...", de:"Zusammenfassend..."},
+  {id:"a25", set:"A", es:"Para terminar, creo que...", de:"Zum Schluss glaube ich..."},
+  {id:"a26", set:"A", es:"Eso es todo, gracias.", de:"Das ist alles, danke."},
+  // ---- Teil B ----
+  {id:"b1", set:"B", es:"El texto trata de la situación de los gitanos en España.", de:"Der Text handelt von der Lage der Roma in Spanien."},
+  {id:"b2", set:"B", es:"Según el texto, la situación ha mejorado mucho.", de:"Laut Text hat sich die Lage stark verbessert."},
+  {id:"b3", set:"B", es:"Antes muchos vivían en condiciones difíciles, pero ahora hay más niños en la escuela y también universitarios.", de:"Früher lebten viele unter schweren Bedingungen, aber jetzt sind mehr Kinder in der Schule und es gibt auch Studierende."},
+  {id:"b4", set:"B", es:"España es un ejemplo de inclusión social en Europa.", de:"Spanien ist ein Beispiel für soziale Inklusion in Europa."},
+  {id:"b5", set:"B", es:"El racismo puede causar mucho sufrimiento.", de:"Rassismus kann viel Leid verursachen."},
+  {id:"b6", set:"B", es:"Las personas pueden perder oportunidades de trabajo y de educación.", de:"Menschen können Chancen auf Arbeit und Bildung verlieren."},
+  {id:"b7", set:"B", es:"También afecta la salud mental y la autoestima.", de:"Es betrifft auch die psychische Gesundheit und das Selbstwertgefühl."},
+  {id:"b8", set:"B", es:"Para mí, la educación es lo más importante.", de:"Für mich ist Bildung das Wichtigste."},
+  {id:"b9", set:"B", es:"La escuela puede enseñar respeto y tolerancia.", de:"Die Schule kann Respekt und Toleranz lehren."},
+  {id:"b10", set:"B", es:"También son útiles los programas de empleo y los proyectos culturales que unen a diferentes grupos.", de:"Auch Beschäftigungsprogramme und Kulturprojekte, die Gruppen verbinden, sind nützlich."},
+  {id:"b11", set:"B", es:"En la imagen se puede ver una manifestación.", de:"Auf dem Bild sieht man eine Demonstration."},
+  {id:"b12", set:"B", es:"Hay muchas personas con banderas y una pancarta grande.", de:"Es gibt viele Leute mit Fahnen und einem großen Transparent."},
+  {id:"b13", set:"B", es:"La pancarta dice «Chilenos somos mapuche».", de:"Auf dem Transparent steht „Chilenen sind wir Mapuche\u201c."},
+  {id:"b14", set:"B", es:"Las personas son del pueblo mapuche, un pueblo indígena de Chile.", de:"Die Leute gehören zum Mapuche-Volk, einem indigenen Volk Chiles."},
+  {id:"b15", set:"B", es:"Protestan por sus derechos y por sus tierras.", de:"Sie protestieren für ihre Rechte und ihr Land."},
+  {id:"b16", set:"B", es:"Entiendo la frustración del pueblo mapuche, pero creo que la violencia no es la mejor solución.", de:"Ich verstehe die Frustration der Mapuche, aber Gewalt ist nicht die beste Lösung."},
+  {id:"b17", set:"B", es:"Es mejor el diálogo.", de:"Dialog ist besser."},
+  {id:"b18", set:"B", es:"Sin embargo, entiendo que a veces las personas se sienten desesperadas cuando nadie las escucha.", de:"Trotzdem verstehe ich, dass Menschen manchmal verzweifelt sind, wenn niemand ihnen zuhört."},
+];
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+const STATS_KEY="flashcards_stats_v1";
+const SET_KEY="flashcards_settings_v1";
+let stats = load(STATS_KEY, {});   // {id:{right,wrong,level}}
+let settings = load(SET_KEY, {set:"A", dir:"de-es", count:"10", smart:true, auto:false});
+
+function load(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } }
+function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function statOf(id){ return stats[id] || (stats[id]={right:0,wrong:0,level:0}); }
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function renderOverview(){
+  let gekonnt=0, lernen=0, neu=0;
+  for(const c of DECK){
+    const s=stats[c.id];
+    if(!s || (s.right===0 && s.wrong===0)) neu++;
+    else if(s.level>=3) gekonnt++;
+    else lernen++;
+  }
+  const total=DECK.length;
+  const pct=Math.round(gekonnt/total*100);
+  document.getElementById("cGekonnt").textContent=gekonnt;
+  document.getElementById("cLernen").textContent=lernen;
+  document.getElementById("cNeu").textContent=neu;
+  document.getElementById("ringPct").textContent=pct+"%";
+  const circ=2*Math.PI*42;
+  document.getElementById("ringFill").style.strokeDashoffset = circ*(1-gekonnt/total);
+}
+
+/* ============================================================
+   SETTINGS UI
+   ============================================================ */
+function bindSeg(segId, key){
+  const seg=document.getElementById(segId);
+  seg.querySelectorAll("button").forEach(b=>{
+    if(b.dataset.v===String(settings[key])) markPressed(seg,b);
+    b.addEventListener("click",()=>{ settings[key]=b.dataset.v; markPressed(seg,b); save(SET_KEY,settings); });
+  });
+}
+function markPressed(seg,btn){ seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===btn?"true":"false")); }
+bindSeg("segSet","set"); bindSeg("segDir","dir"); bindSeg("segCount","count");
+
+const tglSmart=document.getElementById("tglSmart"), tglAuto=document.getElementById("tglAuto");
+tglSmart.checked=settings.smart; tglAuto.checked=settings.auto;
+tglSmart.addEventListener("change",()=>{settings.smart=tglSmart.checked;save(SET_KEY,settings);});
+tglAuto.addEventListener("change",()=>{settings.auto=tglAuto.checked;save(SET_KEY,settings);});
+
+document.getElementById("btnReset").addEventListener("click",()=>{
+  if(confirm("Wirklich den ganzen Fortschritt löschen?")){ stats={}; save(STATS_KEY,stats); renderOverview(); }
+});
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); document.getElementById(id).classList.add("active"); }
+
+/* ============================================================
+   SESSION
+   ============================================================ */
+let session=null;
+
+function poolFor(setSel){
+  if(setSel==="all") return DECK.slice();
+  return DECK.filter(c=>c.set===setSel);
+}
+function weightFor(id){ const s=stats[id]; if(!s) return 7; return 1 + 3*s.wrong + 2*Math.max(0,3-s.level); }
+function weightedSample(pool, n){
+  const items=pool.map(c=>({c, w:weightFor(c.id)})); const out=[];
+  while(out.length<n && items.length){
+    const total=items.reduce((s,i)=>s+i.w,0); let r=Math.random()*total, i=0;
+    for(;i<items.length;i++){ r-=items[i].w; if(r<=0) break; }
+    i=Math.min(i,items.length-1); out.push(items[i].c); items.splice(i,1);
+  }
+  return out;
+}
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+function startSession(forcedCards){
+  const smart=settings.smart;
+  let cards;
+  if(forcedCards){ cards=forcedCards.slice(); }
+  else{
+    const pool=poolFor(settings.set);
+    let n = settings.count==="all" ? pool.length : Math.min(parseInt(settings.count,10), pool.length);
+    cards = smart ? weightedSample(pool,n) : shuffle(pool).slice(0,n);
+  }
+  session={
+    dir: settings.dir,
+    smart: !!smart && !forcedCards,   // requeue logic only in real smart rounds
+    queue: cards.map(c=>c.id),
+    initial: cards.length,
+    mastered: new Set(),
+    answers:0, yes:0, no:0,
+    wrongIds:new Set(),
+    current:null,
+  };
+  show("screen-quiz");
+  nextCard();
+}
+
+function nextCard(){
+  if(session.queue.length===0){ return finish(); }
+  session.current = session.queue[0];
+  renderCard(session.current);
+  updateQuizMeta();
+}
+
+function updateQuizMeta(){
+  const done = session.smart ? session.mastered.size : session.answers;
+  const total = session.initial;
+  const pct = total? Math.round(done/total*100):0;
+  document.getElementById("pbarFill").style.width=pct+"%";
+  document.getElementById("pbarRight").textContent = done+" / "+total;
+  document.getElementById("pbarLeft").textContent = "noch "+session.queue.length;
+  document.getElementById("tYes").textContent=session.yes;
+  document.getElementById("tNo").textContent=session.no;
+}
+
+/* ---------- Card render & swipe ---------- */
+const stack=document.getElementById("stack");
+let cardEl=null, drag=null, busy=false;
+
+function renderCard(id){
+  if(cardEl) cardEl.remove();
+  const card=DECK.find(c=>c.id===id);
+  const dir=session.dir;
+  const frontText = dir==="de-es" ? card.de : card.es;
+  const backText  = dir==="de-es" ? card.es : card.de;
+  const frontTag  = dir==="de-es" ? "Deutsch" : "Español";
+  const backTag   = dir==="de-es" ? "Español" : "Deutsch";
+
+  const wrap=document.createElement("div");
+  wrap.className="card-wrap";
+  wrap.innerHTML=`
+    <div class="verdict yes">GEWUSST</div>
+    <div class="verdict no">NOCHMAL</div>
+    <div class="flip">
+      <div class="face front">
+        <span class="lang-tag">${frontTag}</span>
+        <div class="phrase">${esc(frontText)}</div>
+        <div class="flip-hint">Tippen zum Umdrehen</div>
+      </div>
+      <div class="face back">
+        <span class="lang-tag">${backTag}</span>
+        <button class="speak" aria-label="Spanisch abspielen">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>
+        </button>
+        <div class="phrase">${esc(backText)}</div>
+      </div>
+    </div>`;
+  stack.appendChild(wrap);
+  cardEl=wrap;
+  busy=false;
+
+  // speaker
+  wrap.querySelector(".speak").addEventListener("click",(e)=>{ e.stopPropagation(); speak(card.es); });
+
+  // pointer drag / tap
+  let moved=false;
+  wrap.addEventListener("pointerdown",(e)=>{
+    if(busy) return;
+    drag={x0:e.clientX,y0:e.clientY,dx:0,dy:0}; moved=false;
+    wrap.classList.add("grabbing"); wrap.classList.remove("spring");
+    wrap.setPointerCapture(e.pointerId);
+  });
+  wrap.addEventListener("pointermove",(e)=>{
+    if(!drag) return;
+    drag.dx=e.clientX-drag.x0; drag.dy=e.clientY-drag.y0;
+    if(Math.abs(drag.dx)+Math.abs(drag.dy)>8) moved=true;
+    wrap.style.transform=`translate(${drag.dx}px,${drag.dy}px) rotate(${drag.dx*.05}deg)`;
+    const r=Math.min(Math.abs(drag.dx)/110,1);
+    wrap.querySelector(".verdict.yes").style.opacity = drag.dx>0? r:0;
+    wrap.querySelector(".verdict.no").style.opacity  = drag.dx<0? r:0;
+  });
+  wrap.addEventListener("pointerup",(e)=>{
+    if(!drag) return;
+    wrap.classList.remove("grabbing");
+    const dx=drag.dx, isTap=!moved; drag=null;
+    if(isTap){ flipCard(); resetCardPos(); return; }
+    if(dx>105){ commit(true); }
+    else if(dx<-105){ commit(false); }
+    else { resetCardPos(); }
+  });
+  wrap.addEventListener("pointercancel",()=>{ drag=null; wrap.classList.remove("grabbing"); resetCardPos(); });
+
+  // auto play on flip
+  wrap._cardEs=card.es;
+}
+
+function resetCardPos(){
+  if(!cardEl) return;
+  cardEl.classList.add("spring");
+  cardEl.style.transform="";
+  cardEl.querySelector(".verdict.yes").style.opacity=0;
+  cardEl.querySelector(".verdict.no").style.opacity=0;
+}
+function flipCard(){
+  if(!cardEl) return;
+  cardEl.classList.toggle("flipped");
+  if(cardEl.classList.contains("flipped") && settings.auto){ speak(cardEl._cardEs); }
+}
+
+function commit(correct){
+  if(busy||!cardEl) return;
+  busy=true;
+  const id=session.current;
+  // animate fly-off
+  cardEl.classList.remove("spring"); cardEl.classList.add("fly");
+  const dir=correct?1:-1;
+  cardEl.style.transform=`translate(${dir*window.innerWidth}px,40px) rotate(${dir*22}deg)`;
+  cardEl.style.opacity="0";
+
+  // update stats
+  const s=statOf(id);
+  session.answers++;
+  if(correct){ s.right++; s.level=Math.min(5,s.level+1); session.yes++; }
+  else{ s.wrong++; s.level=Math.max(0,s.level-1); session.no++; session.wrongIds.add(id); }
+  save(STATS_KEY,stats);
+
+  // queue handling
+  session.queue.shift();
+  if(correct){ session.mastered.add(id); }
+  else if(session.smart){
+    const pos=Math.min(session.queue.length, 2+Math.floor(Math.random()*3));
+    session.queue.splice(pos,0,id);   // see it again later this round
+  }
+
+  setTimeout(()=>{ nextCard(); }, 360);
+}
+
+/* ---------- Quiz buttons & keys ---------- */
+document.getElementById("btnFlip").addEventListener("click",flipCard);
+document.getElementById("btnYes").addEventListener("click",()=>commit(true));
+document.getElementById("btnNo").addEventListener("click",()=>commit(false));
+document.getElementById("btnQuit").addEventListener("click",()=>{ if(confirm("Runde abbrechen?")){ goHome(); } });
+
+document.addEventListener("keydown",(e)=>{
+  if(!document.getElementById("screen-quiz").classList.contains("active")) return;
+  if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); flipCard(); }
+  else if(e.code==="ArrowRight"){ commit(true); }
+  else if(e.code==="ArrowLeft"){ commit(false); }
+});
+
+/* ============================================================
+   FINISH / RESULTS
+   ============================================================ */
+function finish(){
+  const a=session.answers||1;
+  const acc=Math.round(session.yes/a*100);
+  document.getElementById("rAcc").textContent=acc+"%";
+  document.getElementById("rYes").textContent=session.yes;
+  document.getElementById("rNo").textContent=session.no;
+  let emoji="💪", head="Solide Runde";
+  if(acc>=90){emoji="🔥";head="Stark! Fast alles gesessen";}
+  else if(acc>=70){emoji="🎉";head="Gut gemacht";}
+  else if(acc<40){emoji="🌱";head="Dranbleiben – wird schon";}
+  document.getElementById("rEmoji").textContent=emoji;
+  document.getElementById("rHeadline").textContent=head;
+  const wrongBtn=document.getElementById("btnAgainWrong");
+  wrongBtn.style.display = session.wrongIds.size? "block":"none";
+  wrongBtn.textContent = "Falsche wiederholen ("+session.wrongIds.size+")";
+  show("screen-result");
+}
+document.getElementById("btnAgainWrong").addEventListener("click",()=>{
+  const cards=[...session.wrongIds].map(id=>DECK.find(c=>c.id===id));
+  startSession(shuffle(cards));
+});
+document.getElementById("btnHome").addEventListener("click",goHome);
+
+function goHome(){ if(cardEl){cardEl.remove();cardEl=null;} renderOverview(); show("screen-start"); }
+
+/* ============================================================
+   TEXT-TO-SPEECH
+   ============================================================ */
+let esVoice=null;
+function pickVoice(){
+  const vs=speechSynthesis.getVoices();
+  esVoice = vs.find(v=>/es-ES/i.test(v.lang)) || vs.find(v=>/^es/i.test(v.lang)) || null;
+}
+if("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+function speak(text){
+  if(!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text.replace(/[«»„“]/g,"").replace(/\.\.\./g," "));
+  u.lang="es-ES"; if(esVoice) u.voice=esVoice; u.rate=.92;
+  speechSynthesis.speak(u);
+}
+
+/* ============================================================
+   GO
+   ============================================================ */
+document.getElementById("btnStart").addEventListener("click",()=>startSession(null));
+renderOverview();
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+</script>
+</body>
+</html>
