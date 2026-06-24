@@ -89,6 +89,10 @@
   }
   .seg button[aria-pressed="true"] small{color:rgba(255,255,255,.8)}
 
+  #segSet{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  #segSet button{flex:none}
+  #segSet button[data-v="all"]{grid-column:1 / -1}
+
   .toggle-row{display:flex;align-items:center;justify-content:space-between;
     border:1px solid var(--line);background:var(--card);border-radius:14px;padding:13px 15px;margin-bottom:13px}
   .toggle-row .t-txt b{display:block;font-size:14px;font-weight:600}
@@ -233,7 +237,8 @@
         <button data-v="A" aria-pressed="true">Teil A<small>Universal</small></button>
         <button data-v="B" aria-pressed="false">Teil B<small>Themen</small></button>
         <button data-v="C" aria-pressed="false">Teil C<small>Vokabeln</small></button>
-        <button data-v="all" aria-pressed="false">Alle<small>A · B · C</small></button>
+        <button data-v="D" aria-pressed="false">Teil D<small>Extra</small></button>
+        <button data-v="all" aria-pressed="false">Alle<small>A · B · C · D</small></button>
       </div>
     </div>
 
@@ -493,6 +498,34 @@ const DECK = [
   {id:"c106", set:"C", es:"provenir de", de:"stammen von"},
   {id:"c107", set:"C", es:"convertirse en", de:"werden zu"},
   {id:"c108", set:"C", es:"bienestar", de:"Wohlbefinden"},
+  // ---- Teil D · Extra (Rettungssätze, Soziale Medien, Mapuche) ----
+  {id:"d1", set:"D", es:"No he entendido la pregunta.", de:"Ich habe die Frage nicht verstanden."},
+  {id:"d2", set:"D", es:"¿Puede repetir, por favor?", de:"Können Sie das bitte wiederholen?"},
+  {id:"d3", set:"D", es:"Es un tema muy interesante.", de:"Das ist ein sehr interessantes Thema."},
+  {id:"d4", set:"D", es:"No estoy seguro, pero creo que...", de:"Ich bin nicht sicher, aber ich glaube, dass..."},
+  {id:"d5", set:"D", es:"Necesito un momento para pensar.", de:"Ich brauche einen Moment zum Nachdenken."},
+  {id:"d6", set:"D", es:"Lo siento, no sé esa palabra.", de:"Tut mir leid, das Wort kenne ich nicht."},
+  {id:"d7", set:"D", es:"¿Cómo se dice eso en español?", de:"Wie sagt man das auf Spanisch?"},
+  {id:"d8", set:"D", es:"Quiero decir que...", de:"Ich will sagen, dass..."},
+  {id:"d9", set:"D", es:"Las redes sociales son muy importantes hoy.", de:"Soziale Medien sind heute sehr wichtig."},
+  {id:"d10", set:"D", es:"Uso las redes sociales todos los días.", de:"Ich nutze soziale Medien jeden Tag."},
+  {id:"d11", set:"D", es:"Tienen ventajas y desventajas.", de:"Sie haben Vor- und Nachteile."},
+  {id:"d12", set:"D", es:"Una ventaja es la comunicación rápida.", de:"Ein Vorteil ist die schnelle Kommunikation."},
+  {id:"d13", set:"D", es:"Una desventaja es perder mucho tiempo.", de:"Ein Nachteil ist, viel Zeit zu verlieren."},
+  {id:"d14", set:"D", es:"Pueden afectar la salud mental.", de:"Sie können die psychische Gesundheit beeinträchtigen."},
+  {id:"d15", set:"D", es:"Muchos jóvenes se comparan con otros.", de:"Viele Jugendliche vergleichen sich mit anderen."},
+  {id:"d16", set:"D", es:"También hay muchas noticias falsas.", de:"Es gibt auch viele Falschnachrichten."},
+  {id:"d17", set:"D", es:"Hay que usarlas con responsabilidad.", de:"Man muss sie verantwortungsvoll nutzen."},
+  {id:"d18", set:"D", es:"Prefiero ver a mis amigos en persona.", de:"Ich treffe meine Freunde lieber persönlich."},
+  {id:"d19", set:"D", es:"Los mapuche son un pueblo indígena de Chile.", de:"Die Mapuche sind ein indigenes Volk aus Chile."},
+  {id:"d20", set:"D", es:"Luchan por sus tierras y sus derechos.", de:"Sie kämpfen für ihr Land und ihre Rechte."},
+  {id:"d21", set:"D", es:"Quieren proteger su cultura y su lengua.", de:"Sie wollen ihre Kultur und Sprache schützen."},
+  {id:"d22", set:"D", es:"Han sufrido mucha discriminación.", de:"Sie haben viel Diskriminierung erlitten."},
+  {id:"d23", set:"D", es:"El conflicto con el estado dura años.", de:"Der Konflikt mit dem Staat dauert seit Jahren."},
+  {id:"d24", set:"D", es:"En la imagen hay una manifestación.", de:"Auf dem Bild ist eine Demonstration."},
+  {id:"d25", set:"D", es:"Llevan banderas y ropa tradicional.", de:"Sie tragen Fahnen und traditionelle Kleidung."},
+  {id:"d26", set:"D", es:"Creo que el diálogo es la mejor solución.", de:"Ich glaube, Dialog ist die beste Lösung."},
+  {id:"d27", set:"D", es:"Hay que escuchar a los pueblos indígenas.", de:"Man muss den indigenen Völkern zuhören."},
 ];
 
 /* ============================================================
