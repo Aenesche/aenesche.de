@@ -178,12 +178,25 @@ function renderGame() {
   $("pointsInput").value = "";
   $("btnUndo").disabled = state.entries.length === 0;
 
+  // Runden-Fortschritt: Punkte in Sitzreihenfolge
+  const turnIdx = currentTurnIndex();
+  const dots = $("roundDots");
+  dots.innerHTML = "";
+  state.gamePlayers.forEach((p, i) => {
+    const d = document.createElement("span");
+    d.className = "dot" + (i < turnIdx ? " done" : i === turnIdx ? " current" : "");
+    d.textContent = p.name.slice(0, 2).toUpperCase();
+    d.title = p.name + (i < turnIdx ? " · eingetragen" : i === turnIdx ? " · am Zug" : " · wartet");
+    dots.appendChild(d);
+  });
+
   const list = $("totalsList");
   list.innerHTML = "";
   const lastRoundBusts = new Set(
     state.entries.filter((e) => e.round === round - 1 && e.points === 0).map((e) => e.player_id)
   );
-  for (const p of state.gamePlayers) {
+  const sorted = [...state.gamePlayers].sort((a, b) => totalOf(b.id) - totalOf(a.id));
+  for (const p of sorted) {
     const li = document.createElement("li");
     if (p.id === player.id) li.classList.add("turn");
     if (lastRoundBusts.has(p.id)) li.classList.add("busted-last");
@@ -275,6 +288,18 @@ $("btnWinOk").addEventListener("click", () => {
 });
 
 // ---------- Rangliste ----------
+let boardMode = "total"; // total | high | avg
+
+document.querySelectorAll("#boardSeg button").forEach((b) =>
+  b.addEventListener("click", () => {
+    boardMode = b.dataset.mode;
+    document.querySelectorAll("#boardSeg button").forEach((x) =>
+      x.classList.toggle("active", x === b)
+    );
+    renderBoard();
+  })
+);
+
 async function renderBoard() {
   const list = $("boardList");
   list.innerHTML = "";
@@ -286,13 +311,16 @@ async function renderBoard() {
     ]);
 
     const stats = new Map(
-      players.map((p) => [p.id, { name: p.name, points: 0, games: new Set(), wins: 0 }])
+      players.map((p) => [
+        p.id,
+        { name: p.name, points: 0, perGame: new Map(), wins: 0 },
+      ])
     );
     for (const s of scores) {
       const st = stats.get(s.player_id);
       if (!st) continue;
       st.points += s.points;
-      st.games.add(s.game_id);
+      st.perGame.set(s.game_id, (st.perGame.get(s.game_id) || 0) + s.points);
     }
     for (const g of games) {
       const st = stats.get(g.winner_id);
@@ -300,8 +328,20 @@ async function renderBoard() {
     }
 
     const rows = [...stats.values()]
-      .filter((s) => s.games.size > 0)
-      .sort((a, b) => b.points - a.points);
+      .filter((s) => s.perGame.size > 0)
+      .map((s) => {
+        const n = s.perGame.size;
+        return {
+          ...s,
+          games: n,
+          high: Math.max(...s.perGame.values()),
+          avg: s.points / n,
+        };
+      });
+
+    const value = (s) =>
+      boardMode === "high" ? s.high : boardMode === "avg" ? s.avg : s.points;
+    rows.sort((a, b) => value(b) - value(a));
 
     $("boardEmpty").classList.toggle("hidden", rows.length > 0);
 
@@ -314,8 +354,9 @@ async function renderBoard() {
       const nameEl = li.querySelector(".name");
       nameEl.prepend(s.name);
       li.querySelector(".meta").textContent =
-        `${s.games.size} ${s.games.size === 1 ? "Spiel" : "Spiele"} · ${s.wins} ${s.wins === 1 ? "Sieg" : "Siege"}`;
-      li.querySelector(".pts").textContent = s.points;
+        `${s.games} ${s.games === 1 ? "Spiel" : "Spiele"} · ${s.wins} ${s.wins === 1 ? "Sieg" : "Siege"}`;
+      li.querySelector(".pts").textContent =
+        boardMode === "avg" ? value(s).toFixed(1).replace(".", ",") : value(s);
       list.appendChild(li);
     });
   } catch (e) {
