@@ -59,9 +59,10 @@
 <!-- ===== SPIEL ===== -->
 <section id="view-game" class="view">
   <div class="game-status">
-    <span id="roundLabel">Runde 1</span>
+    <span id="roundLabel" class="round-counter">Runde 1</span>
     <span id="targetLabel">Ziel: 200</span>
   </div>
+  <div id="roundDots" class="round-dots"></div>
 
   <div class="playcard" id="playcard">
     <div class="playcard-inner" id="playcardInner">
@@ -93,6 +94,11 @@
 <section id="view-board" class="view">
   <div class="panel">
     <h2>Rangliste · alle Spiele</h2>
+    <div class="seg" id="boardSeg">
+      <button data-mode="total" class="active">Gesamt</button>
+      <button data-mode="high">Highscore</button>
+      <button data-mode="avg">Schnitt</button>
+    </div>
     <ul id="boardList" class="board"></ul>
     <p id="boardEmpty" class="hint hidden">Noch keine Spiele eingetragen.</p>
   </div>
