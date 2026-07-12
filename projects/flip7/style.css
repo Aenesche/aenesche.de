@@ -1,0 +1,231 @@
+/* Flip 7 Punktezähler · aenesche.de/Projects/flip7 */
+
+:root {
+  --felt: #14352a;
+  --felt-deep: #0d2620;
+  --card: #f6f1e4;
+  --ink: #1e2421;
+  --red: #d6483c;
+  --gold: #e3a93c;
+  --line: rgba(246, 241, 228, 0.18);
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  background:
+    radial-gradient(circle at 50% -10%, #1d4a3a 0%, var(--felt) 55%, var(--felt-deep) 100%);
+  min-height: 100vh;
+  color: var(--card);
+}
+
+main { max-width: 480px; margin: 0 auto; padding: 16px 16px 48px; }
+
+/* ---- Topbar ---- */
+.topbar {
+  max-width: 480px; margin: 0 auto; padding: 20px 16px 8px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.logo {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 800; font-size: 2rem; letter-spacing: 0.04em;
+}
+.logo-7 {
+  display: inline-block; margin-left: 6px; padding: 0 10px;
+  background: var(--card); color: var(--felt-deep);
+  border-radius: 8px; transform: rotate(-4deg);
+}
+.tabs { display: flex; gap: 8px; }
+.tab {
+  flex: 1; padding: 10px 4px;
+  background: transparent; color: var(--card);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  font-family: inherit; font-size: 0.95rem; cursor: pointer;
+}
+.tab.active { background: var(--card); color: var(--ink); font-weight: 700; }
+.tab:disabled { opacity: 0.35; cursor: default; }
+
+/* ---- Views / Panels ---- */
+.view { display: none; }
+.view.active { display: block; }
+
+.panel {
+  background: rgba(13, 38, 32, 0.6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px; margin-top: 16px;
+}
+.panel h2 {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 1.05rem; font-weight: 700; margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+
+.row { display: flex; gap: 8px; margin-top: 8px; }
+.row > select, .row > input { flex: 1; min-width: 0; }
+
+input, select {
+  font-family: inherit; font-size: 1rem;
+  padding: 10px 12px;
+  border-radius: 10px; border: 1px solid var(--line);
+  background: var(--felt-deep); color: var(--card);
+}
+input:focus-visible, select:focus-visible, button:focus-visible {
+  outline: 2px solid var(--gold); outline-offset: 2px;
+}
+
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 0.95rem; }
+.hint { font-size: 0.85rem; opacity: 0.65; margin-top: 10px; }
+.hidden { display: none !important; }
+
+/* ---- Buttons ---- */
+.btn {
+  font-family: inherit; font-size: 0.95rem; font-weight: 700;
+  padding: 10px 16px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--line);
+  background: transparent; color: var(--card);
+}
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn-gold { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+.btn-red { background: transparent; border-color: var(--red); color: #ff8f85; }
+.btn-big { width: 100%; padding: 16px; font-size: 1.1rem; margin-top: 20px; }
+
+/* ---- Seat list (Setup) ---- */
+.seats { list-style: none; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.seats li {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); color: var(--ink);
+  border-radius: 10px; padding: 10px 14px;
+  font-weight: 700; cursor: pointer;
+}
+.seats li::before {
+  content: attr(data-seat);
+  font-family: "Bricolage Grotesque", sans-serif;
+  color: var(--red); font-size: 0.85rem;
+}
+.seats li::after { content: "×"; margin-left: auto; opacity: 0.4; }
+
+.banner {
+  margin-top: 16px; padding: 14px 16px;
+  border: 1px solid var(--gold); border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  font-size: 0.95rem;
+}
+
+/* ---- Spiel: Spielkarte ---- */
+.game-status {
+  display: flex; justify-content: space-between;
+  margin-top: 16px; font-size: 0.9rem; opacity: 0.8;
+}
+
+.playcard { perspective: 900px; margin-top: 12px; }
+.playcard-inner {
+  position: relative;
+  background: var(--card); color: var(--ink);
+  border-radius: 18px;
+  padding: 40px 24px 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  text-align: center;
+  transform-style: preserve-3d;
+}
+.playcard-inner.flip { animation: cardflip 0.5s ease; }
+@keyframes cardflip {
+  0%   { transform: rotateY(0); }
+  50%  { transform: rotateY(90deg); }
+  100% { transform: rotateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .playcard-inner.flip { animation: none; }
+}
+
+.corner {
+  position: absolute;
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 800; color: var(--red); font-size: 1rem;
+}
+.corner-tl { top: 12px; left: 14px; }
+.corner-br { bottom: 12px; right: 14px; transform: rotate(180deg); }
+
+.turn-label {
+  text-transform: uppercase; letter-spacing: 0.12em;
+  font-size: 0.75rem; opacity: 0.6;
+}
+.current-name {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 2.2rem; font-weight: 800; margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+.current-total { font-size: 0.95rem; opacity: 0.7; margin-bottom: 16px; }
+
+#pointsInput {
+  width: 100%;
+  background: #fff; color: var(--ink);
+  border: 2px solid var(--ink);
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 2rem; font-weight: 800; text-align: center;
+  padding: 12px;
+}
+.playcard .row { margin-top: 12px; }
+.playcard .btn { flex: 1; padding: 14px; font-size: 1rem; }
+.playcard .btn-red { color: var(--red); }
+
+/* ---- Zwischenstand ---- */
+.totals { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.totals li {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; border-radius: 10px;
+  border: 1px solid var(--line); font-size: 0.95rem;
+}
+.totals li.turn { border-color: var(--gold); }
+.totals li .pts { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.1rem; }
+.totals li.busted-last .pts { color: #ff8f85; }
+
+.game-actions { margin-top: 16px; }
+.game-actions .btn { flex: 1; }
+
+/* ---- Rangliste ---- */
+.board { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.board li {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center; gap: 10px;
+  background: var(--card); color: var(--ink);
+  border-radius: 10px; padding: 12px 14px;
+}
+.board .rank {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 800; color: var(--red);
+}
+.board li:first-child .rank { color: var(--gold); }
+.board .name { font-weight: 700; overflow-wrap: anywhere; }
+.board .meta { font-size: 0.78rem; opacity: 0.6; display: block; font-weight: 400; }
+.board .pts {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 800; font-size: 1.3rem; text-align: right;
+}
+
+/* ---- Overlay & Toast ---- */
+.overlay {
+  position: fixed; inset: 0; z-index: 20;
+  background: rgba(13, 38, 32, 0.85);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.overlay-card {
+  background: var(--card); color: var(--ink);
+  border-radius: 18px; padding: 32px 28px;
+  text-align: center; max-width: 340px; width: 100%;
+  border-top: 6px solid var(--gold);
+}
+.overlay-card h2 {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 2rem; font-weight: 800; margin: 6px 0;
+}
+
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  background: var(--red); color: #fff;
+  padding: 10px 18px; border-radius: 10px;
+  font-size: 0.9rem; z-index: 30; max-width: 90vw;
+}
