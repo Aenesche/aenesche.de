@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flip 7 · Punktezähler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1 class="logo">FLIP<span class="logo-7">7</span></h1>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-view="setup">Neues Spiel</button>
+    <button class="tab" data-view="game" id="tabGame" disabled>Spiel</button>
+    <button class="tab" data-view="board">Rangliste</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ===== SETUP ===== -->
+<section id="view-setup" class="view active">
+  <div id="resumeBanner" class="banner hidden">
+    <span>Ein laufendes Spiel wurde gefunden.</span>
+    <button id="btnResume" class="btn btn-gold">Fortsetzen</button>
+  </div>
+
+  <div class="panel">
+    <h2>Spieler</h2>
+    <div class="row">
+      <select id="playerSelect">
+        <option value="">– Spieler wählen –</option>
+      </select>
+      <button id="btnAddExisting" class="btn">Hinzufügen</button>
+    </div>
+    <div class="row">
+      <input type="text" id="newPlayerName" placeholder="Neuer Spieler…" maxlength="30">
+      <button id="btnAddNew" class="btn">Anlegen</button>
+    </div>
+    <p class="hint">Reihenfolge = Sitzreihenfolge. Zum Entfernen antippen.</p>
+    <ol id="seatList" class="seats"></ol>
+  </div>
+
+  <div class="panel">
+    <h2>Regeln</h2>
+    <label class="field">
+      Punkte zum Gewinnen
+      <input type="number" id="targetScore" value="200" min="1" step="5" inputmode="numeric">
+    </label>
+  </div>
+
+  <button id="btnStart" class="btn btn-big btn-gold" disabled>Spiel starten</button>
+</section>
+
+<!-- ===== SPIEL ===== -->
+<section id="view-game" class="view">
+  <div class="game-status">
+    <span id="roundLabel">Runde 1</span>
+    <span id="targetLabel">Ziel: 200</span>
+  </div>
+
+  <div class="playcard" id="playcard">
+    <div class="playcard-inner" id="playcardInner">
+      <span class="corner corner-tl" id="cornerTL">R1</span>
+      <span class="corner corner-br" id="cornerBR">R1</span>
+      <p class="turn-label">Am Zug</p>
+      <h2 id="currentPlayer" class="current-name">–</h2>
+      <p class="current-total"><span id="currentTotal">0</span> Punkte gesamt</p>
+      <input type="number" id="pointsInput" inputmode="numeric" min="0" max="99" placeholder="Punkte">
+      <div class="row">
+        <button id="btnBust" class="btn btn-red">Bust · 0</button>
+        <button id="btnSubmit" class="btn btn-gold">Eintragen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Zwischenstand</h2>
+    <ul id="totalsList" class="totals"></ul>
+  </div>
+
+  <div class="row game-actions">
+    <button id="btnUndo" class="btn" disabled>Letzten Eintrag löschen</button>
+    <button id="btnAbort" class="btn btn-red">Spiel beenden</button>
+  </div>
+</section>
+
+<!-- ===== RANGLISTE ===== -->
+<section id="view-board" class="view">
+  <div class="panel">
+    <h2>Rangliste · alle Spiele</h2>
+    <ul id="boardList" class="board"></ul>
+    <p id="boardEmpty" class="hint hidden">Noch keine Spiele eingetragen.</p>
+  </div>
+</section>
+
+</main>
+
+<div id="winOverlay" class="overlay hidden">
+  <div class="overlay-card">
+    <p class="turn-label">Gewinner</p>
+    <h2 id="winnerName">–</h2>
+    <p id="winnerScore"></p>
+    <button id="btnWinOk" class="btn btn-gold btn-big">Zur Rangliste</button>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
