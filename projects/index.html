@@ -6,6 +6,8 @@
     <title>Small Projects & Tools</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/auth-global.js"></script>
     <style>
         :root {
             --bg: #0c0c0f;
@@ -251,6 +253,170 @@
             .grid { grid-template-columns: 1fr; }
         }
 
+        /* ── Auth button (oben rechts) ── */
+        .auth-corner {
+            position: absolute;
+            top: 28px;
+            right: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        .auth-user {
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .auth-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .auth-btn:hover {
+            border-color: var(--accent-warm);
+            color: var(--accent-warm);
+        }
+
+        /* ── Lock-Badge auf geschützten Karten ── */
+        .card-lock {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            z-index: 5;
+        }
+
+        body.logged-out .card[data-auth] .card-lock { display: flex; }
+        body.logged-out .card[data-auth] { opacity: 0.85; }
+
+        /* ── Login Modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 20px;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 380px;
+            animation: fadeUp 0.35s ease both;
+        }
+
+        .modal h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+
+        .modal-sub {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .modal input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            color: var(--text);
+            font-family: 'Sora', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .modal input:focus {
+            outline: none;
+            border-color: var(--accent-warm);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .modal-actions .auth-btn { flex: 1; }
+
+        .auth-btn.primary {
+            background: var(--accent-warm);
+            border-color: var(--accent-warm);
+            color: #1a1408;
+            font-weight: 700;
+        }
+
+        .auth-btn.primary:hover { opacity: 0.9; color: #1a1408; }
+
+        .modal-msg {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            margin-top: 14px;
+            min-height: 16px;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+        }
+
+        .modal-msg.error { color: #ff6b6b; }
+        .modal-msg.ok { color: #7ee2a8; }
+
+        .modal-close {
+            float: right;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .modal-close:hover { color: var(--text); }
+
+        @media (max-width: 700px) {
+            .auth-corner { top: 16px; right: 20px; }
+            .auth-user { display: none; }
+        }
+
         /* ── Entrance animations ── */
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(24px); }
@@ -266,7 +432,27 @@
         }
     </style>
 </head>
-<body>
+<body class="logged-out">
+
+    <div class="auth-corner">
+        <span class="auth-user" id="authUser"></span>
+        <button class="auth-btn" id="authBtn">Login</button>
+    </div>
+
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal">
+            <button class="modal-close" id="modalClose">×</button>
+            <h2>Login</h2>
+            <p class="modal-sub">Einloggen oder neuen Account erstellen — gilt für alle Projekte auf aenesche.de</p>
+            <input type="email" id="authEmail" placeholder="E-Mail" autocomplete="email">
+            <input type="password" id="authPassword" placeholder="Passwort" autocomplete="current-password">
+            <div class="modal-actions">
+                <button class="auth-btn primary" id="btnSignIn">Einloggen</button>
+                <button class="auth-btn" id="btnSignUp">Registrieren</button>
+            </div>
+            <div class="modal-msg" id="authMsg"></div>
+        </div>
+    </div>
 
     <header>
         <div class="header-label">Sammlung</div>
@@ -282,6 +468,24 @@
     </div>
 
     <div class="grid" id="projectGrid">
+
+        <a class="card" href="/updatedgame/index.html" data-auth="1">
+            <span class="card-lock">🔒</span>
+            <div class="card-thumb">
+                <span class="placeholder">🛸</span>
+            </div>
+            <span class="card-arrow">
+                <svg viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+            </span>
+            <div class="card-body">
+                <div class="card-title">AI Drone Lab</div>
+                <div class="card-desc">Idle-Game mit Server-Speicherung — Login erforderlich</div>
+                <div class="card-meta">
+                    <span class="tag">Game</span>
+                    <span class="tag">Account</span>
+                </div>
+            </div>
+        </a>
 
         <!-- ── Spin The Wheel ── -->
         <a class="card" href="/SpinThewheel/index.html">
@@ -416,7 +620,7 @@
 
         <a class="card" href="/projects/flip7/index.html">
             <div class="card-thumb">
-                <<img src="/projects/flip7/flip67img.png" alt="Flip7Img"> 
+                <img src="/projects/flip7/flip67img.png" alt="Flip7Img">
             </div>
             <span class="card-arrow">
                 <svg viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
@@ -448,6 +652,8 @@
 
         <!-- ══════════════════════════════════════════════
              NEUES PROJEKT TEMPLATE — kopieren & anpassen:
+             (Login-Pflicht? Einfach data-auth="1" ans <a>
+             und <span class="card-lock">🔒</span> ergänzen)
 
         <a class="card" href="/PFAD/index.html">
             <div class="card-thumb">
@@ -478,6 +684,125 @@
         // Auto-update project count
         document.getElementById('count').textContent =
             document.querySelectorAll('.card').length.toString().padStart(2, '0');
+
+        /* ══════════════ Globales Login ══════════════ */
+        const modal    = document.getElementById('loginModal');
+        const authBtn  = document.getElementById('authBtn');
+        const authUser = document.getElementById('authUser');
+        const authMsg  = document.getElementById('authMsg');
+
+        let loggedIn = false;
+        let pendingRedirect = null;
+
+        // Redirect-Ziel absichern: nur eigene Pfade erlauben (kein Open Redirect)
+        function safeRedirect(target) {
+            if (typeof target === 'string' && target.startsWith('/') && !target.startsWith('//')) {
+                return target;
+            }
+            return null;
+        }
+
+        function setMsg(text, type) {
+            authMsg.textContent = text || '';
+            authMsg.className = 'modal-msg' + (type ? ' ' + type : '');
+        }
+
+        function openModal(redirect) {
+            pendingRedirect = safeRedirect(redirect);
+            setMsg('');
+            modal.classList.add('open');
+            document.getElementById('authEmail').focus();
+        }
+
+        function closeModal() {
+            modal.classList.remove('open');
+            pendingRedirect = null;
+        }
+
+        function updateUI(session) {
+            loggedIn = !!session;
+            document.body.classList.toggle('logged-out', !loggedIn);
+            if (loggedIn) {
+                authUser.textContent = session.user.email;
+                authBtn.textContent = 'Logout';
+            } else {
+                authUser.textContent = '';
+                authBtn.textContent = 'Login';
+            }
+        }
+
+        authBtn.addEventListener('click', async () => {
+            if (loggedIn) {
+                await aeAuth.signOut();
+                updateUI(null);
+            } else {
+                openModal(null);
+            }
+        });
+
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+        document.getElementById('btnSignIn').addEventListener('click', async () => {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            if (!email || !password) { setMsg('E-Mail und Passwort eingeben.', 'error'); return; }
+            setMsg('Einloggen…');
+            try {
+                await aeAuth.signIn(email, password);
+                setMsg('Eingeloggt!', 'ok');
+                const target = pendingRedirect;
+                closeModal();
+                if (target) location.href = target;
+            } catch (err) {
+                setMsg('Fehler: ' + err.message, 'error');
+            }
+        });
+
+        document.getElementById('btnSignUp').addEventListener('click', async () => {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            if (!email || !password) { setMsg('E-Mail und Passwort eingeben.', 'error'); return; }
+            setMsg('Account wird erstellt…');
+            try {
+                await aeAuth.signUp(email, password);
+                setMsg('Registriert! Du kannst dich jetzt einloggen.', 'ok');
+            } catch (err) {
+                setMsg('Fehler: ' + err.message, 'error');
+            }
+        });
+
+        // Enter-Taste im Passwortfeld = Einloggen
+        document.getElementById('authPassword').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('btnSignIn').click();
+        });
+
+        // Klicks auf geschützte Karten abfangen, wenn nicht eingeloggt
+        document.querySelectorAll('.card[data-auth]').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (!loggedIn) {
+                    e.preventDefault();
+                    openModal(card.getAttribute('href'));
+                }
+            });
+        });
+
+        // Beim Laden: Session prüfen + ?login=1&redirect=… verarbeiten
+        (async () => {
+            const session = await aeAuth.getSession();
+            updateUI(session);
+
+            const params = new URLSearchParams(location.search);
+            if (params.get('login') === '1' && !session) {
+                openModal(params.get('redirect'));
+            } else if (params.get('redirect') && session) {
+                const target = safeRedirect(params.get('redirect'));
+                if (target) location.replace(target);
+            }
+        })();
+
+        // Auf Login/Logout in anderen Tabs reagieren
+        aeAuth.onChange((session) => updateUI(session));
     </script>
 
 </body>
