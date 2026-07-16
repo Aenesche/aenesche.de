@@ -2,6 +2,7 @@
 
 const SUPABASE_URL = "https://usihbregbanpfspblrnw.supabase.co";
 const SUPABASE_KEY = "sb_publishable_EFpYk4bXf7pd1mhM9FbiHg_WKkAlq7n";
+const ROOM_STORAGE_KEY = "flip7_room";
 
 // ---------- Supabase REST Helper ----------
 async function sb(path, { method = "GET", body = null } = {}) {
@@ -22,7 +23,8 @@ async function sb(path, { method = "GET", body = null } = {}) {
 
 // ---------- State ----------
 const state = {
-  allPlayers: [],      // [{id, name}] aus DB
+  room: null,          // {id, name, code}
+  allPlayers: [],      // [{id, name}] aus DB (nur aktueller Raum)
   seats: [],           // [{id, name}] Sitzreihenfolge fürs neue Spiel
   game: null,          // {id, target_score, player_ids}
   gamePlayers: [],     // Reihenfolge im laufenden Spiel
@@ -30,6 +32,7 @@ const state = {
 };
 
 const $ = (id) => document.getElementById(id);
+const roomFilter = () => `room_id=eq.${state.room.id}`;
 
 function toast(msg) {
   const t = $("toast");
@@ -41,19 +44,116 @@ function toast(msg) {
 
 // ---------- Navigation ----------
 function showView(name) {
+  if (!state.room && name !== "room") name = "room";
   document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
   document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
   $(`view-${name}`).classList.add("active");
-  document.querySelector(`.tab[data-view="${name}"]`).classList.add("active");
+  const tab = document.querySelector(`.tab[data-view="${name}"]`);
+  if (tab) tab.classList.add("active");
   if (name === "board") renderBoard();
 }
 document.querySelectorAll(".tab").forEach((t) =>
   t.addEventListener("click", () => showView(t.dataset.view))
 );
 
+// ---------- Raum-System ----------
+function saveRoom(room) {
+  localStorage.setItem(ROOM_STORAGE_KEY, JSON.stringify(room));
+}
+
+function renderRoombar() {
+  const bar = $("roombar");
+  const tabs = document.querySelector(".tabs");
+  if (state.room) {
+    $("roomName").textContent = state.room.name;
+    $("roomCode").textContent = state.room.code;
+    bar.classList.remove("hidden");
+    tabs.classList.remove("hidden");
+  } else {
+    bar.classList.add("hidden");
+    tabs.classList.add("hidden");
+  }
+}
+
+async function enterRoom(room) {
+  state.room = room;
+  saveRoom(room);
+  renderRoombar();
+  try {
+    await loadPlayers();
+    await checkOpenGame();
+  } catch (e) {
+    toast("Daten konnten nicht geladen werden.");
+    console.error(e);
+  }
+  showView("setup");
+}
+
+function makeCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // ohne I/O/0/1
+  let c = "";
+  for (let i = 0; i < 6; i++) c += chars[Math.floor(Math.random() * chars.length)];
+  return c;
+}
+
+$("btnCreateRoom").addEventListener("click", async () => {
+  const name = $("newRoomName").value.trim();
+  if (!name) return toast("Bitte einen Raumnamen eingeben.");
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const [room] = await sb("flip7_rooms", {
+        method: "POST",
+        body: { name, code: makeCode() },
+      });
+      $("newRoomName").value = "";
+      toast(`Raum erstellt – Code: ${room.code}`);
+      return enterRoom(room);
+    } catch (e) {
+      if (!String(e).includes("409") && !String(e).includes("duplicate")) {
+        toast("Raum konnte nicht erstellt werden.");
+        return console.error(e);
+      }
+      // Code-Kollision -> neuer Versuch
+    }
+  }
+  toast("Raum konnte nicht erstellt werden – bitte nochmal.");
+});
+
+$("btnJoin").addEventListener("click", async () => {
+  const code = $("joinCode").value.trim().toUpperCase();
+  if (code.length !== 6) return toast("Der Code hat 6 Zeichen.");
+  try {
+    const rooms = await sb(`flip7_rooms?select=id,name,code&code=eq.${code}`);
+    if (!rooms.length) return toast("Kein Raum mit diesem Code gefunden.");
+    $("joinCode").value = "";
+    enterRoom(rooms[0]);
+  } catch (e) {
+    toast("Beitreten fehlgeschlagen.");
+    console.error(e);
+  }
+});
+$("joinCode").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") $("btnJoin").click();
+});
+
+$("btnLeaveRoom").addEventListener("click", () => {
+  if (state.game && !confirm("Es läuft noch ein Spiel. Raum trotzdem verlassen?")) return;
+  localStorage.removeItem(ROOM_STORAGE_KEY);
+  state.room = null;
+  state.allPlayers = [];
+  state.seats = [];
+  state.game = null;
+  state.entries = [];
+  $("tabGame").disabled = true;
+  $("resumeBanner").classList.add("hidden");
+  renderSeats();
+  renderRoombar();
+  showView("room");
+});
+
 // ---------- Spieler laden / anlegen ----------
 async function loadPlayers() {
-  state.allPlayers = await sb("flip7_players?select=id,name&order=name.asc");
+  state.allPlayers = await sb(`flip7_players?select=id,name&${roomFilter()}&order=name.asc`);
   const sel = $("playerSelect");
   sel.innerHTML = '<option value="">– Spieler wählen –</option>';
   for (const p of state.allPlayers) {
@@ -96,7 +196,10 @@ $("btnAddNew").addEventListener("click", async () => {
   if (state.allPlayers.some((p) => p.name.toLowerCase() === name.toLowerCase()))
     return toast("Diesen Namen gibt es schon – wähle ihn im Dropdown.");
   try {
-    const [p] = await sb("flip7_players", { method: "POST", body: { name } });
+    const [p] = await sb("flip7_players", {
+      method: "POST",
+      body: { name, room_id: state.room.id },
+    });
     $("newPlayerName").value = "";
     await loadPlayers();
     state.seats.push(p);
@@ -113,7 +216,11 @@ $("btnStart").addEventListener("click", async () => {
   try {
     const [game] = await sb("flip7_games", {
       method: "POST",
-      body: { target_score: target, player_ids: state.seats.map((p) => p.id) },
+      body: {
+        target_score: target,
+        player_ids: state.seats.map((p) => p.id),
+        room_id: state.room.id,
+      },
     });
     state.game = game;
     state.gamePlayers = [...state.seats];
@@ -129,11 +236,13 @@ $("btnStart").addEventListener("click", async () => {
 
 async function checkOpenGame() {
   const games = await sb(
-    "flip7_games?select=id,target_score,player_ids&finished_at=is.null&order=created_at.desc&limit=1"
+    `flip7_games?select=id,target_score,player_ids&${roomFilter()}&finished_at=is.null&order=created_at.desc&limit=1`
   );
   if (games.length) {
     $("resumeBanner").classList.remove("hidden");
     $("btnResume").onclick = () => resumeGame(games[0]);
+  } else {
+    $("resumeBanner").classList.add("hidden");
   }
 }
 
@@ -213,7 +322,13 @@ async function submitPoints(points) {
   try {
     const [row] = await sb("flip7_scores", {
       method: "POST",
-      body: { game_id: state.game.id, player_id: player.id, round, points },
+      body: {
+        game_id: state.game.id,
+        player_id: player.id,
+        round,
+        points,
+        room_id: state.room.id,
+      },
     });
     state.entries.push(row);
 
@@ -301,13 +416,14 @@ document.querySelectorAll("#boardSeg button").forEach((b) =>
 );
 
 async function renderBoard() {
+  if (!state.room) return;
   const list = $("boardList");
   list.innerHTML = "";
   try {
     const [players, scores, games] = await Promise.all([
-      sb("flip7_players?select=id,name"),
-      sb("flip7_scores?select=player_id,points,game_id"),
-      sb("flip7_games?select=id,winner_id&finished_at=not.is.null"),
+      sb(`flip7_players?select=id,name&${roomFilter()}`),
+      sb(`flip7_scores?select=player_id,points,game_id&${roomFilter()}`),
+      sb(`flip7_games?select=id,winner_id&${roomFilter()}&finished_at=not.is.null`),
     ]);
 
     const stats = new Map(
@@ -367,11 +483,18 @@ async function renderBoard() {
 
 // ---------- Init ----------
 (async function init() {
-  try {
-    await loadPlayers();
-    await checkOpenGame();
-  } catch (e) {
-    toast("Verbindung zu Supabase fehlgeschlagen.");
-    console.error(e);
+  const stored = localStorage.getItem(ROOM_STORAGE_KEY);
+  if (stored) {
+    try {
+      const saved = JSON.parse(stored);
+      const rooms = await sb(`flip7_rooms?select=id,name,code&id=eq.${saved.id}`);
+      if (rooms.length) return enterRoom(rooms[0]);
+      localStorage.removeItem(ROOM_STORAGE_KEY);
+    } catch (e) {
+      console.error(e);
+      toast("Verbindung zu Supabase fehlgeschlagen.");
+    }
   }
+  renderRoombar();
+  showView("room");
 })();
