@@ -265,3 +265,23 @@ input:focus-visible, select:focus-visible, button:focus-visible {
   padding: 10px 18px; border-radius: 10px;
   font-size: 0.9rem; z-index: 30; max-width: 90vw;
 }
+
+/* ---- Raum ---- */
+.roombar {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.9rem;
+}
+.roombar #roomName { font-weight: 700; overflow-wrap: anywhere; }
+.roombar code {
+  font-family: "Space Grotesk", monospace;
+  background: rgba(227, 169, 60, 0.15);
+  border: 1px solid var(--gold); color: var(--gold);
+  padding: 2px 10px; border-radius: 6px;
+  letter-spacing: 0.15em; font-weight: 700;
+}
+.btn-small { margin-left: auto; padding: 6px 12px; font-size: 0.8rem; }
+
+#joinCode {
+  text-transform: uppercase; letter-spacing: 0.2em;
+  font-weight: 700; text-align: center;
+}
