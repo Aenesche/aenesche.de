@@ -1,306 +1,170 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AENESCHE · AI Drone Lab</title>
-  <style>
-    :root{
-      --bg:#0a0a0a;
-      --panel:#0f0f0f;
-      --text:#eaeaea;
-      --muted:#7a7a7a;
-      --line:#1f1f1f;
-      --accent:#00ff88; /* Auf das neue Grün angepasst */
-      --warn:#ff4444;
-      --ok:#00ff88;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-    }
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      background:radial-gradient(1200px 600px at 20% 10%, rgba(0,255,136,.02), transparent 60%),
-                 radial-gradient(900px 500px at 80% 30%, rgba(255,255,255,.02), transparent 55%),
-                 var(--bg);
-      color:var(--text);
-      font-family:var(--mono);
-      letter-spacing:.2px;
-      line-height: 1.5;
-    }
-    a{ color:var(--muted); text-decoration:none; transition: color 0.2s; }
-    a:hover{ color:var(--accent); text-decoration:underline; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AENESCHE</title>
+    <meta name="description" content="Kleine Web-Projekte, Tools und Spiele.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0c0f;
+            --surface: #16161a;
+            --border: #2a2a32;
+            --border-hover: #3a3a45;
+            --text: #ececf1;
+            --text-muted: #72727e;
+            --accent: #e8e4dd;
+            --accent-warm: #f5c77e;
+            --radius: 14px;
+        }
 
-    .wrap{ max-width: 980px; margin:0 auto; padding: 22px 14px 70px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    .topbar{
-      display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;
-      border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:20px;
-    }
-    .title{ font-size:18px; font-weight: bold; }
-    .sub{ color:var(--muted); font-size:12px; margin-top:6px; line-height:1.4; }
-    .tag{ display:inline-block; border:1px solid var(--line); padding:3px 6px; font-size:11px; color:var(--muted); }
-    .tag.ok{ color:var(--ok); border-color: rgba(0,255,136,.35); background: rgba(0,255,136,.05); }
-    .tag.warn{ color:var(--warn); border-color: rgba(255,68,68,.35); }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Sora', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1.25fr .75fr;
-      gap:20px;
-    }
-    @media (max-width: 920px){ .grid{ grid-template-columns: 1fr; } }
+        /* ── Subtle grain overlay ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 200px;
+            pointer-events: none;
+            z-index: 100;
+        }
 
-    .panel{ background:var(--panel); border:1px solid var(--line); padding:15px; }
-    .panel h2{
-      margin:0 0 15px; font-size:14px; color:var(--text); font-weight:600; letter-spacing:1px;
-      border-bottom: 1px dashed var(--line); padding-bottom: 10px;
-    }
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 24px;
+        }
 
-    .hero{
-      border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,0));
-      padding:15px;
-    }
-    
-    /* --- DER NEUE TRAILER BEREICH --- */
-    .trailer-wrapper {
-      width: 100%;
-      border: 1px solid var(--line);
-      background: #000;
-      margin-bottom: 15px;
-      position: relative;
-    }
-    .trailer-video {
-      width: 100%;
-      display: block;
-      outline: none;
-    }
+        .label {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
 
-    .big{ font-size:14px; line-height:1.5; color: #ddd; }
-    .monoBox{
-      border:1px solid var(--line);
-      background:#050505;
-      padding:12px; font-size:12px; color: var(--muted);
-      white-space:pre-wrap; max-height:260px; overflow:auto;
-    }
+        h1 {
+            font-size: clamp(2.8rem, 8vw, 5rem);
+            font-weight: 700;
+            letter-spacing: -2px;
+            color: var(--accent);
+            line-height: 1.05;
+        }
 
-    .buttons{ display:flex; gap:12px; flex-wrap:wrap; margin-top:15px; }
-    button{
-      appearance:none; background:#050505; color:var(--text);
-      border:1px solid var(--line);
-      padding:10px 15px; cursor:pointer; font-family:var(--mono);
-      font-size:12px; font-weight:bold; letter-spacing:1px;
-      user-select:none; transition: all 0.2s;
-    }
-    button:hover{ border-color:var(--accent); color:var(--accent); background: rgba(0,255,136,0.05); }
-    button.mini { padding: 5px 10px; font-size: 11px; font-weight: normal; }
-    
-    .primary{ border-color: var(--accent); color: var(--accent); background: rgba(0, 255, 136, 0.05); }
-    .primary:hover{ background: var(--accent); color: #000; box-shadow: 0 0 10px rgba(0,255,136,0.3); }
+        .tagline {
+            margin-top: 18px;
+            font-size: 1.05rem;
+            font-weight: 300;
+            color: var(--text-muted);
+            max-width: 440px;
+            line-height: 1.6;
+        }
 
-    .list{ display:flex; flex-direction:column; gap:10px; }
-    .item{ border:1px solid var(--line); background:#0b0b0b; padding:12px; }
-    .itemTop{ display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
-    .itemName{ font-size:13px; color: #fff;}
-    .itemMeta{ font-size:11px; color:var(--muted); }
+        .cta {
+            margin-top: 44px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 32px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                        border-color 0.3s ease,
+                        box-shadow 0.3s ease;
+        }
 
-    .foot{
-      margin-top:20px; color:var(--muted); font-size:12px;
-      border-top:1px solid var(--line); padding-top:15px;
-    }
-    .dot{ opacity:.55; padding:0 6px; }
+        .cta:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-hover);
+            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5);
+            color: var(--accent-warm);
+        }
 
-    .trailer-wrapper {
-  position: relative;
-  padding-bottom: 56.25%; /* 16:9 */
-  height: 0;
-  overflow: hidden;
-}
+        .cta svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
 
-.trailer-wrapper iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-  </style>
+        footer {
+            padding: 28px 24px;
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
+            border-top: 1px solid var(--border);
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color 0.2s ease;
+        }
+
+        footer a:hover { color: var(--accent-warm); }
+
+        /* ── Entrance animation ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .label   { animation: fadeUp 0.7s 0.05s ease both; }
+        h1       { animation: fadeUp 0.7s 0.15s ease both; }
+        .tagline { animation: fadeUp 0.7s 0.3s ease both; }
+        .cta     { animation: fadeUp 0.7s 0.45s ease both; }
+        footer   { animation: fadeUp 0.7s 0.6s ease both; }
+    </style>
 </head>
 <body>
-  <div class="wrap">
-    
-    <div class="topbar">
-      <div>
-        <div class="title">AENESCHE <span class="tag">AI DRONE LAB</span></div>
-        <div class="sub">
-          Server Edition Update — Drohnen Crafting, 3D Hangar & Cloud Saves.<br/>
-        </div>
-      </div>
 
-      <div class="sub" style="width: 100%; display: flex; justify-content: flex-end; align-items: center;">
-        <a href="leaderboard.html" style="color: var(--warn); font-weight: bold;">[ LEADERBOARD ]</a>
-        <span class="dot">·</span>
-        <span class="tag ok" id="statusTag">status: online</span>
-        <span class="dot">·</span>
-        <a href="/impressum">impressum</a>
-        <span class="dot">·</span>
-        <a href="/datenschutz">datenschutz</a>
-      </div>
-    </div>
+    <main>
+        <div class="label">aenesche.de</div>
+        <h1>AENESCHE</h1>
+        <p class="tagline">Kleine Web-Projekte, Tools und Spiele — alles selbst gebaut, alles im Browser.</p>
+        <a class="cta" href="/projects/index.html">
+            Zu den Projekten
+            <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+    </main>
 
-    <div class="grid">
-      
-      <div class="panel">
-        <h2>V2.0 UPDATE TRAILER</h2>
+    <footer>
+        <a href="/leaderboard.html">Leaderboard</a>
+        <a href="/datenschutz">Datenschutz</a>
+        <a href="/impressum">Impressum</a>
+        <a href="mailto:hello@aenesche.de">Kontakt</a>
+    </footer>
 
-        <div class="hero">
-          <div class="trailer-wrapper">
-            <div class="trailer-wrapper">
-  <iframe
-  class="trailer-video"
-  src="https://www.youtube.com/embed/y-I-yYs_-Tk"
-  title="V2.0 Update Trailer"
-  frameborder="0"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-  allowfullscreen>
-</iframe>
-</div>
-            
-          </div>
-
-          <div class="big">
-            Das bisher größte Update ist live. Baue individuelle Drohnen aus hunderten Kombinationsmöglichkeiten, entschlüssle Blueprints im neuen Tech-Tree und sichere deinen Fortschritt in der Cloud.
-          </div>
-
-          <div class="buttons">
-            <button class="primary" id="playBtn">INITIALIZE CONNECTION</button>
-            <button id="wikiBtn">OPEN DATABANK (WIKI)</button>
-            <button id="projectBtn">OTHER PROJECTS</button>
-
-            <style>
-  .dm-countdown-btn {
-    background: #111;
-    color: #888;
-    border: 2px solid #444;
-    padding: 15px 30px;
-    font-size: 1.2rem;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    border-radius: 8px;
-    cursor: not-allowed;
-    text-transform: uppercase;
-    font-weight: bold;
-    display: inline-block;
-    text-decoration: none;
-    transition: all 0.5s ease;
-    text-align: center;
-    min-width: 320px;
-  }
-
-  /* Der Zustand, wenn der Timer abgelaufen ist */
-  .dm-countdown-btn.live {
-    background: transparent;
-    color: #fff;
-    border-color: #00f3ff;
-    cursor: pointer;
-    box-shadow: 0 0 15px rgba(0, 243, 255, 0.4) inset, 0 0 20px rgba(0, 243, 255, 0.4);
-    text-shadow: 0 0 10px rgba(0, 243, 255, 0.8);
-  }
-  .dm-countdown-btn.live:hover {
-    background: #00f3ff;
-    color: #000;
-    text-shadow: none;
-  }
-</style>
-          </div>
-        </div>
-
-        <div style="margin-top:20px;">
-          <h2>SYSTEM LOGS</h2>
-          <div class="monoBox" id="logBox">[boot] v2.0 'New World' successfully deployed.
-[ok] Supabase Auth & Cloud Save active.
-[ok] WebGL 3D Hangar Engine online.
-[info] Added 5 branching Tech Trees and new Exotics.
-[info] Implemented "Insurance Fraud" protocol.
-[wait] Standing by for operator input...</div>
-        </div>
-        
-        <div class="foot">
-          <span class="tag">last update</span> <span id="lastUpdate">—</span>
-          <span class="dot">·</span>
-          <span class="tag">contact</span> <a href="mailto:hello@aenesche.de">admin@aenesche.de</a>
-        </div>
-      </div>
-
-      <div class="panel">
-        <h2>SYSTEM FEATURES</h2>
-        <div class="list">
-          <div class="item">
-            <div class="itemTop">
-              <div class="itemName">1. Drone Assembly</div>
-              <div class="itemMeta">New World</div>
-            </div>
-            <div class="itemMeta" style="margin-top:6px;">
-              Schalte das C.H.E.E.T.A. Protokoll frei. Baue Drohnen aus 5 Komponenten, berechne Synergien und fliege riskante Missionen.
-            </div>
-          </div>
-
-          <div class="item">
-            <div class="itemTop">
-              <div class="itemName">2. 3D WebGL Hangar</div>
-              <div class="itemMeta">Visuals</div>
-            </div>
-            <div class="itemMeta" style="margin-top:6px;">
-              Betrachte deine konfigurierten Drohnen in Echtzeit als rotierendes 3D-Wireframe, je nachdem welche Rarity verbaut ist.
-            </div>
-          </div>
-
-          <div class="item">
-            <div class="itemTop">
-              <div class="itemName">3. Cloud Saves</div>
-              <div class="itemMeta">Supabase</div>
-            </div>
-            <div class="itemMeta" style="margin-top:6px;">
-              Dein Profil (Legacy Coins, RP, Void Gems und Hangar) wird jetzt sicher über eine Datenbank synchronisiert.
-            </div>
-          </div>
-
-          <div class="item">
-            <div class="itemTop">
-              <div class="itemName">4. Anomalies & Tech Tree</div>
-              <div class="itemMeta">R&D</div>
-            </div>
-            <div class="itemMeta" style="margin-top:6px;">
-              Erforsche verzweigte Tech-Trees oder jage extrem seltene "Drop-Only" RGB-Exoten, die nur mit hohem "Luck"-Stat gefunden werden können.
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <script>
-    // === DEINE EINSTELLUNGEN ===
-    const PLAY_CURRENT_HREF = "updatedgame/index.html"; // Hier den Pfad zum Spiel rein
-    const WIKI_HREF = "updatedgame/wiki/index.html";   // Hier den Pfad zum Wiki rein
-    const PROJECT_HREF = "projects/index.html";   // Hier den Pfad zum Wiki rein
-
-
-    document.getElementById("lastUpdate").textContent =
-      new Date().toLocaleDateString("de-DE", { year:"numeric", month:"2-digit", day:"2-digit" });
-
-    document.getElementById("playBtn").addEventListener("click", () => {
-      window.location.href = PLAY_CURRENT_HREF;
-    });
-
-    document.getElementById("wikiBtn").addEventListener("click", () => {
-      window.open(WIKI_HREF, '_blank'); // Öffnet das Wiki in neuem Tab
-    });
-
-    document.getElementById("projectBtn").addEventListener("click", () => {
-      window.location.href = PROJECT_HREF;
-    });
-  </script>
-
-  <footer id="siteFooter"></footer>
 </body>
 </html>
