@@ -13,7 +13,12 @@
 
 <header class="topbar">
   <h1 class="logo">FLIP<span class="logo-7">7</span></h1>
-  <nav class="tabs" role="tablist">
+  <div class="roombar hidden" id="roombar">
+    <span id="roomName"></span>
+    <code id="roomCode"></code>
+    <button id="btnLeaveRoom" class="btn btn-small">Verlassen</button>
+  </div>
+  <nav class="tabs hidden" role="tablist">
     <button class="tab active" data-view="setup">Neues Spiel</button>
     <button class="tab" data-view="game" id="tabGame" disabled>Spiel</button>
     <button class="tab" data-view="board">Rangliste</button>
@@ -22,8 +27,29 @@
 
 <main>
 
+<!-- ===== RAUM ===== -->
+<section id="view-room" class="view">
+  <div class="panel">
+    <h2>Raum beitreten</h2>
+    <div class="row">
+      <input type="text" id="joinCode" placeholder="CODE" maxlength="6" autocapitalize="characters" autocomplete="off">
+      <button id="btnJoin" class="btn btn-gold">Beitreten</button>
+    </div>
+    <p class="hint">Den 6-stelligen Code bekommst du von der Person, die den Raum erstellt hat.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Neuen Raum erstellen</h2>
+    <div class="row">
+      <input type="text" id="newRoomName" placeholder="Raumname…" maxlength="30">
+      <button id="btnCreateRoom" class="btn">Erstellen</button>
+    </div>
+    <p class="hint">Du bekommst einen Code, den du mit deinen Mitspielern teilst. Alle Spieler, Spiele und Ranglisten gehören dann zu diesem Raum.</p>
+  </div>
+</section>
+
 <!-- ===== SETUP ===== -->
-<section id="view-setup" class="view active">
+<section id="view-setup" class="view">
   <div id="resumeBanner" class="banner hidden">
     <span>Ein laufendes Spiel wurde gefunden.</span>
     <button id="btnResume" class="btn btn-gold">Fortsetzen</button>
@@ -93,7 +119,7 @@
 <!-- ===== RANGLISTE ===== -->
 <section id="view-board" class="view">
   <div class="panel">
-    <h2>Rangliste · alle Spiele</h2>
+    <h2>Rangliste</h2>
     <div class="seg" id="boardSeg">
       <button data-mode="total" class="active">Gesamt</button>
       <button data-mode="high">Highscore</button>
