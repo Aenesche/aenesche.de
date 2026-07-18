@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="kneipe">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Suffkalender — aenesche.de</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app" hidden>
+  <header class="topbar">
+    <a class="brand" href="/projects/">SUFF<span>KALENDER</span></a>
+    <div class="topbar-right">
+      <div class="theme-switch" role="group" aria-label="Farbschema">
+        <button data-theme-btn="kneipe" title="Kneipe" aria-label="Kneipe"></button>
+        <button data-theme-btn="hell" title="Hell" aria-label="Hell"></button>
+        <button data-theme-btn="dunkel" title="Dunkel" aria-label="Dunkel"></button>
+      </div>
+      <button id="logoutBtn" class="ghost-btn">Abmelden</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Heute: Ein-Tipp-Eintrag -->
+    <section class="card today-card">
+      <div class="today-top">
+        <div>
+          <div class="eyebrow">Heute</div>
+          <div class="today-date mono" id="todayDate"></div>
+        </div>
+        <div class="today-greet" id="greet"></div>
+      </div>
+      <div class="today-actions">
+        <button class="lvl-btn b0" data-quick="0">Nüchtern</button>
+        <button class="lvl-btn b1" data-quick="1">Getrunken</button>
+        <button class="lvl-btn b2" data-quick="2">Blackout</button>
+      </div>
+    </section>
+
+    <!-- Kalender -->
+    <section class="card">
+      <div class="cal-head">
+        <div class="seg" id="viewSeg">
+          <button data-view="week">Woche</button>
+          <button data-view="month" class="active">Monat</button>
+          <button data-view="year">Jahr</button>
+        </div>
+        <div class="cal-nav">
+          <button id="navPrev" aria-label="Zurück">‹</button>
+          <button id="navToday">Heute</button>
+          <button id="navNext" aria-label="Weiter">›</button>
+        </div>
+      </div>
+      <div class="cal-label mono" id="calLabel"></div>
+      <div id="calendar"></div>
+      <div class="legend">
+        <span><i class="lg lg-none"></i>Kein Eintrag</span>
+        <span><i class="lg lg-0"></i>Nüchtern</span>
+        <span><i class="lg lg-1"></i>Getrunken</span>
+        <span><i class="lg lg-2"></i>Blackout</span>
+      </div>
+    </section>
+
+    <!-- Statistik -->
+    <section class="card">
+      <div class="eyebrow">Statistik</div>
+      <div class="stat-grid" id="statGrid"></div>
+      <div class="stat-note" id="globalStat"></div>
+    </section>
+
+    <!-- Gruppen -->
+    <section class="card">
+      <div class="sec-head">
+        <div class="eyebrow">Gruppen</div>
+        <div class="group-actions">
+          <button class="ghost-btn" id="showCreate">Erstellen</button>
+          <button class="ghost-btn" id="showJoin">Beitreten</button>
+        </div>
+      </div>
+      <form id="createForm" class="inline-form" hidden>
+        <input id="createName" maxlength="40" placeholder="Gruppenname" autocomplete="off">
+        <button type="submit" class="solid-btn">Erstellen</button>
+      </form>
+      <form id="joinForm" class="inline-form" hidden>
+        <input id="joinCode" maxlength="6" placeholder="Code (6 Zeichen)" autocomplete="off" class="mono" style="text-transform:uppercase">
+        <button type="submit" class="solid-btn">Beitreten</button>
+      </form>
+      <div id="groupList"></div>
+      <div id="groupDetail" hidden></div>
+    </section>
+
+    <footer class="foot mono">aenesche.de · trink verantwortungsvoll</footer>
+  </main>
+</div>
+
+<!-- Tages-Eintrag -->
+<div class="overlay" id="dayModal" hidden>
+  <div class="modal">
+    <div class="modal-title mono" id="dayModalDate"></div>
+    <div class="modal-btns">
+      <button class="lvl-btn b0" data-pick="0">Nüchtern</button>
+      <button class="lvl-btn b1" data-pick="1">Getrunken</button>
+      <button class="lvl-btn b2" data-pick="2">Blackout</button>
+      <button class="ghost-btn" data-pick="del">Eintrag entfernen</button>
+    </div>
+    <button class="ghost-btn modal-close" id="dayModalClose">Abbrechen</button>
+  </div>
+</div>
+
+<!-- Username beim ersten Besuch -->
+<div class="overlay" id="nameModal" hidden>
+  <div class="modal">
+    <div class="modal-title">Wie sollen dich deine Gruppen sehen?</div>
+    <form id="nameForm" class="inline-form">
+      <input id="nameInput" maxlength="20" minlength="2" placeholder="Username" required autocomplete="off">
+      <button type="submit" class="solid-btn">Speichern</button>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="mono" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/auth-global.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
