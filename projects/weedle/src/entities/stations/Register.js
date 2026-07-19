@@ -74,6 +74,7 @@ export default class Register extends Station {
                     const dropped = player.dropItem();
                     if (dropped && customer.receiveItem(itemDef)) {
                         state.earn(price);
+                        this.scene.reportSale?.(itemDef.variety, price);
                         if (customer.order.length === 0) {
                             customerManager.onCustomerServed(customer);
                         }
