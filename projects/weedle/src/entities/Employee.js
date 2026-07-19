@@ -323,7 +323,9 @@ export default class Employee {
                                 s.constructor.name === 'SeedTerminal' && s.variety?.id === itemDef.variety
                             );
                             const mult = terminal ? (1 + (terminal.upgradeLevel || 0) * 0.25) : 1;
-                            this.scene.state.earn(Math.round(itemDef.sellPrice * mult));
+                            const salePrice = Math.round(itemDef.sellPrice * mult);
+                            this.scene.state.earn(salePrice);
+                            this.scene.reportSale?.(itemDef.variety, salePrice);
                         }
                         if (job.customer.order.length === 0) {
                             this.scene.customers.onCustomerServed(job.customer);
