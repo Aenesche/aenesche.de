@@ -55,12 +55,14 @@ export default class Bed extends Station {
                 this.stateTime = 0;
             }
         } else if (this.state === 'ready') {
-            const rotProgress = Math.min(this.stateTime / GROWTH.ROT_DURATION, 1);
+            const rotDuration = GROWTH.ROT_DURATION * (this.scene.levelConfig?.rotMultiplier ?? 1);
+            const rotProgress = Math.min(this.stateTime / rotDuration, 1);
             this.timer.setColor(this.plantedVariety?.color || COLORS.TIMER_GROW);
             this.timer.show(1 - rotProgress);
             this.drawPlant(1, this.plantedVariety?.color || COLORS.BED_PLANT);
             if (rotProgress >= 1) {
                 this.state = 'rotten';
+                this.scene.reportRotten?.();
                 this.stateTime = 0;
             }
         } else if (this.state === 'rotten') {
