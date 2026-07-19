@@ -47,7 +47,7 @@ export const INTERACTION = {
 };
 
 export const ECONOMY = {
-    STARTING_MONEY: 99,
+    STARTING_MONEY: 9999,
 };
 
 export const SEED_VARIETIES = [
