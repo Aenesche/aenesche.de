@@ -17,6 +17,8 @@ export default class UpgradeManager {
     }
 
     onQ() {
+        // Level-Gate: Upgrades erst wenn das Level sie freischaltet
+        if (this.scene.levelConfig && !this.scene.levelConfig.features.upgrades) return;
         // Q schließt offene Popups
         if (this.popup.visible) {
             this.popup.hide();
