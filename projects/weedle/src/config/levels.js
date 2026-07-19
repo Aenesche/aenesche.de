@@ -39,7 +39,7 @@ export const LEVELS = [
             { id: 'no_rot', label: 'Keine Pflanze verfaulen lassen', kind: 'noRotten' },
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
         ],
-        timeLimitMs: 4 * 60 * 1000,
+        timeLimitMs: 1.5 * 60 * 1000,
         unlocks: ['terminal_mint', 'bed', 'register', 'storage'],
     },
     {
@@ -65,7 +65,7 @@ export const LEVELS = [
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
             { id: 'no_rot', label: 'Keine Pflanze verfaulen lassen', kind: 'noRotten' },
         ],
-        timeLimitMs: 6 * 60 * 1000,
+        timeLimitMs: 9 * 60 * 1000,
         unlocks: [],
     },
     {
@@ -90,7 +90,7 @@ export const LEVELS = [
             { id: 'dispose3', label: '3 verfaulte Pflanzen entsorgen', kind: 'dispose', n: 3 },
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
         ],
-        timeLimitMs: 8 * 60 * 1000,
+        timeLimitMs: 4.5 * 60 * 1000,
         unlocks: ['trash'],
     },
     {
@@ -118,7 +118,7 @@ export const LEVELS = [
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
             { id: 'sat5', label: 'Zufriedenheit ≥ 5 am Ende', kind: 'satisfactionEnd', n: 5 },
         ],
-        timeLimitMs: 9 * 60 * 1000,
+        timeLimitMs: 5 * 60 * 1000,
         unlocks: [],
     },
     {
@@ -148,7 +148,7 @@ export const LEVELS = [
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
             { id: 'no_rot', label: 'Keine Pflanze verfaulen lassen', kind: 'noRotten' },
         ],
-        timeLimitMs: 10 * 60 * 1000,
+        timeLimitMs: 6 * 60 * 1000,
         unlocks: ['hiring'],
     },
     {
@@ -180,7 +180,7 @@ export const LEVELS = [
             { id: 'sat5', label: 'Zufriedenheit ≥ 5 am Ende', kind: 'satisfactionEnd', n: 5 },
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
         ],
-        timeLimitMs: 12 * 60 * 1000,
+        timeLimitMs: 7.5 * 60 * 1000,
         unlocks: [],
     },
     {
@@ -207,7 +207,7 @@ export const LEVELS = [
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
             { id: 'no_rot', label: 'Keine Pflanze verfaulen lassen', kind: 'noRotten' },
         ],
-        timeLimitMs: 12 * 60 * 1000,
+        timeLimitMs: 14 * 60 * 1000,
         unlocks: ['terminal_haze'],
     },
     {
