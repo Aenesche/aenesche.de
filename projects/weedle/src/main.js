@@ -2,6 +2,8 @@
 
 import { GAME } from './config/constants.js';
 import BootScene from './scenes/BootScene.js';
+import MenuScene from './scenes/MenuScene.js';
+import LevelSelectScene from './scenes/LevelSelectScene.js';
 import GameScene from './scenes/GameScene.js';
 
 const config = {
@@ -18,7 +20,7 @@ const config = {
         default: 'arcade',
         arcade: { gravity: { y: 0 }, debug: false },
     },
-    scene: [BootScene, GameScene],
+    scene: [BootScene, MenuScene, LevelSelectScene, GameScene],
 };
 
 new Phaser.Game(config);
