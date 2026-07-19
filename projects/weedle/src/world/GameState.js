@@ -4,10 +4,20 @@ import { Storage } from '../storage/storage.js';
 const SAVE_KEY = 'gameState';
 
 export default class GameState {
-    constructor() {
-        const saved = Storage.load(SAVE_KEY);
-        this.money = saved?.money ?? ECONOMY.STARTING_MONEY;
-        this.satisfaction = saved?.satisfaction ?? SATISFACTION.START;
+    // initial = { money, satisfaction }: Level-Modus — Werte kommen aus
+    // Level-Config/Save, globale localStorage-Persistenz ist AUS
+    // (der SaveManager speichert den kompletten Level-Zustand).
+    constructor(initial = null) {
+        if (initial) {
+            this.money = initial.money;
+            this.satisfaction = initial.satisfaction ?? SATISFACTION.START;
+            this.persistEnabled = false;
+        } else {
+            const saved = Storage.load(SAVE_KEY);
+            this.money = saved?.money ?? ECONOMY.STARTING_MONEY;
+            this.satisfaction = saved?.satisfaction ?? SATISFACTION.START;
+            this.persistEnabled = true;
+        }
         this.listeners = [];
     }
 
@@ -37,5 +47,5 @@ export default class GameState {
 
     onChange(fn) { this.listeners.push(fn); }
     notify()     { this.listeners.forEach(fn => fn(this)); }
-    persist()    { Storage.save(SAVE_KEY, { money: this.money, satisfaction: this.satisfaction }); }
+    persist()    { if (this.persistEnabled) Storage.save(SAVE_KEY, { money: this.money, satisfaction: this.satisfaction }); }
 }
