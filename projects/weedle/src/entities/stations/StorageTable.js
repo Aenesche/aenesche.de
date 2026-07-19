@@ -1,7 +1,7 @@
 import Station from './Station.js';
 import { COLORS, ISO, STORAGE_TABLE } from '../../config/constants.js';
 import { drawIsoTile, drawIsoCube } from '../../utils/iso.js';
-import CarriedItem from '../CarriedItem.js';
+import CarriedItem, { drawItemIcon } from '../CarriedItem.js';
 
 export default class StorageTable extends Station {
     constructor(scene, gridX, gridY) {
@@ -43,11 +43,8 @@ export default class StorageTable extends Station {
         const cy = this.isoY + ISO.TILE_SIZE / 2 - STORAGE_TABLE.HEIGHT - 8;
 
         items.forEach((itemDef, i) => {
-            const offsetX = (i - (items.length - 1) / 2) * 10;
-            g.fillStyle(itemDef.color, 1);
-            g.fillEllipse(cx + offsetX, cy, 8, 5);
-            g.lineStyle(1, 0xffffff, 0.6);
-            g.strokeEllipse(cx + offsetX, cy, 8, 5);
+            const offsetX = (i - (items.length - 1) / 2) * 12;
+            drawItemIcon(g, itemDef, cx + offsetX, cy, 0.8);
         });
     }
 
