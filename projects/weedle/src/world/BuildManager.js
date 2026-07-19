@@ -18,8 +18,10 @@ this.builtCount = {
             terminal_crystal: 0, terminal_og: 0,
         };    }
 
-    // Wird von der Scene aufgerufen, nachdem Start-Stationen platziert sind
-    init(startStations) {
+    // Wird von der Scene aufgerufen, nachdem Start-Stationen platziert sind.
+    // allowedTypes: Liste erlaubter Slot-Typen für dieses Level (null = alle).
+    init(startStations, allowedTypes = null) {
+        this.allowedTypes = allowedTypes;
         // Zähle existierende Stationen
         for (const s of startStations) {
             const name = s.constructor.name.toLowerCase();
@@ -39,6 +41,8 @@ this.builtCount = {
         const indexPerType = { ...this.builtCount };
         
         for (const def of BUILD.SLOTS) {
+            // Level-Filter: nicht erlaubte Typen existieren in diesem Level gar nicht
+            if (this.allowedTypes && !this.allowedTypes.includes(def.type)) continue;
             const key = `${def.gridX},${def.gridY}`;
             if (occupied.has(key)) {
                 indexPerType[def.type]++;
