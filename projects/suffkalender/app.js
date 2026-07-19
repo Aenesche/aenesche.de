@@ -8,7 +8,7 @@
   // ---------- State ----------
   let userId = null;
   let username = null;
-  const entries = new Map();            // 'YYYY-MM-DD' -> 0|1|2
+  const entries = new Map();            // 'YYYY-MM-DD' -> 0|1|2|3
   let view = 'month';                   // week | month | year
   let cursor = today();                 // Referenzdatum der Kalenderansicht
   let globalStats = null;
@@ -17,7 +17,8 @@
   let membersByGroup = new Map();       // groupId -> [userId]
   const profiles = new Map();           // userId -> username
   let activeGroup = null;
-  let cmpWeek = startOfWeek(today());
+  let cmpView = 'week';                 // week | month | year
+  let cmpCursor = today();
 
   // ---------- Datum-Helpers ----------
   const WD = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -205,7 +206,7 @@
     for (let i = 0; i < 30; i++) {
       const l = entries.get(key(addDays(t, -i))) || 0;
       if (l >= 1) d30++;
-      if (l === 2) b30++;
+      if (l === 3) b30++;
     }
     let streak = 0;
     for (let d = new Date(t); streak < 3650; d = addDays(d, -1)) {
@@ -296,7 +297,8 @@
   async function openGroup(gid) {
     activeGroup = groups.find((g) => g.id === gid) || null;
     if (!activeGroup) return;
-    cmpWeek = startOfWeek(today());
+    cmpView = 'week';
+    cmpCursor = today();
     await renderGroupDetail();
     $('groupDetail').hidden = false;
     $('groupDetail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -309,36 +311,58 @@
   }
 
   async function fetchRange(memberIds, from, to) {
-    const { data, error } = await db.from('suff_entries')
-      .select('user_id,day,level')
-      .in('user_id', memberIds)
-      .gte('day', key(from)).lte('day', key(to));
-    if (error) { console.error(error); return []; }
-    return data || [];
+    const out = [];
+    let off = 0;
+    const size = 1000;
+    for (;;) {
+      const { data, error } = await db.from('suff_entries')
+        .select('user_id,day,level')
+        .in('user_id', memberIds)
+        .gte('day', key(from)).lte('day', key(to))
+        .range(off, off + size - 1);
+      if (error) { console.error(error); break; }
+      out.push(...(data || []));
+      if (!data || data.length < size) break;
+      off += size;
+    }
+    return out;
+  }
+
+  function cmpRange() {
+    if (cmpView === 'week') {
+      const ws = startOfWeek(cmpCursor);
+      return [ws, addDays(ws, 6)];
+    }
+    if (cmpView === 'month') {
+      const y = cmpCursor.getFullYear(), m = cmpCursor.getMonth();
+      return [new Date(y, m, 1), new Date(y, m + 1, 0)];
+    }
+    const y = cmpCursor.getFullYear();
+    return [new Date(y, 0, 1), new Date(y, 11, 31)];
   }
 
   async function renderGroupDetail() {
     const g = activeGroup;
     const memberIds = membersByGroup.get(g.id) || [];
     const tKey = key(today());
-    const ws = cmpWeek, we = addDays(ws, 6);
+    const [rFrom, rTo] = cmpRange();
     const t30from = addDays(today(), -29);
 
-    const [weekRows, rows30] = await Promise.all([
-      fetchRange(memberIds, ws, we),
+    const [rangeRows, rows30] = await Promise.all([
+      fetchRange(memberIds, rFrom, rTo),
       fetchRange(memberIds, t30from, today())
     ]);
 
-    // Wochenvergleich: userId -> (day -> level)
-    const wk = new Map();
-    weekRows.forEach((r) => {
-      if (!wk.has(r.user_id)) wk.set(r.user_id, new Map());
-      wk.get(r.user_id).set(r.day, r.level);
+    // userId -> (day -> level)
+    const byUser = new Map();
+    rangeRows.forEach((r) => {
+      if (!byUser.has(r.user_id)) byUser.set(r.user_id, new Map());
+      byUser.get(r.user_id).set(r.day, r.level);
     });
 
     // 30-Tage-Stats
-    const cnt = new Map();    // userId -> Trinktage
-    const perDay = new Map(); // day -> Anzahl trinkender Mitglieder
+    const cnt = new Map();
+    const perDay = new Map();
     memberIds.forEach((id) => cnt.set(id, 0));
     rows30.forEach((r) => {
       if (r.level >= 1) {
@@ -357,42 +381,111 @@
       '<div class="gd-head"><span class="gd-title">' + esc(g.name) + '</span>' +
       '<button class="gd-code" id="copyCode" title="Code kopieren">CODE ' + esc(g.code) + '</button></div>';
 
-    // Wochenvergleich
-    html += '<div class="gd-sub">Wochenvergleich</div>' +
-      '<div class="cmp-nav">' +
-      '<button class="ghost-btn" id="cmpPrev">‹</button>' +
-      '<span class="cmp-label mono">' + ws.getDate() + '.' + (ws.getMonth() + 1) + '. – ' +
-      we.getDate() + '.' + (we.getMonth() + 1) + '.' + we.getFullYear() + '</span>' +
-      '<button class="ghost-btn" id="cmpNext">›</button></div>' +
-      '<div class="cmp-table">' +
-      '<div class="cmp-row"><span></span>' + WD.map((w) => '<span class="chead">' + w + '</span>').join('') + '</div>';
-    memberIds.forEach((id) => {
-      const m = wk.get(id) || new Map();
-      html += '<div class="cmp-row"><span class="cname">' + esc(nameOf(id)) +
-        (id === userId ? ' (du)' : '') + '</span>';
-      for (let i = 0; i < 7; i++) {
-        const k = key(addDays(ws, i));
-        const l = k > tKey ? undefined : m.get(k);
-        html += '<span class="cmp-cell' + (l === undefined ? '' : ' lv' + l) + '"></span>';
-      }
+    // Vergleich: Kopf mit Ansicht + Navigation
+    let label;
+    if (cmpView === 'week') {
+      label = rFrom.getDate() + '.' + (rFrom.getMonth() + 1) + '. \u2013 ' +
+        rTo.getDate() + '.' + (rTo.getMonth() + 1) + '.' + rTo.getFullYear();
+    } else if (cmpView === 'month') {
+      label = MONTHS[rFrom.getMonth()] + ' ' + rFrom.getFullYear();
+    } else {
+      label = String(rFrom.getFullYear());
+    }
+    html += '<div class="gd-sub">Vergleich</div>' +
+      '<div class="gd-view">' +
+      '<div class="seg" id="cmpSeg">' +
+      ['week', 'month', 'year'].map((v, i) =>
+        '<button data-cmpview="' + v + '"' + (v === cmpView ? ' class="active"' : '') + '>' +
+        ['Woche', 'Monat', 'Jahr'][i] + '</button>').join('') +
+      '</div>' +
+      '<div class="cal-nav">' +
+      '<button id="cmpPrev" aria-label="Zur\u00fcck">\u2039</button>' +
+      '<button id="cmpNext" aria-label="Weiter">\u203a</button>' +
+      '</div></div>' +
+      '<div class="cmp-label mono" style="margin-bottom:.5rem">' + label + '</div>';
+
+    if (cmpView === 'week') {
+      html += '<div class="cmp-table">' +
+        '<div class="cmp-row"><span></span>' +
+        WD.map((w) => '<span class="chead">' + w + '</span>').join('') + '</div>';
+      memberIds.forEach((id) => {
+        const m = byUser.get(id) || new Map();
+        html += '<div class="cmp-row"><span class="cname">' + esc(nameOf(id)) +
+          (id === userId ? ' (du)' : '') + '</span>';
+        for (let i = 0; i < 7; i++) {
+          const k = key(addDays(rFrom, i));
+          const l = k > tKey ? undefined : m.get(k);
+          html += '<span class="cmp-cell' + (l === undefined ? '' : ' lv' + l) + '"></span>';
+        }
+        html += '</div>';
+      });
       html += '</div>';
-    });
-    html += '</div>';
+
+    } else if (cmpView === 'month') {
+      const y = rFrom.getFullYear(), mo = rFrom.getMonth();
+      const days = rTo.getDate();
+      const offset = wdIndex(rFrom);
+      html += '<div class="gmini-grid">';
+      memberIds.forEach((id) => {
+        const m = byUser.get(id) || new Map();
+        html += '<div class="gmini"><div class="gname">' + esc(nameOf(id)) +
+          (id === userId ? ' (du)' : '') + '</div><div class="mdays">';
+        for (let i = 0; i < offset; i++) html += '<span class="d blank"></span>';
+        for (let dd = 1; dd <= days; dd++) {
+          const k = key(new Date(y, mo, dd));
+          const l = k > tKey ? undefined : m.get(k);
+          html += '<span class="d' + (l === undefined ? '' : ' lv' + l) + '"></span>';
+        }
+        html += '</div></div>';
+      });
+      html += '</div>';
+
+    } else {
+      // Jahr: Trinktage pro Mitglied und Monat als Heat-Zellen
+      const y = rFrom.getFullYear();
+      const perMonth = new Map(); // userId -> [12]
+      memberIds.forEach((id) => perMonth.set(id, new Array(12).fill(0)));
+      rangeRows.forEach((r) => {
+        if (r.level >= 1) {
+          const mo = Number(r.day.slice(5, 7)) - 1;
+          const arr = perMonth.get(r.user_id);
+          if (arr) arr[mo]++;
+        }
+      });
+      html += '<div class="cy-table">' +
+        '<div class="cy-row"><span></span>' +
+        'JFMAMJJASOND'.split('').map((c) => '<span class="chead">' + c + '</span>').join('') + '</div>';
+      memberIds.forEach((id) => {
+        const arr = perMonth.get(id);
+        html += '<div class="cy-row"><span class="cname">' + esc(nameOf(id)) +
+          (id === userId ? ' (du)' : '') + '</span>';
+        for (let mo = 0; mo < 12; mo++) {
+          const c = arr[mo];
+          const pct = Math.min(90, Math.round((c / 15) * 90));
+          const style = c > 0
+            ? ' style="background:color-mix(in srgb, var(--lvl2) ' + pct + '%, var(--surface2))"'
+            : '';
+          html += '<span class="cy-cell"' + style + '>' + (c > 0 ? c : '') + '</span>';
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+    }
 
     // Ranking + Gruppen-Stats
-    html += '<div class="gd-sub">Trinktage · letzte 30 Tage</div>';
+    html += '<div class="gd-sub">Trinktage \u00b7 letzte 30 Tage</div>';
     ranking.forEach(([id, c]) => {
       html += '<div class="rank-row"><span class="rname">' + esc(nameOf(id)) + '</span>' +
         '<span class="rank-bar"><i style="width:' + Math.round((c / maxCnt) * 100) + '%"></i></span>' +
         '<span class="rv">' + c + '</span></div>';
     });
     html += '<div class="gd-sub">Gruppen-Stats</div><div class="gd-stats">' +
-      'Gruppen-Trinkquote: <em>' + groupRate + ' %</em> der Tage · ' +
-      'Gemeinsame Trinktage (≥ 2 Personen): <em>' + common + '</em></div>';
+      'Gruppen-Trinkquote: <em>' + groupRate + ' %</em> der Tage \u00b7 ' +
+      'Gemeinsame Trinktage (\u2265 2 Personen): <em>' + common + '</em></div>';
 
     html += '<div class="gd-foot">' +
       '<button class="ghost-btn danger" id="leaveGroup">Gruppe verlassen</button>' +
-      '<button class="ghost-btn" id="closeGroup">Schließen</button></div>';
+      '<button class="ghost-btn" id="closeGroup">Schlie\u00dfen</button></div>';
 
     const el = $('groupDetail');
     el.innerHTML = html;
@@ -401,11 +494,20 @@
       try { await navigator.clipboard.writeText(g.code); toast('Code kopiert: ' + g.code); }
       catch (e) { toast('Code: ' + g.code); }
     });
-    $('cmpPrev').addEventListener('click', () => { cmpWeek = addDays(cmpWeek, -7); renderGroupDetail(); });
-    $('cmpNext').addEventListener('click', () => { cmpWeek = addDays(cmpWeek, 7); renderGroupDetail(); });
+    el.querySelectorAll('[data-cmpview]').forEach((b) => {
+      b.addEventListener('click', () => { cmpView = b.dataset.cmpview; renderGroupDetail(); });
+    });
+    $('cmpPrev').addEventListener('click', () => { shiftCmp(-1); });
+    $('cmpNext').addEventListener('click', () => { shiftCmp(1); });
+    function shiftCmp(dir) {
+      if (cmpView === 'week') cmpCursor = addDays(cmpCursor, dir * 7);
+      else if (cmpView === 'month') cmpCursor = new Date(cmpCursor.getFullYear(), cmpCursor.getMonth() + dir, 1);
+      else cmpCursor = new Date(cmpCursor.getFullYear() + dir, 0, 1);
+      renderGroupDetail();
+    }
     $('closeGroup').addEventListener('click', closeGroup);
     $('leaveGroup').addEventListener('click', async () => {
-      if (!confirm('Gruppe „' + g.name + '“ wirklich verlassen?')) return;
+      if (!confirm('Gruppe \u201e' + g.name + '\u201c wirklich verlassen?')) return;
       const { error } = await db.from('suff_group_members')
         .delete().eq('group_id', g.id).eq('user_id', userId);
       if (error) { toast('Verlassen fehlgeschlagen'); return; }
