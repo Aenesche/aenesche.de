@@ -430,6 +430,88 @@
             opacity: 0;
             animation: fadeUp 0.55s ease both;
         }
+
+        /* ── Weedle Card: animierter Charakter ── */
+.weedle-thumb {
+    background-color: #050505;
+    background-image:
+        repeating-linear-gradient(60deg,  rgba(0,255,255,0.06) 0 1px, transparent 1px 26px),
+        repeating-linear-gradient(-60deg, rgba(0,255,255,0.06) 0 1px, transparent 1px 26px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.weedle-char {
+    position: relative;
+    animation: weedle-bob 3s ease-in-out infinite;
+}
+
+.weedle-body {
+    width: 58px;
+    height: 58px;
+    border: 3px solid #00ff00;
+    background: rgba(0, 255, 0, 0.12);
+    box-shadow: 0 0 14px rgba(0, 255, 0, 0.45), inset 0 0 10px rgba(0, 255, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.weedle-shadow {
+    position: absolute;
+    left: 50%;
+    bottom: -12px;
+    width: 64px;
+    height: 14px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(0,255,0,0.35) 0%, transparent 70%);
+    animation: weedle-shadow 3s ease-in-out infinite;
+}
+
+.weedle-eyes {
+    display: flex;
+    gap: 10px;
+    animation: weedle-look 7s ease-in-out infinite;
+}
+
+.weedle-eye {
+    width: 10px;
+    height: 10px;
+    background: #00ff00;
+    box-shadow: 0 0 6px rgba(0, 255, 0, 0.8);
+    animation: weedle-blink 4.5s infinite;
+}
+
+/* Umherschauen: Pausen zwischen den Blickrichtungen */
+@keyframes weedle-look {
+    0%, 14%   { transform: translate(0, 0); }
+    20%, 34%  { transform: translate(-11px, 0); }
+    40%, 54%  { transform: translate(11px, -3px); }
+    60%, 72%  { transform: translate(3px, 6px); }
+    78%, 100% { transform: translate(0, 0); }
+}
+
+/* Blinzeln: kurz und selten */
+@keyframes weedle-blink {
+    0%, 91%, 100% { transform: scaleY(1); }
+    93%, 95%      { transform: scaleY(0.08); }
+}
+
+/* Leichtes Wippen */
+@keyframes weedle-bob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+}
+
+/* Schatten atmet gegenläufig zum Wippen */
+@keyframes weedle-shadow {
+    0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 1; }
+    50%      { transform: translateX(-50%) scaleX(0.85); opacity: 0.7; }
+}
     </style>
 </head>
 <body class="logged-out">
@@ -653,21 +735,32 @@
             </div>
         </a>
 
-        <a class="card" href="/PFAD/index.html">
-            <div class="card-thumb">
-                <span class="placeholder">🔧</span>
-            </div>
-            <span class="card-arrow">
-                <svg viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
-            </span>
-            <div class="card-body">
-                <div class="card-title">Weed Tycoon</div>
-                <div class="card-desc">Coming soon...</div>
-                <div class="card-meta">
-                    <span class="tag">Fun</span>
+        <a class="card" href="/projects/weedle/index.html" data-auth="1">
+    <span class="card-lock">🔒</span>
+    <div class="card-thumb weedle-thumb">
+        <div class="weedle-char">
+            <div class="weedle-shadow"></div>
+            <div class="weedle-body">
+                <div class="weedle-eyes">
+                    <span class="weedle-eye"></span>
+                    <span class="weedle-eye"></span>
                 </div>
             </div>
-        </a>
+        </div>
+    </div>
+    <span class="card-arrow">
+        <svg viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+    </span>
+    <div class="card-body">
+        <div class="card-title">Weedle</div>
+        <div class="card-desc">Isometrischer Neon-Grow-Tycoon 10 Level, Cloud-Save PRE-RELEASE!!</div>
+        <div class="card-meta">
+            <span class="tag">Game</span>
+            <span class="tag">Account</span>
+            <span class="tag">Pre-Release</span>
+        </div>
+    </div>
+</a>
 
         <!-- ══════════════════════════════════════════════
              NEUES PROJEKT TEMPLATE — kopieren & anpassen:
