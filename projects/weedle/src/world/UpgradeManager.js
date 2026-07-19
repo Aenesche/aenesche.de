@@ -14,18 +14,12 @@ export default class UpgradeManager {
 
         this.qKey = scene.input.keyboard.addKey('Q');
         this.qKey.on('down', () => this.onQ());
-        this.scene.input.keyboard.addKey('TAB').on('down', (e) => {
-            e.originalEvent.preventDefault();
-            if (this.popup.visible && this.popup.station?.constructor.name === 'Bed') {
-                this.popup.toggleMode();
-            }
-        });
     }
 
     onQ() {
+        // Q schließt offene Popups
         if (this.popup.visible) {
-            const success = this.popup.tryPurchase(this.scene.state);
-            if (!success) this.popup.hide();
+            this.popup.hide();
             return;
         }
         if (this.hiringPopup.visible) {
