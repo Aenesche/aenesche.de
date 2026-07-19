@@ -1,8 +1,45 @@
 // Das Item, das eine Figur (Player oder Angestellter) gerade trägt.
-// Visuell ein gelbes Oval mit Outline, schwebt überm Kopf.
-// Wird beim Pickup an den Container der Figur gehängt.
+// Schwebt überm Kopf. Wird beim Pickup an den Container der Figur gehängt.
+//
+// drawItemIcon ist die EINZIGE Stelle die Item-Optik definiert.
+// StorageTable (und alles künftige, z.B. Regale) nutzt dieselbe Funktion —
+// so sehen Items überall identisch aus.
 
-import { ITEMS } from '../config/constants.js';
+// Zeichnet ein Item-Icon bei (cx, cy) auf ein Graphics-Objekt.
+// scale: 1 = Standard (überm Kopf), Tische nutzen ~0.8
+export function drawItemIcon(g, itemDef, cx = 0, cy = 0, scale = 1) {
+    if (!itemDef) return;
+
+    if (itemDef.id.startsWith('seed_')) {
+        // Samen: gelber Tropfen (wie der Ur-Samen), Outline in Sorten-Farbe
+        g.fillStyle(0xffff00, 1);
+        g.lineStyle(2, itemDef.color, 1);
+        g.beginPath();
+        g.moveTo(cx, cy - 6 * scale);
+        g.lineTo(cx - 5 * scale, cy + 3 * scale);
+        g.lineTo(cx + 5 * scale, cy + 3 * scale);
+        g.closePath();
+        g.fillPath();
+        g.strokePath();
+    } else if (itemDef.id === 'rotten') {
+        // Verfault: rotes X
+        g.lineStyle(2.5, itemDef.color, 1);
+        g.beginPath();
+        g.moveTo(cx - 5 * scale, cy - 5 * scale);
+        g.lineTo(cx + 5 * scale, cy + 5 * scale);
+        g.strokePath();
+        g.beginPath();
+        g.moveTo(cx + 5 * scale, cy - 5 * scale);
+        g.lineTo(cx - 5 * scale, cy + 5 * scale);
+        g.strokePath();
+    } else {
+        // Pflanze: Oval in Sorten-Farbe mit weißer Outline
+        g.fillStyle(itemDef.color, 1);
+        g.fillEllipse(cx, cy, 10 * scale, 6 * scale);
+        g.lineStyle(1.5, 0xffffff, 0.8);
+        g.strokeEllipse(cx, cy, 10 * scale, 6 * scale);
+    }
+}
 
 export default class CarriedItem {
     constructor(scene, itemDef) {
@@ -14,32 +51,8 @@ export default class CarriedItem {
     }
 
     draw() {
-        const g = this.graphics;
-        g.clear();
-
-        if (this.itemDef.id.startsWith('seed_')) {
-            // Samen: gelber Tropfen (wie der Ur-Samen), Outline in Sorten-Farbe
-            g.fillStyle(0xffff00, 1);
-            g.lineStyle(2, this.itemDef.color, 1);
-            g.beginPath();
-            g.moveTo(0, -6);
-            g.lineTo(-5, 3);
-            g.lineTo(5, 3);
-            g.closePath();
-            g.fillPath();
-            g.strokePath();
-        } else if (this.itemDef.id === 'rotten') {
-            // Verfault: rotes X
-            g.lineStyle(2.5, this.itemDef.color, 1);
-            g.beginPath(); g.moveTo(-5, -5); g.lineTo(5, 5); g.strokePath();
-            g.beginPath(); g.moveTo(5, -5); g.lineTo(-5, 5); g.strokePath();
-        } else {
-            // Pflanze: Oval in Sorten-Farbe mit weißer Outline
-            g.fillStyle(this.itemDef.color, 1);
-            g.fillEllipse(0, 0, 10, 6);
-            g.lineStyle(1.5, 0xffffff, 0.8);
-            g.strokeEllipse(0, 0, 10, 6);
-        }
+        this.graphics.clear();
+        drawItemIcon(this.graphics, this.itemDef, 0, 0, 1);
     }
 
     destroy() {
