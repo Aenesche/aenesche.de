@@ -51,7 +51,10 @@ export default class HiringPopup {
         const cPrice = this.getPrice('cashier', cCount);
 
         this.option1.setText(`[1] Gärtner  €${gPrice} (${gCount} aktiv)`);
-        this.option2.setText(`[2] Kassierer  €${cPrice} (${cCount} aktiv)`);
+        const cashiersAllowed = !this.scene.levelConfig || this.scene.levelConfig.features.cashiers;
+        this.option2.setText(cashiersAllowed
+            ? `[2] Kassierer  €${cPrice} (${cCount} aktiv)`
+            : `[2] Kassierer  🔒 (später freigeschaltet)`);
 
         const x = station.isoX;
         const y = (station.bounds?.top ?? station.isoY) - 60;
@@ -82,6 +85,8 @@ export default class HiringPopup {
 
     buy(role) {
         if (!this.visible) return;
+        // Level-Gate: Kassierer erst wenn freigeschaltet
+        if (role === 'cashier' && this.scene.levelConfig && !this.scene.levelConfig.features.cashiers) return;
         const count = this.scene.employees?.filter(e => e.role === role).length || 0;
         const price = this.getPrice(role, count);
         if (!this.scene.state.spend(price)) return;
