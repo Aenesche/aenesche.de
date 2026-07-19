@@ -145,7 +145,7 @@ export default class Employee {
     filterViableJobs(jobs) {
         return jobs.filter(job => {
             if (job.type === 'buy_seed') return !this.hasItem();
-            if (job.type === 'plant_seed') return this.hasItem() && this.carriedItem.itemDef.id === ITEMS.SEED.id;
+            if (job.type === 'plant_seed') return this.hasItem() && this.carriedItem.itemDef.id.startsWith('seed_');
             if (job.type === 'harvest') return !this.hasItem();
             if (job.type === 'clear_rotten') return !this.hasItem();
             if (job.type === 'store_item') return this.hasItem();
@@ -153,7 +153,7 @@ export default class Employee {
             if (job.type === 'deliver_item') {
                 // Phase 1: Item holen (braucht leere Hände)
                 // Phase 2: Item zum Kunden bringen (hat schon Item)
-                return !this.hasItem() || (this.hasItem() && this.carriedItem.itemDef.id === ITEMS.PLANT.id);
+                return !this.hasItem() || (this.hasItem() && this.carriedItem.itemDef.id.startsWith('plant_'));
             }
             return true;
         });
@@ -319,7 +319,9 @@ export default class Employee {
                     if (job.customer.receiveItem(itemDef)) {
                         this.dropItem();
                         if (itemDef.sellPrice) {
-                            const terminal = this.scene.stations.find(s => s.constructor.name === 'SeedTerminal');
+                            const terminal = this.scene.stations.find(s =>
+                                s.constructor.name === 'SeedTerminal' && s.variety?.id === itemDef.variety
+                            );
                             const mult = terminal ? (1 + (terminal.upgradeLevel || 0) * 0.25) : 1;
                             this.scene.state.earn(Math.round(itemDef.sellPrice * mult));
                         }
