@@ -41,6 +41,7 @@ export default class CustomerManager {
             if (c.state === 'rage_leaving' && !c._rageProcessed) {
                 c._rageProcessed = true;
                 this.state.adjustSatisfaction(SATISFACTION.RAGE_QUIT);
+                this.scene.reportRageQuit?.();
                 this.sendToExit(c);
             }
         }
