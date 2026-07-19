@@ -33,7 +33,10 @@ export default class TrashCan extends Station {
             type: 'hold',
             duration: duration,
             onComplete: () => {
-                player.dropItem();
+                const dropped = player.dropItem();
+                if (dropped && dropped.id === 'rotten') {
+                    this.scene.reportDisposed?.();
+                }
             },
         };
     }
