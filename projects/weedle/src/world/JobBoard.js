@@ -60,7 +60,6 @@ export default class JobBoard {
         const jobs = [];
         const beds = scene.stations.filter(s => s.constructor.name === 'Bed');
         const storages = scene.stations.filter(s => s.constructor.name === 'StorageTable');
-        const terminal = scene.stations.find(s => s.constructor.name === 'SeedTerminal');
 
         // Ernten: erntereife oder verfaulte Beete
         for (const bed of beds) {
@@ -79,29 +78,89 @@ export default class JobBoard {
             }
         }
 
-        // Samen kaufen: nur wenn es leere Beete gibt UND genug Geld
-        const seedJobsClaimed = [...this.claims.keys()].filter(k => k.startsWith('buy_seed')).length;
-        const plantJobsClaimed = [...this.claims.keys()].filter(k => k.startsWith('plant_')).length;
-
-        // Samen kaufen: für jedes freie Beet prüfen welche Sorten möglich sind
+        // --- Samen-Einkauf: Bedarf zuerst, dann ausgeglichener Vorrat ---
+        //
+        // 1. BEDARF: Sorten die Kunden gerade bestellt haben (enthüllte Orders)
+        //    und für die es weniger Vorrat als Bedarf gibt → hohe Priorität.
+        // 2. AUSGLEICH: Kein Defizit → kaufe die Sorte mit dem WENIGSTEN Vorrat
+        //    (niedriger Vorrat = höhere Priorität), damit alles gleichmäßig da ist.
+        //
+        // "Vorrat" = fertige/wachsende Pflanzen in Beeten + Pflanzen auf Tischen.
+        // "Unterwegs" = geclaimte Kauf-Jobs + Samen die Angestellte gerade tragen.
         const terminals = scene.stations.filter(s => s.constructor.name === 'SeedTerminal');
         const emptyBeds = beds.filter(b => b.state === 'empty');
 
-        for (const terminal of terminals) {
-            // Gibt es leere Beete die diese Sorte aufnehmen können?
-            const compatibleBeds = emptyBeds.filter(b => b.canPlant(terminal.variety));
-            const alreadyClaimed = [...this.claims.keys()].filter(k =>
-                k.startsWith(`buy_seed_${terminal.variety.id}`) || k.startsWith(`plant_`)
-            ).length;
-
-            if (compatibleBeds.length > alreadyClaimed && scene.state.canAfford(terminal.variety.seedCost)) {
-                jobs.push({
-                    type: 'buy_seed',
-                    target: terminal,
-                    targetId: `buy_seed_${terminal.variety.id}_${Date.now()}`,
-                    priority: 0,
-                });
+        // Bedarf pro Sorte aus enthüllten Kundenbestellungen
+        const demand = {};
+        if (scene.customers) {
+            for (const c of scene.customers.customers) {
+                if (!c.orderRevealed) continue;
+                for (const itemId of c.order) {
+                    if (itemId.startsWith('plant_')) {
+                        const v = itemId.replace('plant_', '');
+                        demand[v] = (demand[v] || 0) + 1;
+                    }
+                }
             }
+        }
+
+        // Vorrat pro Sorte: Beete (growing/ready) + Tische
+        const supply = {};
+        for (const bed of beds) {
+            if ((bed.state === 'growing' || bed.state === 'ready') && bed.plantedVariety) {
+                supply[bed.plantedVariety.id] = (supply[bed.plantedVariety.id] || 0) + 1;
+            }
+        }
+        for (const st of storages) {
+            for (const item of st.slots) {
+                if (item && item.id && item.id.startsWith('plant_')) {
+                    supply[item.variety] = (supply[item.variety] || 0) + 1;
+                }
+            }
+        }
+
+        // Unterwegs pro Sorte: geclaimte buy_seed-Jobs + getragene Samen
+        const pending = {};
+        for (const k of this.claims.keys()) {
+            const m = k.match(/^buy_seed:buy_seed_([a-z]+)_/);
+            if (m) pending[m[1]] = (pending[m[1]] || 0) + 1;
+        }
+        for (const e of (scene.employees || [])) {
+            const it = e.carriedItem?.itemDef;
+            if (it && it.id && it.id.startsWith('seed_')) {
+                pending[it.variety] = (pending[it.variety] || 0) + 1;
+            }
+        }
+
+        for (const terminal of terminals) {
+            const v = terminal.variety;
+            const pend = pending[v.id] || 0;
+            const compatibleBeds = emptyBeds.filter(b => b.canPlant(v)).length;
+
+            // Nicht mehr Samen kaufen als Beete sie aufnehmen können
+            if (compatibleBeds <= pend) continue;
+
+            const deficit = (demand[v.id] || 0) - (supply[v.id] || 0) - pend;
+
+            let priority;
+            if (deficit > 0) {
+                // Bedarf decken: knapp unter harvest (3), über allem anderen.
+                // Größeres Defizit = minimal höher.
+                if (!scene.state.canAfford(v.seedCost)) continue;
+                priority = 2 + Math.min(deficit, 5) * 0.1;
+            } else {
+                // Ausgleich: nur mit Geld-Puffer (3x Samenpreis), damit teure
+                // Sorten nicht das Konto leeren. Weniger Vorrat = höhere Prio.
+                if (!scene.state.canAfford(v.seedCost * 3)) continue;
+                priority = -((supply[v.id] || 0) + pend) * 0.01;
+            }
+
+            jobs.push({
+                type: 'buy_seed',
+                target: terminal,
+                targetId: `buy_seed_${v.id}_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
+                priority,
+            });
         }
 
         // Ablegen: freie Storage-Tische (nur relevant wenn Angestellter Item trägt)
