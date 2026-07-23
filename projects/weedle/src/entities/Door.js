@@ -13,8 +13,8 @@ export default class Door {
         this.gridY = ISO.GRID_SIZE; // an der vorderen Kante
 
         // Zwei Posten als Türrahmen
-        const left  = gridToIso(this.gridX - 0.5, this.gridY, scene.originX, scene.originY);
-        const right = gridToIso(this.gridX + 0.5, this.gridY, scene.originX, scene.originY);
+        const left  = gridToIso(this.gridX, this.gridY, scene.originX, scene.originY);
+        const right = gridToIso(this.gridX + 1, this.gridY, scene.originX, scene.originY);
 
         const g = scene.add.graphics();
         g.setDepth(99999); // wie Vorderwand-Bereich
