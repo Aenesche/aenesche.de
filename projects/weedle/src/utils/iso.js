@@ -30,49 +30,70 @@ export function isoCenterToGrid(px, py, originX = 0, originY = 0) {
     const grid = isoToGrid(px, py, originX, originY);
     return { x: grid.x - 0.5, y: grid.y - 0.5 };
 }
-export function drawIsoTile(g, x, y, size, fillHex, fillAlpha, strokeAlpha) {
+// --- Zeichen-Helfer ---
+//
+// WICHTIG: Phaser Graphics braucht fillStyle/lineStyle VOR beginPath(), und
+// Fill und Stroke brauchen jeweils einen EIGENEN Pfad. Werden die Styles
+// nachträglich gesetzt oder ein Pfad für beides benutzt, fallen Outlines
+// sporadisch weg (je nach Batching-Reihenfolge). Deshalb hier strikt getrennt.
+
+function polyPath(g, pts) {
     g.beginPath();
-    g.moveTo(x, y);
-    g.lineTo(x + size, y + size / 2);
-    g.lineTo(x, y + size);
-    g.lineTo(x - size, y + size / 2);
+    g.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) g.lineTo(pts[i][0], pts[i][1]);
     g.closePath();
-    if (fillAlpha > 0) {
-        g.fillStyle(fillHex, fillAlpha);
-        g.fillPath();
-    }
-    if (strokeAlpha > 0) {
-        g.lineStyle(1, fillHex, strokeAlpha);
-        g.strokePath();
-    }
 }
 
-// Würfel auf einem Iso-Tile. (x, y) ist die obere Diamond-Ecke des Tiles am Boden.
-// Zeichnet rechte Seite, linke Seite und Deckel.
+export function fillPoly(g, pts, color, alpha) {
+    if (alpha <= 0) return;
+    g.fillStyle(color, alpha);
+    polyPath(g, pts);
+    g.fillPath();
+}
+
+export function strokePoly(g, pts, color, alpha, width = 1) {
+    if (alpha <= 0) return;
+    g.lineStyle(width, color, alpha);
+    polyPath(g, pts);
+    g.strokePath();
+}
+
+// Diamant-Tile. (x, y) ist die obere Spitze.
+export function drawIsoTile(g, x, y, size, fillHex, fillAlpha, strokeAlpha, strokeWidth = 1) {
+    const pts = [
+        [x, y],
+        [x + size, y + size / 2],
+        [x, y + size],
+        [x - size, y + size / 2],
+    ];
+    fillPoly(g, pts, fillHex, fillAlpha);
+    strokePoly(g, pts, fillHex, strokeAlpha, strokeWidth);
+}
+
+// Würfel auf einem Iso-Tile. (x, y) ist die obere Diamond-Spitze am Boden.
 export function drawIsoCube(g, x, y, size, height, color, topAlpha, sideAlpha) {
-    // Rechte Seite
-    g.fillStyle(color, sideAlpha * 0.6);
-    g.beginPath();
-    g.moveTo(x, y + size);
-    g.lineTo(x + size, y + size / 2);
-    g.lineTo(x + size, y + size / 2 - height);
-    g.lineTo(x, y + size - height);
-    g.closePath();
-    g.fillPath();
-    g.lineStyle(1, color, 1);
-    g.strokePath();
+    const half = size / 2;
 
-    // Linke Seite
-    g.fillStyle(color, sideAlpha);
-    g.beginPath();
-    g.moveTo(x, y + size);
-    g.lineTo(x - size, y + size / 2);
-    g.lineTo(x - size, y + size / 2 - height);
-    g.lineTo(x, y + size - height);
-    g.closePath();
-    g.fillPath();
-    g.strokePath();
+    const rightFace = [
+        [x, y + size],
+        [x + size, y + half],
+        [x + size, y + half - height],
+        [x, y + size - height],
+    ];
+    const leftFace = [
+        [x, y + size],
+        [x - size, y + half],
+        [x - size, y + half - height],
+        [x, y + size - height],
+    ];
 
-    // Deckel
-    drawIsoTile(g, x, y - height, size, color, topAlpha, 1);
+    // Erst alle Flächen füllen, dann alle Konturen ziehen — so überdeckt
+    // kein späterer Fill eine schon gezeichnete Linie.
+    fillPoly(g, rightFace, color, sideAlpha * 0.6);
+    fillPoly(g, leftFace, color, sideAlpha);
+    drawIsoTile(g, x, y - height, size, color, topAlpha, 0);
+
+    strokePoly(g, rightFace, color, 1);
+    strokePoly(g, leftFace, color, 1);
+    drawIsoTile(g, x, y - height, size, color, 0, 1);
 }
