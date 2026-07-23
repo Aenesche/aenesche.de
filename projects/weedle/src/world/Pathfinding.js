@@ -47,6 +47,8 @@ export function findPath(collision, start, goal) {
             if (nx < -2 || nx >= N + 10 || ny < -2 || ny >= N + 10) continue;
             if (closed.has(key(nx, ny))) continue;
             if (!collision.isWalkable(nx, ny)) continue;
+            // Wandlinien blockieren den Schritt (z.B. Gebäudefront außer Tür)
+            if (collision.canCross && !collision.canCross(current.x, current.y, nx, ny)) continue;
 
             // Diagonale: nicht durch Ecken zwischen zwei Wänden cutten
             if (dx !== 0 && dy !== 0) {
