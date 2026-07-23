@@ -1,30 +1,40 @@
 // CollisionGrid: Single Source of Truth für Begehbarkeit.
 //
-// Drei Zonen:
-//   1. Innenraum (0..N-1): frei, außer Stationen blocken
-//   2. Wand-Reihe (y === N): NUR das Tür-Tile ist offen — die untere linke
-//      Wand ist damit überall sonst dicht
-//   3. Straße/Gehweg (y = N+1 .. N+STREET_DEPTH): frei begehbar (auch für
-//      den Player — zum Mülleimer laufen), Stationen draußen blocken
+// Modell:
+//   - Begehbare FLÄCHE: Innenraum (0..N-1) + Außenbereich (Straße/Gehweg)
+//   - Wände sind LINIEN auf Tile-Grenzen, keine Tile-Reihen:
+//       · vordere linke Wand  = Linie y = N  (Tür-Lücke bei DOOR.GRID_X)
+//       · vordere rechte Wand = Linie x = N  (dicht)
+//     Die hinteren Wände sind schlicht der Rand des Innenraums.
+//   - Stationen blocken ihr Tile (innen wie außen, z.B. Mülleimer).
 //
-// Passanten IGNORIEREN dieses Grid komplett (laufen auf festen Pfaden).
+// Zwei Prüf-Ebenen:
+//   isWalkable(x,y)  → Tile frei? (Pathfinding + Grobprüfung)
+//   canCross(a→b)    → Wandlinie zwischen zwei Tiles? (Pathfinding)
+//   canStandAt(x,y)  → Player-Footprint frei UND nicht in einer Wandlinie?
 
 import { ISO, DOOR } from '../config/constants.js';
 
-const STREET_DEPTH = 5;   // wie weit man nach draußen laufen kann (Tiles)
-const STREET_MARGIN = 2;  // seitlicher Spielraum links/rechts vom Grid
+const N = ISO.GRID_SIZE;
+
+// Außenbereich: wie weit man ums Gebäude / auf der Straße laufen darf
+const OUT_MIN_X = -2;
+const OUT_MAX_X = N + 2;
+const OUT_MAX_Y = N + 5;
+
+// Halbe Dicke der Wandlinien in Grid-Einheiten.
+// Groß genug, dass niemand bei hohem Tempo durchtunnelt.
+const WALL_HALF = 0.25;
 
 export default class CollisionGrid {
     constructor() {
-        const N = ISO.GRID_SIZE;
         this.walkable = Array.from({ length: N }, () => new Array(N).fill(true));
-        this.blockedOutside = new Set(); // Stationen außerhalb (z.B. Mülleimer)
+        this.blockedOutside = new Set();
     }
 
     key(x, y) { return `${x},${y}`; }
 
     block(gridX, gridY) {
-        const N = ISO.GRID_SIZE;
         const x = Math.floor(gridX);
         const y = Math.floor(gridY);
         if (x >= 0 && x < N && y >= 0 && y < N) {
@@ -34,34 +44,58 @@ export default class CollisionGrid {
         }
     }
 
+    // Tile-Ebene: im Spielbereich und frei?
     isWalkable(gridX, gridY) {
-        const N = ISO.GRID_SIZE;
         const x = Math.floor(gridX);
         const y = Math.floor(gridY);
 
-        // Innenraum
         if (x >= 0 && x < N && y >= 0 && y < N) {
             return this.walkable[x][y];
         }
-
-        // Wand-Reihe: nur die Tür ist offen
-        if (y === N) {
-            return x === DOOR.GRID_X && !this.blockedOutside.has(this.key(x, y));
-        }
-
-        // Straße + Gehweg
-        if (y > N && y <= N + STREET_DEPTH
-            && x >= -STREET_MARGIN && x <= N + STREET_MARGIN) {
+        // Außenbereich: alles ab der Wandlinie y=N nach unten
+        if (y >= N && y <= OUT_MAX_Y && x >= OUT_MIN_X && x <= OUT_MAX_X) {
             return !this.blockedOutside.has(this.key(x, y));
         }
-
         return false;
     }
 
+    // Kanten-Ebene für Pathfinding: kreuzt der Schritt eine Wandlinie?
+    canCross(x1, y1, x2, y2) {
+        // Vordere linke Wand auf der Linie y = N
+        if (Math.min(y1, y2) === N - 1 && Math.max(y1, y2) === N) {
+            if (x1 !== x2) return false;        // diagonal durch die Wand: nie
+            return x1 === DOOR.GRID_X;          // nur durch die Tür
+        }
+        // Vordere rechte Wand auf der Linie x = N
+        if (Math.min(x1, x2) === N - 1 && Math.max(x1, x2) === N) return false;
+        return true;
+    }
+
+    // Liegt ein Punkt in einer Wandlinie?
+    inWallLine(gx, gy) {
+        // Linie y = N, nur entlang der Gebäudefront (x zwischen 0 und N)
+        if (Math.abs(gy - N) < WALL_HALF && gx >= 0 && gx <= N) {
+            const inDoor = gx >= DOOR.GRID_X && gx <= DOOR.GRID_X + 1;
+            if (!inDoor) return true;
+        }
+        // Linie x = N, nur entlang der Gebäudeseite (y zwischen 0 und N)
+        if (Math.abs(gx - N) < WALL_HALF && gy >= 0 && gy <= N) return true;
+        return false;
+    }
+
+    // Punkt-Ebene: 4 Footprint-Ecken frei und keine Wandlinie berührt
     canStandAt(gridX, gridY, margin = 0.3) {
-        return this.isWalkable(gridX - margin, gridY - margin)
-            && this.isWalkable(gridX + margin, gridY - margin)
-            && this.isWalkable(gridX - margin, gridY + margin)
-            && this.isWalkable(gridX + margin, gridY + margin);
+        const corners = [
+            [gridX - margin, gridY - margin],
+            [gridX + margin, gridY - margin],
+            [gridX - margin, gridY + margin],
+            [gridX + margin, gridY + margin],
+        ];
+        for (const [cx, cy] of corners) {
+            if (!this.isWalkable(cx, cy)) return false;
+            if (this.inWallLine(cx, cy)) return false;
+        }
+        // Zusätzlich das Zentrum prüfen (schmale Wand exakt mittig treffen)
+        return !this.inWallLine(gridX, gridY);
     }
 }
