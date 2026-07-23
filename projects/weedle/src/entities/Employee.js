@@ -290,9 +290,15 @@ export default class Employee {
                 break;
 
             case 'clear_rotten':
-                if (job.target.state === 'rotten') {
+                // Verfaulte Pflanze AUFHEBEN (nicht löschen) — wird danach
+                // wie jedes Item auf einem freien Tisch abgelegt und muss
+                // vom Player entsorgt werden.
+                if (job.target.state === 'rotten' && !this.hasItem()) {
+                    const rotten = new CarriedItem(this.scene, ITEMS.ROTTEN);
+                    this.pickUp(rotten);
                     job.target.state = 'empty';
                     job.target.stateTime = 0;
+                    job.target.plantedVariety = null;
                     job.target.plantGfx.clear();
                 }
                 break;
