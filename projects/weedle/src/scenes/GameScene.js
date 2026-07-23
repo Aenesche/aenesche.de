@@ -26,6 +26,7 @@ import HiringStation from '../entities/stations/HiringStation.js';
 import TrashCan from '../entities/stations/TrashCan.js';
 import GoalTracker from '../world/GoalTracker.js';
 import { SaveManager } from '../storage/SaveManager.js';
+import PedestrianManager from '../world/Pedestrians.js';
 import { saveProgress, addUnlocks } from '../net/supabase.js';
 
 const STATION_CLASSES = {
@@ -100,6 +101,7 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
+        this.pedestrians = new PedestrianManager(this);
         this.CustomerClass = Customer;
         this.customers = null;
         this.tryInitCustomers();
@@ -295,6 +297,7 @@ export default class GameScene extends Phaser.Scene {
         this.walls.forEach(w => w.updateOcclusion(px, py));
         this.player.updateOcclusion(this.stations);
 
+        this.pedestrians.update(delta);
         if (this.customers) this.customers.update(delta);
         this.interaction.update(delta);
         this.upgrades.update();
@@ -404,15 +407,31 @@ export default class GameScene extends Phaser.Scene {
         return gridToIsoCenter(this.door.gridX, this.door.gridY + 1, this.originX, this.originY);
     }
 
+    // Boden als TEXTUR statt Live-Graphics: umgeht Phaser-Graphics-Batching-Bugs
+    // (Grid verschwand sporadisch) und rendert schneller.
     drawGrid() {
-        const g = this.add.graphics();
-        g.setDepth(-2000);
-        g.lineStyle(1, COLORS.GRID, 0.5);
-        for (let x = 0; x <= ISO.GRID_SIZE; x++) {
-            for (let y = 0; y <= ISO.GRID_SIZE; y++) {
-                const pos = gridToIso(x, y, this.originX, this.originY);
-                drawIsoTile(g, pos.x, pos.y, ISO.TILE_SIZE, COLORS.GRID, 0, 0.5);
+        const N = ISO.GRID_SIZE, T = ISO.TILE_SIZE;
+        const key = 'floorGrid';
+        if (this.textures.exists(key)) this.textures.remove(key);
+
+        // Bounding-Box des Grids: Diamonds ragen ±T um ihre Spitze
+        const offX = (N + 1) * T + 2;
+        const w = 2 * (N + 1) * T + 4;
+        const h = (N + 1) * T + 4;
+
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        for (let x = 0; x <= N; x++) {
+            for (let y = 0; y <= N; y++) {
+                const px = offX + (x - y) * T;
+                const py = 2 + (x + y) * (T / 2);
+                drawIsoTile(g, px, py, T, COLORS.GRID, 0, 0.5);
             }
         }
+        g.generateTexture(key, w, h);
+        g.destroy();
+
+        this.add.image(this.originX - offX, this.originY - 2, key)
+            .setOrigin(0, 0)
+            .setDepth(-2000);
     }
 }
