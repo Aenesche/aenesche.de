@@ -54,8 +54,17 @@ export function fillPoly(g, pts, color, alpha) {
 export function strokePoly(g, pts, color, alpha, width = 1) {
     if (alpha <= 0) return;
     g.lineStyle(width, color, alpha);
-    polyPath(g, pts);
-    g.strokePath();
+    // Jede Kante als EIGENER Pfad. closePath()+strokePath() lässt in Phaser
+    // je nach Batching-Zustand sporadisch die Schlusskante weg — deshalb hier
+    // bewusst Kante für Kante, das kann nicht fehlschlagen.
+    for (let i = 0; i < pts.length; i++) {
+        const a = pts[i];
+        const b = pts[(i + 1) % pts.length];
+        g.beginPath();
+        g.moveTo(a[0], a[1]);
+        g.lineTo(b[0], b[1]);
+        g.strokePath();
+    }
 }
 
 // Diamant-Tile. (x, y) ist die obere Spitze.
