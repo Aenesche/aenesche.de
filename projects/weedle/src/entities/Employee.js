@@ -361,26 +361,26 @@ export default class Employee {
         this.state = 'idle';
         this.idleCooldown = 500;
 
-        // Item loswerden: auf nächsten freien Tisch legen oder droppen
+        // Getragenes Item auf einem freien Tisch abladen.
+        // WICHTIG: Ist gerade kein Tisch frei, wird das Item NICHT zerstört —
+        // der Angestellte behält es und wartet, bis wieder Platz ist.
+        // (Teure Samen/Pflanzen dürfen niemals verloren gehen.)
         if (this.hasItem()) {
             const storages = this.scene.stations.filter(s => s.constructor.name === 'StorageTable');
             const free = storages.find(s => s.freeSlots > 0);
             if (free) {
-                // Neuen Store-Job claimen und hinlaufen
                 const job = {
                     type: 'store_item',
                     target: free,
-                    targetId: `store_${free.gridX}_${free.gridY}_recovery`,
+                    targetId: `store_${free.gridX}_${free.gridY}`,
                     priority: 10,
                 };
                 if (this.scene.jobBoard.claim(job, this)) {
                     this.currentJob = job;
                     this.walkToTarget(job);
-                    return;
                 }
             }
-            // Kein freier Tisch: Item einfach zerstören (Notfall)
-            this.dropItem();
+            // Sonst: mit Item in der Hand idle bleiben und es später erneut versuchen
         }
     }
 
