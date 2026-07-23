@@ -60,14 +60,21 @@ export default class CollisionGrid {
     }
 
     // Kanten-Ebene für Pathfinding: kreuzt der Schritt eine Wandlinie?
+    // Wichtig: Wände haben eine begrenzte LÄNGE — außerhalb der Gebäudekante
+    // (z.B. auf der Straße) darf frei gequert werden.
     canCross(x1, y1, x2, y2) {
-        // Vordere linke Wand auf der Linie y = N
+        // Vordere linke Wand: Linie y = N, nur über die Gebäudefront (x = 0..N-1)
         if (Math.min(y1, y2) === N - 1 && Math.max(y1, y2) === N) {
+            const inFront = (x1 >= 0 && x1 <= N - 1) || (x2 >= 0 && x2 <= N - 1);
+            if (!inFront) return true;
             if (x1 !== x2) return false;        // diagonal durch die Wand: nie
             return x1 === DOOR.GRID_X;          // nur durch die Tür
         }
-        // Vordere rechte Wand auf der Linie x = N
-        if (Math.min(x1, x2) === N - 1 && Math.max(x1, x2) === N) return false;
+        // Vordere rechte Wand: Linie x = N, nur über die Gebäudeseite (y = 0..N-1)
+        if (Math.min(x1, x2) === N - 1 && Math.max(x1, x2) === N) {
+            const inSide = (y1 >= 0 && y1 <= N - 1) || (y2 >= 0 && y2 <= N - 1);
+            return !inSide;
+        }
         return true;
     }
 
