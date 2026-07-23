@@ -40,7 +40,7 @@ export default class Customer {
         this.timer = new PieTimer(scene, COLORS.TIMER_RAGE);
     }
 
-    setPath(path) { this.path = path; this.pathIndex = 0; }
+    setPath(path) { this.path = path; this.pathIndex = 0; this.restX = null; this.restY = null; }
     get x() { return this.container.x; }
     get y() { return this.container.y; }
     get gridPos() {
@@ -81,6 +81,12 @@ export default class Customer {
             this.bubbleGfx.clear();
         }
 
+        // Nach dem Anrempeln sanft zur Ruheposition zurückdriften
+        if ((this.state === 'queueing' || this.state === 'waiting') && this.restX != null) {
+            this.container.x += (this.restX - this.container.x) * 0.07;
+            this.container.y += (this.restY - this.container.y) * 0.07;
+        }
+
         this.container.setDepth(this.container.y);
     }
 
@@ -108,6 +114,10 @@ export default class Customer {
     onPathComplete() {
         if (this.state === 'walking_in') {
             this.state = 'queueing';
+            // Ruheposition merken: wird der Kunde vom Player angerempelt,
+            // driftet er hierher zurück statt aus der Schlange zu fallen.
+            this.restX = this.container.x;
+            this.restY = this.container.y;
         } else if (this.state === 'leaving' || this.state === 'rage_leaving') {
             this.state = 'done';
         }
