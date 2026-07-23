@@ -48,7 +48,6 @@ export default class CustomerManager {
 
         this.updateRageFlags();
 
-        const before = this.customers.length;
         this.customers = this.customers.filter(c => {
             if (c.state === 'done') {
                 c.destroy();
@@ -56,7 +55,14 @@ export default class CustomerManager {
             }
             return true;
         });
-        if (this.customers.length !== before) {
+
+        // Nachrücken sobald jemand die Schlange VERLÄSST (served/leaving) —
+        // nicht erst wenn er off-screen despawnt. Fingerprint = wer wartet wo.
+        const fingerprint = this.customers
+            .filter(c => c.state === 'walking_in' || c.state === 'queueing' || c.state === 'waiting')
+            .length + '|' + registers.length;
+        if (fingerprint !== this._queueFingerprint) {
+            this._queueFingerprint = fingerprint;
             this.reassignQueue(registers);
         }
     }
@@ -114,8 +120,10 @@ export default class CustomerManager {
         const { register, slotIndex, isOutside } = assignment;
         const target = this.getSlotPosition(register, slotIndex, isOutside);
 
-        // Innen-Pfad: von direkt hinter der Tür zum Slot
-        const innerPath = findPath(this.collision, { x: this.door.gridX, y: N - 1 }, target);
+        // A* ab dem Rand des begehbaren Bereichs: läuft den Gehweg entlang,
+        // weicht dem Mülleimer aus, geht durch die Tür und stellt sich an.
+        const edgeX = fromLeft ? -2 : N + 2;
+        const innerPath = findPath(this.collision, { x: edgeX, y: sidewalkY }, target);
         if (!innerPath) return;
 
         const order = this.generateOrder();
@@ -124,15 +132,8 @@ export default class CustomerManager {
         c.queueIndex = slotIndex;
         c.isOutside = isOutside;
 
-        // Voller Weg: off-screen → Gehweg entlang → Tür → innen zum Slot
-        const fullPath = [
-            { x: spawnX, y: sidewalkY },
-            { x: this.door.gridX, y: sidewalkY },
-            { x: this.door.gridX, y: N },
-            { x: this.door.gridX, y: N - 1 },
-            ...innerPath,
-        ];
-        c.setPath(fullPath);
+        // Voller Weg: off-screen → Rand → (A*) Gehweg/Tür/innen → Slot
+        c.setPath([{ x: spawnX, y: sidewalkY }, ...innerPath]);
         this.customers.push(c);
     }
 
@@ -291,16 +292,16 @@ export default class CustomerManager {
     sendToExit(customer) {
         const N = this.door.gridY;
         const sidewalkY = N + 1;
-        const exitX = Math.random() < 0.5 ? -6 : N + 6;
+        const toLeft = Math.random() < 0.5;
+        const edgeX = toLeft ? -2 : N + 2;
+        const offX = toLeft ? -6 : N + 6;
 
+        // A* bis zum Rand (durch die Tür, um den Mülleimer herum),
+        // dann gerade Linie off-screen.
         const from = customer.gridPos;
-        const path = findPath(this.collision, from, { x: this.door.gridX, y: N - 1 });
+        const path = findPath(this.collision, from, { x: edgeX, y: sidewalkY });
         if (path) {
-            path.push(
-                { x: this.door.gridX, y: N },
-                { x: this.door.gridX, y: sidewalkY },
-                { x: exitX, y: sidewalkY },
-            );
+            path.push({ x: offX, y: sidewalkY });
             customer.setPath(path);
         } else {
             customer.state = 'done';
