@@ -299,6 +299,7 @@ export default class GameScene extends Phaser.Scene {
         this.interaction.update(delta);
         this.upgrades.update();
         this.employees.forEach(e => e.update(delta, this.jobBoard));
+        this.applySoftPush();
 
         // Ziel-Tracking
         this.goals.tick(delta);
@@ -393,6 +394,47 @@ export default class GameScene extends Phaser.Scene {
         if (this.levelOver) return;
         SaveManager.autosave(this, this.user?.id, true);
         this.scene.start('LevelSelect', { user: this.user });
+    }
+
+    // Sanftes "Force-Field" um den Player: Kunden und Angestellte werden
+    // beim Durchlaufen ein Stück beiseite geschoben, statt dass man durch sie
+    // hindurchgeht. NPCs auf einem Pfad korrigieren sich danach von selbst,
+    // wartende Kunden driften zu ihrer Ruheposition zurück.
+    applySoftPush() {
+        const RADIUS = 26;      // Screen-Pixel bis zur Berührung
+        const STRENGTH = 0.35;  // wie hart geschoben wird
+
+        const targets = [
+            ...this.employees,
+            ...(this.customers ? this.customers.customers : []),
+        ];
+
+        const px = this.player.x;
+        const py = this.player.y;
+
+        for (const t of targets) {
+            const c = t.container;
+            if (!c) continue;
+
+            const dx = c.x - px;
+            // Iso: die y-Achse ist auf dem Schirm halb so hoch → für einen
+            // runden Wirkungsbereich in Weltkoordinaten hochskalieren.
+            const dy = (c.y - py) * 2;
+            const dist = Math.hypot(dx, dy);
+            if (dist >= RADIUS || dist < 0.001) continue;
+
+            const push = (RADIUS - dist) * STRENGTH;
+            const nx = c.x + (dx / dist) * push;
+            const ny = c.y + (dy / dist) * push * 0.5;
+
+            // Nicht in Wände oder Stationen schieben
+            const g = isoCenterToGrid(nx, ny, this.originX, this.originY);
+            if (this.collision.canStandAt(g.x, g.y, 0.2)) {
+                c.x = nx;
+                c.y = ny;
+                c.setDepth(c.y);
+            }
+        }
     }
 
     canMoveTo(screenX, screenY) {
