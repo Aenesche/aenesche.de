@@ -26,7 +26,6 @@ import HiringStation from '../entities/stations/HiringStation.js';
 import TrashCan from '../entities/stations/TrashCan.js';
 import GoalTracker from '../world/GoalTracker.js';
 import { SaveManager } from '../storage/SaveManager.js';
-import PedestrianManager from '../world/Pedestrians.js';
 import { saveProgress, addUnlocks } from '../net/supabase.js';
 
 const STATION_CLASSES = {
@@ -101,7 +100,6 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
-        this.pedestrians = new PedestrianManager(this);
         this.CustomerClass = Customer;
         this.customers = null;
         this.tryInitCustomers();
@@ -297,7 +295,6 @@ export default class GameScene extends Phaser.Scene {
         this.walls.forEach(w => w.updateOcclusion(px, py));
         this.player.updateOcclusion(this.stations);
 
-        this.pedestrians.update(delta);
         if (this.customers) this.customers.update(delta);
         this.interaction.update(delta);
         this.upgrades.update();
