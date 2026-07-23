@@ -22,8 +22,8 @@ export function createOuterWalls(scene, originX, originY) {
     // Die Tür liegt bei gridX = DOOR.GRID_X auf y = N.
     // Das ist auf der Wand, die von LEFT(0,N) nach BOTTOM(N,N) läuft.
     // Dort müssen wir eine Lücke einbauen.
-    const doorBefore = gridToIso(DOOR.GRID_X - 0.5, N, originX, originY);
-    const doorAfter  = gridToIso(DOOR.GRID_X + 0.5, N, originX, originY);
+    const doorBefore = gridToIso(DOOR.GRID_X, N, originX, originY);
+    const doorAfter  = gridToIso(DOOR.GRID_X + 1, N, originX, originY);
 
     return [
         // Hintere Wände (unverändert)
