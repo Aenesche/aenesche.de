@@ -350,8 +350,8 @@ class AudioManager {
             // Snare (soft) auf Schlag 4 & 11.
             const STEPS = 12;
             const step = dur / STEPS;
-            const kicks = [0, 7];
-            const snares = [4, 11];
+            const kicks = [0, 6];
+            const snares = [3, 9];
             for (let i = 0; i < STEPS; i++) {
                 const accent = (kicks.includes(i) || snares.includes(i)) ? 1 : 0.6;
                 this._hihat(i * step, accent, false);
