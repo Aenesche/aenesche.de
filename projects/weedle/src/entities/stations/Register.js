@@ -1,6 +1,7 @@
 import Station from './Station.js';
 import { COLORS, ISO, ITEMS } from '../../config/constants.js';
 import { drawIsoCube } from '../../utils/iso.js';
+import { Audio } from '../../audio/AudioManager.js';
 
 const TABLE_HEIGHT = 15;
 
@@ -74,6 +75,7 @@ export default class Register extends Station {
                     const dropped = player.dropItem();
                     if (dropped && customer.receiveItem(itemDef)) {
                         state.earn(price);
+                        Audio.play('sell');
                         this.scene.reportSale?.(itemDef.variety, price);
                         if (customer.order.length === 0) {
                             customerManager.onCustomerServed(customer);
