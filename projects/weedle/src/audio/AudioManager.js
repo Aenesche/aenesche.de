@@ -96,6 +96,7 @@ class AudioManager {
         this._song = null;
         this._chordIndex = 0;
         this._chordsUntilSwitch = 0;
+        this._nextChordTime = null;
     }
 
     // Wird beim ersten User-Input aufgerufen
@@ -277,6 +278,7 @@ class AudioManager {
         } while (VARIANTS.length > 1 && next === this._song);
         this._song = next;
         this._chordIndex = 0;
+        this._nextChordTime = null; // Uhr neu ankern
         // 2–4 komplette Durchläufe, dann Songwechsel
         const loops = 2 + Math.floor(Math.random() * 3);
         this._chordsUntilSwitch = this._song.chords.length * loops;
@@ -291,7 +293,14 @@ class AudioManager {
         const beat = 60 / song.bpm;      // Sekunden pro Schlag
         const dur = beat * 8;            // 2 Takte = 8 Schläge
         const chord = song.chords[this._chordIndex % song.chords.length];
-        const t0 = this.ctx.currentTime;
+
+        // Präzise Musik-Uhr: der erste Akkord ankert leicht in der Zukunft,
+        // jeder weitere exakt +dur — unabhängig davon, wann setTimeout feuert.
+        // (setTimeout ist ungenau; ohne das driften Drums von den Akkorden weg.)
+        if (this._nextChordTime == null || this._nextChordTime < this.ctx.currentTime) {
+            this._nextChordTime = this.ctx.currentTime + 0.08;
+        }
+        const t0 = this._nextChordTime;
 
         // Fade-Zustand: letzter Akkord des Songs → ausblenden
         const isLast = this._chordsUntilSwitch <= 1;
@@ -361,18 +370,23 @@ class AudioManager {
                          delay: Math.random() * dur, dest: this.musicFade });
         }
 
-        // Nächsten Akkord planen
+        // Nächste Akkordzeit exakt fortschreiben (kein Drift)
+        this._nextChordTime = t0 + dur;
         this._chordIndex++;
         this._chordsUntilSwitch--;
+
+        // Timer bewusst ~60ms früher wecken als der Akkord tatsächlich fällig
+        // ist; _scheduleChord planscht dann präzise auf _nextChordTime.
+        const wake = Math.max(0, (this._nextChordTime - this.ctx.currentTime - 0.06) * 1000);
+
         if (this._chordsUntilSwitch <= 0) {
-            // Song ist aus → nächsten wählen, nahtlos weiter
             this._musicTimer = setTimeout(() => {
                 if (!this.musicPlaying) return;
                 this._pickSong();
                 this._scheduleChord();
-            }, dur * 1000);
+            }, wake);
         } else {
-            this._musicTimer = setTimeout(() => this._scheduleChord(), dur * 1000);
+            this._musicTimer = setTimeout(() => this._scheduleChord(), wake);
         }
     }
 
