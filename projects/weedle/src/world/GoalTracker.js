@@ -89,6 +89,7 @@ export default class GoalTracker {
 
     // 1..3 Sterne bei Abschluss
     calcStars(scene) {
+        if (this.config.timeLimitMs == null) return 0; // Freeplay: keine Sterne
         const inTime = this.elapsedMs <= this.config.timeLimitMs;
         if (!inTime) return 1;
         const allQuests = this.config.quests.every(q => this.questDone(q, scene));
