@@ -2,6 +2,7 @@ import Station from './Station.js';
 import { COLORS, ISO, SEED_VARIETIES, ITEMS, UPGRADES } from '../../config/constants.js';
 import { drawIsoCube } from '../../utils/iso.js';
 import CarriedItem from '../CarriedItem.js';
+import { Audio } from '../../audio/AudioManager.js';
 
 const HEIGHT = 30;
 
@@ -52,6 +53,7 @@ export default class SeedTerminal extends Station {
                 if (!state.spend(this.variety.seedCost)) return;
                 const seed = new CarriedItem(this.scene, seedItem);
                 player.pickUp(seed);
+                Audio.play('buy');
             },
         };
     }
