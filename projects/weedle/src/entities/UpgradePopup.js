@@ -4,6 +4,7 @@
 // Q schließt das Popup wieder. Wegbewegen schließt automatisch.
 
 import { UPGRADES, EMPLOYEE } from '../config/constants.js';
+import { Audio } from '../audio/AudioManager.js';
 
 export default class UpgradePopup {
     constructor(scene) {
@@ -121,7 +122,7 @@ export default class UpgradePopup {
         // Layout: Höhe abhängig von Zweigen
         const lineH = 16;
         const h = 30 + branches.length * lineH + 18;
-        const w = 300;
+        const w = 240;
         const topY = -h + 10;
 
         this.titleText.setPosition(0, topY + 6);
@@ -163,6 +164,7 @@ export default class UpgradePopup {
         if (!this.scene.state.spend(price)) return;
 
         this.station[levelKey] = level + 1;
+        Audio.play('upgrade');
         this.scene.goals?.onUpgrade(this.station.constructor.name, this.station[levelKey]);
 
         // Spezialfall: HiringStation-Speed ist global
