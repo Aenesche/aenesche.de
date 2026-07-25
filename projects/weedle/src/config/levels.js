@@ -65,7 +65,7 @@ export const LEVELS = [
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
             { id: 'no_rot', label: 'Keine Pflanze verfaulen lassen', kind: 'noRotten' },
         ],
-        timeLimitMs: 9 * 60 * 1000,
+        timeLimitMs: 5 * 60 * 1000,
         unlocks: [],
     },
     {
