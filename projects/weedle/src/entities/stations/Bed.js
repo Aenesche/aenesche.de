@@ -3,6 +3,7 @@ import { COLORS, ISO, ITEMS, SEED_VARIETIES, GROWTH, UPGRADES } from '../../conf
 import { drawIsoTile, drawIsoCube } from '../../utils/iso.js';
 import CarriedItem from '../CarriedItem.js';
 import PieTimer from '../PieTimer.js';
+import { Audio } from '../../audio/AudioManager.js';
 
 const HEIGHT = 15;
 
@@ -129,6 +130,7 @@ export default class Bed extends Station {
                 onComplete: () => {
                     const plant = new CarriedItem(this.scene, plantItem);
                     player.pickUp(plant);
+                    Audio.play('harvest');
                     this.state = 'empty';
                     this.stateTime = 0;
                     this.plantedVariety = null;
@@ -145,6 +147,7 @@ export default class Bed extends Station {
                 onComplete: () => {
                     const rotten = new CarriedItem(this.scene, ITEMS.ROTTEN);
                     player.pickUp(rotten);
+                    Audio.play('pickup');
                     this.state = 'empty';
                     this.stateTime = 0;
                     this.plantedVariety = null;
