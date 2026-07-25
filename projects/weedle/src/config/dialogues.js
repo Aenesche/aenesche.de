@@ -44,7 +44,7 @@ export const DIALOGUES = {
     ],
     8: [
         { text: 'Kush. Das Zeug, mit dem ich damals angefangen habe. Gute Zeiten.' },
-        { text: 'Zweitausend Euro, sobrino. Und halt die Kunden bei Laune.. Ruf ist alles.' },
+        { text: 'Zweitausend Euro, sobrino. Und halt die Kunden bei Laune — Ruf ist alles.' },
     ],
     9: [
         { text: 'Crystal. Teuer im Einkauf, sehr teuer im Verkauf. Kalkulier gut.' },
@@ -56,6 +56,12 @@ export const DIALOGUES = {
         { text: 'Mach es fertig. Und dann rufst du deinen Tío an, ¿entiendes?' },
     ],
 };
+
+DIALOGUES.freeplay = [
+    { text: 'Du hast es geschafft, sobrino. Alles freigeschaltet, alles gelernt.' },
+    { text: 'Jetzt gehört dir die Zeit. Kein Ziel, keine Uhr.. nur du und dein Laden.' },
+    { text: 'Fang klein an, 99 Euro. Und bau etwas, auf das dein Tío stolz ist. ¡Tranquilo!' },
+];
 
 export function getDialogue(levelId) {
     return DIALOGUES[levelId] || null;
