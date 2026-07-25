@@ -336,16 +336,20 @@ class AudioManager {
             this._kick(0);
             this._kick(4 * beat);
         } else if (song.drums === 'plain') {
-            // 6/8-Feel: zwei Gruppen à 3 Schläge, gerade (kein Swing).
-            // Bass/Kick auf die 1 jeder Gruppe, Snare auf die 4 (= Gruppe 2, Schlag 1).
-            // 8 Schläge → Raster in 6 Achtel umdeuten: Schrittweite dur/6.
-            const step = dur / 6;
-            for (let i = 0; i < 6; i++) {
-                const accent = (i === 0 || i === 3) ? 1 : 0.55; // Zählzeit 1 & 4 betont
+            // 6/8-Feel, doppeltes Tempo: 4 Gruppen à 3 Achtel über die 2 Takte
+            // (2 Gruppen pro Takt). Kick auf die 1 jeder Gruppe, Snare auf die 2.
+            const groups = 4;
+            const step = dur / (groups * 3); // ein Achtel
+            for (let i = 0; i < groups * 3; i++) {
+                const inGroup = i % 3;
+                const accent = inGroup === 0 ? 1 : 0.55; // erste Zählzeit jeder Gruppe betont
                 this._hihat(i * step, accent, false);
             }
-            this._kick(0);          // 1
-            this._snare(3 * step);  // 4
+            for (let gp = 0; gp < groups; gp++) {
+                const base = gp * 3 * step;
+                this._kick(base);              // 1 jeder Gruppe
+                this._snare(base + step * 1.5); // „4" im 6/8 = Mitte der Gruppe
+            }
         }
         // 'none' → keine Drums
 
