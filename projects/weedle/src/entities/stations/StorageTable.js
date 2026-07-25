@@ -2,6 +2,7 @@ import Station from './Station.js';
 import { COLORS, ISO, STORAGE_TABLE } from '../../config/constants.js';
 import { drawIsoTile, drawIsoCube } from '../../utils/iso.js';
 import CarriedItem, { drawItemIcon } from '../CarriedItem.js';
+import { Audio } from '../../audio/AudioManager.js';
 
 export default class StorageTable extends Station {
     constructor(scene, gridX, gridY) {
@@ -59,6 +60,7 @@ export default class StorageTable extends Station {
                     const itemDef = player.dropItem();
                     const freeIdx = this.slots.indexOf(null);
                     this.slots[freeIdx] = itemDef;
+                    Audio.play('drop');
                     this.drawItem();
                 },
             };
@@ -74,6 +76,7 @@ export default class StorageTable extends Station {
                     this.slots[idx] = null;
                     const item = new CarriedItem(this.scene, itemDef);
                     player.pickUp(item);
+                    Audio.play('pickup');
                     this.drawItem();
                 },
             };
