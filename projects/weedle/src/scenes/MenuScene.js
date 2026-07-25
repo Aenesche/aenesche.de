@@ -3,6 +3,8 @@
 
 import { GAME } from '../config/constants.js';
 import { getUser, LOGIN_URL } from '../net/supabase.js';
+import { Audio } from '../audio/AudioManager.js';
+import SettingsPanel from '../ui/SettingsPanel.js';
 
 export default class MenuScene extends Phaser.Scene {
     constructor() {
@@ -11,6 +13,13 @@ export default class MenuScene extends Phaser.Scene {
 
     create() {
         const cx = GAME.WIDTH / 2;
+
+        // Audio erst nach User-Geste (Browser-Vorgabe)
+        const unlockAudio = () => { Audio.unlock(); Audio.startMusic(); };
+        this.input.once('pointerdown', unlockAudio);
+        this.input.keyboard.once('keydown', unlockAudio);
+
+        this.settings = new SettingsPanel(this);
 
         // Titel
         this.add.text(cx, 110, 'WEEDLE', {
@@ -58,8 +67,13 @@ export default class MenuScene extends Phaser.Scene {
             font: '11px monospace', color: '#666',
         }).setOrigin(0.5);
 
+        this.makeButton(cx, 452, 'EINSTELLUNGEN', 0x00ffff, () => {
+            Audio.play('uiClick');
+            this.settings.show();
+        });
+
         // Update-Teaser
-        const teaser = this.add.text(cx, 560,
+        const teaser = this.add.text(cx, 600,
             '⚡ GROSSES UPDATE IN ARBEIT ⚡\nLampen · Lüftung · Polizei-Razzien · Neue Welten',
             {
                 font: '13px monospace',
@@ -98,7 +112,7 @@ export default class MenuScene extends Phaser.Scene {
             btnText.setInteractive({ useHandCursor: true });
             btnText.on('pointerover', () => btnText.setScale(1.1));
             btnText.on('pointerout', () => btnText.setScale(1));
-            btnText.on('pointerdown', onClick);
+            btnText.on('pointerdown', () => { Audio.play('uiClick'); onClick(); });
         }
         return { btnText };
     }
