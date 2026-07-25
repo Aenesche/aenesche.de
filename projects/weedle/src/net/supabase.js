@@ -87,6 +87,33 @@ export async function clearActiveSave() {
     if (error) console.warn('clearActiveSave', error);
 }
 
+// --- Freeplay-Spielstand (getrennt vom Level-Save) ---
+
+export async function fetchFreeplaySave() {
+    const { data, error } = await supabase
+        .from('weedle_freeplay_save')
+        .select('save_data, updated_at')
+        .maybeSingle();
+    if (error) { console.warn('fetchFreeplaySave', error); return null; }
+    return data;
+}
+
+export async function pushFreeplaySave(userId, saveData) {
+    const { error } = await supabase
+        .from('weedle_freeplay_save')
+        .upsert({
+            user_id: userId,
+            save_data: saveData,
+            updated_at: new Date().toISOString(),
+        });
+    if (error) console.warn('pushFreeplaySave', error);
+}
+
+export async function clearFreeplaySave() {
+    const { error } = await supabase.from('weedle_freeplay_save').delete().neq('user_id', '00000000-0000-0000-0000-000000000000');
+    if (error) console.warn('clearFreeplaySave', error);
+}
+
 // --- Sandbox-Unlocks ---
 
 export async function fetchUnlocks() {
