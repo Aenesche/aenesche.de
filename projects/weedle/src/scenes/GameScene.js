@@ -329,18 +329,25 @@ export default class GameScene extends Phaser.Scene {
         this.employees.forEach(e => e.update(delta, this.jobBoard));
         this.applySoftPush();
 
-        // Ziel-Tracking
+        // Ziel-Tracking (im Freeplay nur Zeit mitlaufen lassen, kein Ziel/Limit)
         this.goals.tick(delta);
-        const overTime = this.goals.elapsedMs > this.levelConfig.timeLimitMs;
-        this.goalText.setText(`ZIEL: ${this.goals.goalHudText()}`);
-        this.timerText.setText(
-            `⏱ ${this.formatTime(this.goals.elapsedMs)} / ${this.formatTime(this.levelConfig.timeLimitMs)}`
-        );
-        this.timerText.setColor(overTime ? '#ff6666' : '#00ffff');
 
-        if (this.goals.allGoalsDone()) {
-            this.completeLevel();
-            return;
+        if (this.levelConfig.freeplay) {
+            this.goalText.setText('FREEPLAY — kein Ziel, kein Zeitdruck');
+            this.timerText.setText(`⏱ ${this.formatTime(this.goals.elapsedMs)} gespielt`);
+            this.timerText.setColor('#00ffff');
+        } else {
+            const overTime = this.goals.elapsedMs > this.levelConfig.timeLimitMs;
+            this.goalText.setText(`ZIEL: ${this.goals.goalHudText()}`);
+            this.timerText.setText(
+                `⏱ ${this.formatTime(this.goals.elapsedMs)} / ${this.formatTime(this.levelConfig.timeLimitMs)}`
+            );
+            this.timerText.setColor(overTime ? '#ff6666' : '#00ffff');
+
+            if (this.goals.allGoalsDone()) {
+                this.completeLevel();
+                return;
+            }
         }
 
         // Autosave
