@@ -7,6 +7,7 @@ import { GAME } from '../config/constants.js';
 import { LEVELS, getLevel } from '../config/levels.js';
 import { fetchProgress, fetchActiveSave, addUnlocks } from '../net/supabase.js';
 import { SaveManager } from '../storage/SaveManager.js';
+import { Audio } from '../audio/AudioManager.js';
 
 export default class LevelSelectScene extends Phaser.Scene {
     constructor() {
@@ -120,7 +121,7 @@ export default class LevelSelectScene extends Phaser.Scene {
         }
 
         const zone = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true });
-        zone.on('pointerdown', () => this.onTileClick(level));
+        zone.on('pointerdown', () => { Audio.play('uiClick'); this.onTileClick(level); });
     }
 
     onTileClick(level) {
