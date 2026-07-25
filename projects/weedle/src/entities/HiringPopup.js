@@ -85,6 +85,7 @@ export default class HiringPopup {
 
     buy(role) {
         if (!this.visible) return;
+        if (this.scene.paused || this.scene.dialogue?.active || this.scene.settings?.visible) return;
         // Level-Gate: Kassierer erst wenn freigeschaltet
         if (role === 'cashier' && this.scene.levelConfig && !this.scene.levelConfig.features.cashiers) return;
         const count = this.scene.employees?.filter(e => e.role === role).length || 0;
