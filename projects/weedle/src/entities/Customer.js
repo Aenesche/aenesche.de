@@ -1,6 +1,7 @@
 import { COLORS, ISO, CUSTOMER, ITEMS } from '../config/constants.js';
 import { gridToIsoCenter, isoCenterToGrid } from '../utils/iso.js';
 import PieTimer from './PieTimer.js';
+import { Audio } from '../audio/AudioManager.js';
 
 export default class Customer {
     constructor(scene, spawnGridX, spawnGridY, order) {
@@ -65,6 +66,16 @@ export default class Customer {
                 : 1;
             this.rageTime += delta * rageMultiplier;
             const progress = 1 - Math.min(this.rageTime / CUSTOMER.RAGE_DURATION, 1);
+
+            // Ab 65% verbrauchter Geduld dezent ticken — je knapper, desto schneller
+            if (progress < 0.35) {
+                const interval = 300 + progress * 2000; // 300ms (knapp) … 1000ms
+                this._tickAccum = (this._tickAccum ?? 0) + delta;
+                if (this._tickAccum >= interval) {
+                    this._tickAccum = 0;
+                    Audio.play('tick');
+                }
+            }
             this.timer.setPosition(this.container.x, this.container.y - 50);
             this.timer.show(progress);
             if (this.rageTime >= CUSTOMER.RAGE_DURATION) {
