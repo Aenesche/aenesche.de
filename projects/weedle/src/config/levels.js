@@ -39,7 +39,7 @@ export const LEVELS = [
             { id: 'no_rot', label: 'Keine Pflanze verfaulen lassen', kind: 'noRotten' },
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
         ],
-        timeLimitMs: 1.5 * 60 * 1000,
+        timeLimitMs: 4 * 60 * 1000,
         unlocks: ['terminal_mint', 'bed', 'register', 'storage'],
     },
     {
@@ -58,14 +58,14 @@ export const LEVELS = [
         features: { upgrades: false, hiring: false, cashiers: false, trash: false },
         rotMultiplier: 1,
         goals: [
-            { kind: 'build', type: 'bed', count: 1 },
-            { kind: 'sell', variety: 'mint', count: 20 },
+            { kind: 'build', type: 'bed', count: 2 },
+            { kind: 'sell', variety: 'mint', count: 10 },
         ],
         quests: [
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
             { id: 'no_rot', label: 'Keine Pflanze verfaulen lassen', kind: 'noRotten' },
         ],
-        timeLimitMs: 5 * 60 * 1000,
+        timeLimitMs: 6 * 60 * 1000,
         unlocks: [],
     },
     {
@@ -90,7 +90,7 @@ export const LEVELS = [
             { id: 'dispose3', label: '3 verfaulte Pflanzen entsorgen', kind: 'dispose', n: 3 },
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
         ],
-        timeLimitMs: 4.5 * 60 * 1000,
+        timeLimitMs: 8 * 60 * 1000,
         unlocks: ['trash'],
     },
     {
@@ -118,7 +118,7 @@ export const LEVELS = [
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
             { id: 'sat5', label: 'Zufriedenheit ≥ 5 am Ende', kind: 'satisfactionEnd', n: 5 },
         ],
-        timeLimitMs: 5 * 60 * 1000,
+        timeLimitMs: 9 * 60 * 1000,
         unlocks: [],
     },
     {
@@ -148,7 +148,7 @@ export const LEVELS = [
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
             { id: 'no_rot', label: 'Keine Pflanze verfaulen lassen', kind: 'noRotten' },
         ],
-        timeLimitMs: 6 * 60 * 1000,
+        timeLimitMs: 10 * 60 * 1000,
         unlocks: ['hiring'],
     },
     {
@@ -180,7 +180,7 @@ export const LEVELS = [
             { id: 'sat5', label: 'Zufriedenheit ≥ 5 am Ende', kind: 'satisfactionEnd', n: 5 },
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
         ],
-        timeLimitMs: 7.5 * 60 * 1000,
+        timeLimitMs: 12 * 60 * 1000,
         unlocks: [],
     },
     {
@@ -207,7 +207,7 @@ export const LEVELS = [
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
             { id: 'no_rot', label: 'Keine Pflanze verfaulen lassen', kind: 'noRotten' },
         ],
-        timeLimitMs: 14 * 60 * 1000,
+        timeLimitMs: 12 * 60 * 1000,
         unlocks: ['terminal_haze'],
     },
     {
@@ -311,3 +311,29 @@ export const LEVELS = [
 export function getLevel(id) {
     return LEVELS.find(l => l.id === id) || null;
 }
+
+// Freeplay: entspannter Endlos-Modus. Kein Ziel, keine Zeit, kein Verfaul-Stress.
+// Start bei 99€ mit einem Mint-Terminal — alles andere baut man selbst auf.
+// Wird freigeschaltet, sobald alle 10 Level abgeschlossen sind.
+export const FREEPLAY = {
+    id: 'freeplay',
+    freeplay: true,
+    name: 'Freeplay',
+    description: 'Kein Ziel, keine Zeit. Bau dein Imperium in Ruhe auf.',
+    startMoney: 99,
+    prebuilt: [
+        { type: 'terminal', variety: 'mint', gridX: 5, gridY: 0 },
+    ],
+    // Alles baubar
+    allowedBuildTypes: [
+        'bed', 'register', 'storage', 'hiring', 'trash',
+        'terminal_haze', 'terminal_kush', 'terminal_crystal', 'terminal_og',
+    ],
+    varieties: ['mint', 'haze', 'kush', 'crystal', 'og'],
+    features: { upgrades: true, hiring: true, cashiers: true, trash: true },
+    rotMultiplier: 1.5, // etwas entspannter — Pflanzen halten länger
+    goals: [],
+    quests: [],
+    timeLimitMs: null,
+    unlocks: [],
+};
