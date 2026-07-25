@@ -131,9 +131,9 @@ export const TRASH = {
 
 export const BUILD = {
     PRICES: {
-        bed:      [10, 100, 500, 2000, 8000],
+        bed:      [10, 100, 500, 2000, 8000, 30000, 120000, 500000],
         register: [10, 200, 1000, 5000],
-        storage:  [25, 75, 200, 600],
+        storage:  [25, 75, 200, 600, 2500, 12000, 60000],
         hiring:   [0],
         trash:    [0],
         terminal_haze:    [200],
