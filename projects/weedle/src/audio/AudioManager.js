@@ -16,12 +16,55 @@ const SETTINGS_KEY = 'audioSettings';
 // Note (MIDI) → Frequenz
 const f = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
 
-// Lofi-Progression: Dm7 → G7 → Cmaj7 → Am7 (ii-V-I-vi)
-const CHORDS = [
-    [50, 57, 60, 65],  // Dm7
-    [43, 59, 62, 65],  // G7
-    [48, 55, 59, 64],  // Cmaj7
-    [45, 55, 60, 64],  // Am7
+// Mehrere Lofi-"Songs": je eine Akkordfolge + eigenes Tempo/Feeling.
+// Ein Akkord läuft über 2 Takte 4/4; auf jeden Schlag kommt eine Hi-Hat
+// (8 Schläge pro Akkord). Nach ein paar Durchläufen faded der Song raus
+// und der nächste (zufällig ein anderer) beginnt.
+const SONGS = [
+    {
+        name: 'dusk',
+        bpm: 72,
+        swing: 0.14,
+        chords: [
+            [50, 57, 60, 65],  // Dm7
+            [43, 59, 62, 65],  // G7
+            [48, 55, 59, 64],  // Cmaj7
+            [45, 55, 60, 64],  // Am7
+        ],
+    },
+    {
+        name: 'haze',
+        bpm: 66,
+        swing: 0.18,
+        chords: [
+            [47, 54, 57, 62],  // Bm7
+            [52, 59, 62, 66],  // Em7
+            [45, 52, 57, 60],  // Am9-ish
+            [40, 56, 59, 62],  // Abmaj7-ish / D7
+        ],
+    },
+    {
+        name: 'neon',
+        bpm: 80,
+        swing: 0.1,
+        chords: [
+            [48, 55, 60, 64],  // Cmaj7
+            [53, 60, 64, 69],  // Fmaj7
+            [50, 57, 60, 65],  // Dm7
+            [43, 59, 62, 65],  // G7
+        ],
+    },
+    {
+        name: 'drift',
+        bpm: 60,
+        swing: 0.2,
+        chords: [
+            [46, 53, 57, 62],  // Bbmaj7-ish
+            [44, 51, 55, 60],  // Abmaj7
+            [49, 56, 59, 64],  // Dbmaj7-ish
+            [42, 57, 60, 64],  // Gm-ish resolve
+        ],
+    },
 ];
 
 class AudioManager {
@@ -34,9 +77,11 @@ class AudioManager {
         this.sfxVolume = saved?.sfxVolume ?? 0.6;
 
         this.musicPlaying = false;
-        this._chordIndex = 0;
         this._musicTimer = null;
         this._musicFileSource = null;
+        this._song = null;
+        this._chordIndex = 0;
+        this._chordsUntilSwitch = 0;
     }
 
     // Wird beim ersten User-Input aufgerufen
@@ -56,6 +101,12 @@ class AudioManager {
             this.musicGain = this.ctx.createGain();
             this.musicGain.gain.value = this.musicVolume;
             this.musicGain.connect(this.masterGain);
+
+            // Separater Knoten NUR für Song-Crossfades — hält den
+            // Lautstärke-Regler (musicGain) unangetastet.
+            this.musicFade = this.ctx.createGain();
+            this.musicFade.gain.value = 1;
+            this.musicFade.connect(this.musicGain);
 
             this.ready = true;
         }
@@ -195,6 +246,7 @@ class AudioManager {
         if (!this.ready || this.musicPlaying) return;
         if (this._musicFileSource) return; // externe Datei läuft
         this.musicPlaying = true;
+        this._pickSong();
         this._scheduleChord();
     }
 
@@ -203,39 +255,128 @@ class AudioManager {
         if (this._musicTimer) { clearTimeout(this._musicTimer); this._musicTimer = null; }
     }
 
-    // Ein Akkord: warmes Pad + Bass + etwas Vinyl. Danach der nächste.
+    // Neuen Song wählen (möglichst nicht denselben wie zuletzt)
+    _pickSong() {
+        let next;
+        do {
+            next = SONGS[Math.floor(Math.random() * SONGS.length)];
+        } while (SONGS.length > 1 && next === this._song);
+        this._song = next;
+        this._chordIndex = 0;
+        // 2–4 komplette Durchläufe, dann Songwechsel
+        const loops = 2 + Math.floor(Math.random() * 3);
+        this._chordsUntilSwitch = this._song.chords.length * loops;
+    }
+
+    // Ein Akkord = 2 Takte 4/4. Pad + Bass + 8 Hi-Hats + Vinyl.
+    // Am Ende eines Songs sanfter Crossfade in den nächsten.
     _scheduleChord() {
         if (!this.musicPlaying || !this.ready) return;
 
-        const chord = CHORDS[this._chordIndex % CHORDS.length];
-        this._chordIndex++;
-        const dur = 4.2;
+        const song = this._song;
+        const beat = 60 / song.bpm;      // Sekunden pro Schlag
+        const dur = beat * 8;            // 2 Takte = 8 Schläge
+        const chord = song.chords[this._chordIndex % song.chords.length];
+        const t0 = this.ctx.currentTime;
 
-        // Pad: leicht verstimmte Sinus-Paare, sehr weich
+        // Fade-Zustand: letzter Akkord des Songs → ausblenden
+        const isLast = this._chordsUntilSwitch <= 1;
+        const isFirstOfSong = this._chordIndex === 0;
+
+        // Pad-Lautstärke für Crossfade rampen
+        if (isFirstOfSong) {
+            this.musicFade.gain.cancelScheduledValues(t0);
+            this.musicFade.gain.setValueAtTime(0.05, t0);
+            this.musicFade.gain.exponentialRampToValueAtTime(1, t0 + dur * 0.5);
+        } else if (isLast) {
+            this.musicFade.gain.cancelScheduledValues(t0);
+            this.musicFade.gain.setValueAtTime(1, t0);
+            this.musicFade.gain.exponentialRampToValueAtTime(0.05, t0 + dur * 0.9);
+        }
+
+        // Pad: verstimmte Sinus-Paare, sehr weich
         for (const note of chord) {
             for (const det of [-6, 6]) {
                 this.tone({
                     freq: f(note + 12), dur: dur * 0.95, type: 'sine',
-                    gain: 0.05, attack: 1.2, detune: det, dest: this.musicGain,
+                    gain: 0.05, attack: dur * 0.28, detune: det, dest: this.musicFade,
                 });
             }
         }
 
-        // Bass: Grundton, tief und rund
-        this.tone({
-            freq: f(chord[0] - 12), dur: dur * 0.7, type: 'sine',
-            gain: 0.12, attack: 0.15, dest: this.musicGain,
-        });
+        // Bass: Grundton, tief und rund, plus leichter Wechsel auf Takt 2
+        this.tone({ freq: f(chord[0] - 12), dur: dur * 0.45, type: 'sine',
+                    gain: 0.13, attack: 0.12, dest: this.musicFade });
+        this.tone({ freq: f(chord[0] - 12), dur: dur * 0.4, type: 'sine',
+                    gain: 0.1, attack: 0.1, delay: dur * 0.5, dest: this.musicFade });
 
-        // Vinyl-Knistern
-        for (let i = 0; i < 3; i++) {
-            this.noise({
-                dur: 0.04, gain: 0.02, filterFreq: 1600,
-                delay: Math.random() * dur, dest: this.musicGain,
-            });
+        // Hi-Hats: eine pro Schlag (8 Stück), mit Swing auf den Offbeats
+        for (let i = 0; i < 8; i++) {
+            const swingShift = (i % 2 === 1) ? beat * song.swing : 0;
+            const accent = (i % 2 === 0) ? 1 : 0.6; // Downbeats etwas lauter
+            this._hihat(i * beat + swingShift, accent, i % 4 === 2);
         }
 
-        this._musicTimer = setTimeout(() => this._scheduleChord(), dur * 1000);
+        // Soft-Kick auf 1 und 3 (Schlag 0 und 4) für dezenten Puls
+        this._kick(0);
+        this._kick(4 * beat);
+
+        // Vinyl-Knistern
+        for (let k = 0; k < 4; k++) {
+            this.noise({ dur: 0.04, gain: 0.02, filterFreq: 1600,
+                         delay: Math.random() * dur, dest: this.musicFade });
+        }
+
+        // Nächsten Akkord planen
+        this._chordIndex++;
+        this._chordsUntilSwitch--;
+        if (this._chordsUntilSwitch <= 0) {
+            // Song ist aus → nächsten wählen, nahtlos weiter
+            this._musicTimer = setTimeout(() => {
+                if (!this.musicPlaying) return;
+                this._pickSong();
+                this._scheduleChord();
+            }, dur * 1000);
+        } else {
+            this._musicTimer = setTimeout(() => this._scheduleChord(), dur * 1000);
+        }
+    }
+
+    // Kurze, weiche Hi-Hat (gefiltertes Rauschen)
+    _hihat(delay, accent = 1, open = false) {
+        if (!this.ready) return;
+        const dur = open ? 0.12 : 0.04;
+        const t0 = this.ctx.currentTime + delay;
+        const frames = Math.floor(this.ctx.sampleRate * dur);
+        const buf = this.ctx.createBuffer(1, frames, this.ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < frames; i++) data[i] = Math.random() * 2 - 1;
+
+        const src = this.ctx.createBufferSource();
+        src.buffer = buf;
+        const hp = this.ctx.createBiquadFilter();
+        hp.type = 'highpass';
+        hp.frequency.value = 7000;
+        const g = this.ctx.createGain();
+        g.gain.setValueAtTime(0.05 * accent, t0);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        src.connect(hp); hp.connect(g); g.connect(this.musicFade);
+        src.start(t0);
+    }
+
+    // Weicher Kick: kurzer Sinus-Sweep nach unten
+    _kick(delay) {
+        if (!this.ready) return;
+        const t0 = this.ctx.currentTime + delay;
+        const osc = this.ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(110, t0);
+        osc.frequency.exponentialRampToValueAtTime(42, t0 + 0.12);
+        const g = this.ctx.createGain();
+        g.gain.setValueAtTime(0.09, t0);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.18);
+        osc.connect(g); g.connect(this.musicFade);
+        osc.start(t0); osc.stop(t0 + 0.2);
     }
 
     // Optional: echte Musikdatei statt Generator (z.B. 'assets/music/lofi.mp3')
