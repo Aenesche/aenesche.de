@@ -4,8 +4,8 @@
 // eins aktiv ist → Warn-Dialog (alter Stand wird verworfen).
 
 import { GAME } from '../config/constants.js';
-import { LEVELS, getLevel } from '../config/levels.js';
-import { fetchProgress, fetchActiveSave, addUnlocks } from '../net/supabase.js';
+import { LEVELS, getLevel, FREEPLAY } from '../config/levels.js';
+import { fetchProgress, fetchActiveSave, fetchFreeplaySave, addUnlocks } from '../net/supabase.js';
 import { SaveManager } from '../storage/SaveManager.js';
 import { Audio } from '../audio/AudioManager.js';
 
@@ -37,11 +37,14 @@ export default class LevelSelectScene extends Phaser.Scene {
 
         // Fortschritt + aktiven Save parallel laden.
         // Lokaler Save hat Vorrang (aktueller), Supabase ist Fallback (anderes Gerät).
-        Promise.all([fetchProgress(), fetchActiveSave()]).then(([progress, remoteSave]) => {
+        Promise.all([fetchProgress(), fetchActiveSave(), fetchFreeplaySave()])
+          .then(([progress, remoteSave, remoteFree]) => {
             this.loading.destroy();
             this.progress = new Map(progress.map(p => [p.level_id, p]));
-            const localSave = SaveManager.loadLocal();
+            const localSave = SaveManager.loadLevelLocal();
             this.activeSave = localSave || (remoteSave ? remoteSave.save_data : null);
+            const localFree = SaveManager.loadFreeplayLocal();
+            this.freeplaySave = localFree || (remoteFree ? remoteFree.save_data : null);
             this.buildGrid();
         }).catch(() => {
             this.loading.setText('Fehler beim Laden — neu versuchen');
@@ -70,7 +73,7 @@ export default class LevelSelectScene extends Phaser.Scene {
         if (this.activeSave) {
             const level = getLevel(this.activeSave.levelId);
             if (level) {
-                const cy = 520;
+                const cy = 500;
                 const banner = this.add.text(GAME.WIDTH / 2, cy,
                     `▶ Level ${level.id} „${level.name}" fortsetzen`, {
                     font: 'bold 18px monospace',
@@ -78,9 +81,52 @@ export default class LevelSelectScene extends Phaser.Scene {
                     backgroundColor: '#222200',
                     padding: { x: 16, y: 8 },
                 }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-                banner.on('pointerdown', () => this.startLevel(level, this.activeSave));
+                banner.on('pointerdown', () => { Audio.play('uiClick'); this.startLevel(level, this.activeSave); });
             }
         }
+
+        this.buildFreeplayEntry();
+    }
+
+    // Freeplay: freigeschaltet wenn alle 10 Level abgeschlossen sind.
+    buildFreeplayEntry() {
+        const allDone = LEVELS.every(l => this.progress.has(l.id));
+        const cx = GAME.WIDTH / 2;
+        const y = 552;
+
+        if (!allDone) {
+            this.add.text(cx, y, '🔒 FREEPLAY — schließe alle Level ab, um den Endlos-Modus freizuschalten', {
+                font: '12px monospace', color: '#556',
+            }).setOrigin(0.5);
+            return;
+        }
+
+        const hasSave = !!this.freeplaySave;
+        const label = hasSave ? '∞ FREEPLAY fortsetzen' : '∞ FREEPLAY starten';
+        const btn = this.add.text(cx, y, label, {
+            font: 'bold 18px monospace',
+            color: '#00ffcc',
+            backgroundColor: '#002622',
+            padding: { x: 18, y: 9 },
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        btn.on('pointerover', () => btn.setScale(1.05));
+        btn.on('pointerout', () => btn.setScale(1));
+        btn.on('pointerdown', () => {
+            Audio.play('uiClick');
+            this.startFreeplay();
+        });
+
+        this.add.text(cx, y + 30, 'Kein Ziel · keine Zeit · von 99€ zum Imperium', {
+            font: '11px monospace', color: '#4a7a72',
+        }).setOrigin(0.5);
+    }
+
+    startFreeplay() {
+        this.scene.start('Game', {
+            levelConfig: FREEPLAY,
+            saveData: this.freeplaySave || null,
+            user: this.user,
+        });
     }
 
     buildTile(level, x, y, w, h) {
