@@ -27,6 +27,10 @@ import TrashCan from '../entities/stations/TrashCan.js';
 import GoalTracker from '../world/GoalTracker.js';
 import { SaveManager } from '../storage/SaveManager.js';
 import { saveProgress, addUnlocks } from '../net/supabase.js';
+import { Audio } from '../audio/AudioManager.js';
+import DialogueBox from '../entities/DialogueBox.js';
+import SettingsPanel from '../ui/SettingsPanel.js';
+import { getDialogue } from '../config/dialogues.js';
 
 const STATION_CLASSES = {
     SeedTerminal, Bed, Register, StorageTable, HiringStation, TrashCan,
@@ -91,7 +95,7 @@ export default class GameScene extends Phaser.Scene {
             this.player.container.x = p.x;
             this.player.container.y = p.y;
         });
-        this.input.keyboard.addKey('ESC').on('down', () => this.exitToLevelSelect());
+        this.input.keyboard.addKey('ESC').on('down', () => this.onEsc());
 
         // Angestellte aus Save wiederherstellen (spawnen an der Hiring-Station)
         if (this.saveData?.employees) {
@@ -108,6 +112,26 @@ export default class GameScene extends Phaser.Scene {
         this.upgrades = new UpgradeManager(this, this.player);
 
         this.buildHUD();
+
+        // Audio: Browser verlangt eine User-Geste, bevor Ton laufen darf
+        const unlockAudio = () => { Audio.unlock(); Audio.startMusic(); };
+        this.input.once('pointerdown', unlockAudio);
+        this.input.keyboard.once('keydown', unlockAudio);
+        Audio.unlock(); Audio.startMusic(); // falls schon entsperrt (Menü)
+
+        this.dialogue = new DialogueBox(this);
+        this.settings = new SettingsPanel(this, () => { this.paused = this.pauseOpen; });
+        this.paused = false;
+        this.pauseOpen = false;
+
+        // Level-Intro nur beim frischen Start, nicht beim Fortsetzen
+        if (!this.saveData) {
+            const lines = getDialogue(this.levelConfig.id);
+            if (lines) {
+                this.paused = true;
+                this.dialogue.show(lines, () => { this.paused = false; });
+            }
+        }
 
         // Direkt beim Start einmal speichern (macht das Level zum "aktiven")
         this.autosaveAccum = 0;
@@ -238,6 +262,7 @@ export default class GameScene extends Phaser.Scene {
             this.pushPlayerOutOf(slot.gridX, slot.gridY);
         }
 
+        Audio.play('build');
         this.goals.onBuild(slot.type);
         this.buildManager.onPurchased(slot);
         this.tryInitCustomers();
@@ -252,6 +277,7 @@ export default class GameScene extends Phaser.Scene {
         const emp = new Employee(this, gx, gy, role);
         this.employees.push(emp);
         if (!fromSave) {
+            Audio.play('upgrade');
             this.goals.onHire(role);
             SaveManager.autosave(this, this.user?.id, true);
         }
@@ -278,6 +304,8 @@ export default class GameScene extends Phaser.Scene {
 
     update(time, delta) {
         if (this.levelOver) return;
+        // Dialog, Pause-Menü oder Einstellungen offen → Spiel steht still
+        if (this.paused || this.dialogue?.active || this.settings?.visible) return;
 
         let dirX = 0, dirY = 0;
         if (this.keys.A.isDown || this.keys.LEFT.isDown)  dirX = -1;
@@ -325,6 +353,7 @@ export default class GameScene extends Phaser.Scene {
 
     completeLevel() {
         this.levelOver = true;
+        Audio.play('levelComplete');
         this.goals.completed = true;
         const stars = this.goals.calcStars(this);
         const timeMs = Math.round(this.goals.elapsedMs);
@@ -388,6 +417,70 @@ export default class GameScene extends Phaser.Scene {
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         btn.on('pointerdown', () => this.scene.start('LevelSelect', { user: this.user }));
         overlay.add(btn);
+    }
+
+    onEsc() {
+        if (this.levelOver) return;
+        if (this.settings?.visible) { this.settings.hide(); return; }
+        if (this.dialogue?.active) return;   // Intro nicht wegdrücken
+        this.togglePause();
+    }
+
+    togglePause() {
+        if (this.pauseOpen) { this.closePause(); return; }
+
+        this.pauseOpen = true;
+        this.paused = true;
+        Audio.play('uiClick');
+
+        const cx = GAME.WIDTH / 2, cy = GAME.HEIGHT / 2;
+        const c = this.add.container(0, 0).setDepth(650000);
+
+        const dim = this.add.graphics();
+        dim.fillStyle(0x000000, 0.72);
+        dim.fillRect(0, 0, GAME.WIDTH, GAME.HEIGHT);
+        c.add(dim);
+
+        const w = 340, h = 230;
+        const box = this.add.graphics();
+        box.fillStyle(0x060d0c, 0.97);
+        box.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
+        box.lineStyle(2, 0x00ffff, 0.7);
+        box.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, 8);
+        c.add(box);
+
+        c.add(this.add.text(cx, cy - h / 2 + 22, 'PAUSE', {
+            font: 'bold 20px monospace', color: '#00ffff',
+        }).setOrigin(0.5, 0));
+
+        const mkBtn = (label, dy, color, fn) => {
+            const t = this.add.text(cx, cy + dy, label, {
+                font: 'bold 15px monospace', color,
+            }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            t.on('pointerover', () => t.setScale(1.08));
+            t.on('pointerout', () => t.setScale(1));
+            t.on('pointerdown', () => { Audio.play('uiClick'); fn(); });
+            c.add(t);
+        };
+
+        mkBtn('[ WEITER ]', -30, '#00ff88', () => this.closePause());
+        mkBtn('[ EINSTELLUNGEN ]', 12, '#00ffff', () => this.settings.show());
+        mkBtn('[ LEVEL VERLASSEN ]', 54, '#ff8866', () => {
+            this.closePause();
+            this.exitToLevelSelect();
+        });
+        c.add(this.add.text(cx, cy + h / 2 - 26, 'Fortschritt wird gespeichert', {
+            font: '10px monospace', color: '#5a8a80',
+        }).setOrigin(0.5));
+
+        this.pauseOverlay = c;
+    }
+
+    closePause() {
+        this.pauseOpen = false;
+        this.paused = false;
+        this.pauseOverlay?.destroy();
+        this.pauseOverlay = null;
     }
 
     exitToLevelSelect() {
