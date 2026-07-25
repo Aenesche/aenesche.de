@@ -1,6 +1,7 @@
 import Station from './Station.js';
 import { COLORS, ISO, UPGRADES } from '../../config/constants.js';
 import { drawIsoCube } from '../../utils/iso.js';
+import { Audio } from '../../audio/AudioManager.js';
 
 const HEIGHT = 20;
 
@@ -34,6 +35,7 @@ export default class TrashCan extends Station {
             duration: duration,
             onComplete: () => {
                 const dropped = player.dropItem();
+                Audio.play('trash');
                 if (dropped && dropped.id === 'rotten') {
                     this.scene.reportDisposed?.();
                 }
