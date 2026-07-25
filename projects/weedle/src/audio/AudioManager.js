@@ -67,6 +67,20 @@ const SONGS = [
     },
 ];
 
+// Drum-Styles, mit denen jede Progression kombiniert wird:
+//   'none'  → nur Pad + Bass (ruhig)
+//   'swing' → Hi-Hats mit Swing + Soft-Kick (der groovy Lofi-Beat)
+//   'plain' → 6/8-Feel ohne Swing: Bass/Kick auf 1, Snare auf 4, gerade Hats
+// Jede Progression × jeder Style = eine Variante in der Rotation.
+const DRUM_STYLES = ['none', 'swing', 'plain'];
+
+const VARIANTS = [];
+for (const song of SONGS) {
+    for (const drums of DRUM_STYLES) {
+        VARIANTS.push({ ...song, drums });
+    }
+}
+
 class AudioManager {
     constructor() {
         this.ctx = null;
@@ -259,8 +273,8 @@ class AudioManager {
     _pickSong() {
         let next;
         do {
-            next = SONGS[Math.floor(Math.random() * SONGS.length)];
-        } while (SONGS.length > 1 && next === this._song);
+            next = VARIANTS[Math.floor(Math.random() * VARIANTS.length)];
+        } while (VARIANTS.length > 1 && next === this._song);
         this._song = next;
         this._chordIndex = 0;
         // 2–4 komplette Durchläufe, dann Songwechsel
@@ -310,19 +324,36 @@ class AudioManager {
         this.tone({ freq: f(chord[0] - 12), dur: dur * 0.4, type: 'sine',
                     gain: 0.1, attack: 0.1, delay: dur * 0.5, dest: this.musicFade });
 
-        // Hi-Hats: eine pro Schlag (8 Stück), mit Swing auf den Offbeats
-        for (let i = 0; i < 8; i++) {
-            const swingShift = (i % 2 === 1) ? beat * song.swing : 0;
-            const accent = (i % 2 === 0) ? 1 : 0.6; // Downbeats etwas lauter
-            this._hihat(i * beat + swingShift, accent, i % 4 === 2);
+        // --- Drums je nach Style ---
+        if (song.drums === 'swing') {
+            // Hi-Hats: eine pro Schlag (8), Offbeats mit Swing verzögert
+            for (let i = 0; i < 8; i++) {
+                const swingShift = (i % 2 === 1) ? beat * song.swing : 0;
+                const accent = (i % 2 === 0) ? 1 : 0.6;
+                this._hihat(i * beat + swingShift, accent, i % 4 === 2);
+            }
+            // Soft-Kick auf 1 und 3
+            this._kick(0);
+            this._kick(4 * beat);
+        } else if (song.drums === 'plain') {
+            // 6/8-Feel: zwei Gruppen à 3 Schläge, gerade (kein Swing).
+            // Bass/Kick auf die 1 jeder Gruppe, Snare auf die 4 (= Gruppe 2, Schlag 1).
+            // 8 Schläge → Raster in 6 Achtel umdeuten: Schrittweite dur/6.
+            const step = dur / 6;
+            for (let i = 0; i < 6; i++) {
+                const accent = (i === 0 || i === 3) ? 1 : 0.55; // Zählzeit 1 & 4 betont
+                this._hihat(i * step, accent, false);
+            }
+            this._kick(0);          // 1
+            this._snare(3 * step);  // 4
         }
+        // 'none' → keine Drums
 
-        // Soft-Kick auf 1 und 3 (Schlag 0 und 4) für dezenten Puls
-        this._kick(0);
-        this._kick(4 * beat);
+        // Bei ruhigen Varianten das Vinyl minimal präsenter (sonst zu leer)
+        const vinylCount = song.drums === 'none' ? 6 : 4;
 
         // Vinyl-Knistern
-        for (let k = 0; k < 4; k++) {
+        for (let k = 0; k < vinylCount; k++) {
             this.noise({ dur: 0.04, gain: 0.02, filterFreq: 1600,
                          delay: Math.random() * dur, dest: this.musicFade });
         }
@@ -377,6 +408,39 @@ class AudioManager {
         g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.18);
         osc.connect(g); g.connect(this.musicFade);
         osc.start(t0); osc.stop(t0 + 0.2);
+    }
+
+    // Weiche Snare: kurzes gefiltertes Rauschen + leiser Body-Ton
+    _snare(delay) {
+        if (!this.ready) return;
+        const t0 = this.ctx.currentTime + delay;
+        const dur = 0.16;
+        const frames = Math.floor(this.ctx.sampleRate * dur);
+        const buf = this.ctx.createBuffer(1, frames, this.ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < frames; i++) data[i] = Math.random() * 2 - 1;
+
+        const src = this.ctx.createBufferSource();
+        src.buffer = buf;
+        const bp = this.ctx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 1900;
+        bp.Q.value = 0.7;
+        const g = this.ctx.createGain();
+        g.gain.setValueAtTime(0.08, t0);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        src.connect(bp); bp.connect(g); g.connect(this.musicFade);
+        src.start(t0);
+
+        // leichter Körper
+        const body = this.ctx.createOscillator();
+        body.type = 'triangle';
+        body.frequency.setValueAtTime(180, t0);
+        const bg = this.ctx.createGain();
+        bg.gain.setValueAtTime(0.04, t0);
+        bg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.08);
+        body.connect(bg); bg.connect(this.musicFade);
+        body.start(t0); body.stop(t0 + 0.1);
     }
 
     // Optional: echte Musikdatei statt Generator (z.B. 'assets/music/lofi.mp3')
