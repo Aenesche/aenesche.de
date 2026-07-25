@@ -336,20 +336,19 @@ class AudioManager {
             this._kick(0);
             this._kick(4 * beat);
         } else if (song.drums === 'plain') {
-            // 6/8-Feel, doppeltes Tempo: 4 Gruppen à 3 Achtel über die 2 Takte
-            // (2 Gruppen pro Takt). Kick auf die 1 jeder Gruppe, Snare auf die 2.
-            const groups = 4;
-            const step = dur / (groups * 3); // ein Achtel
-            for (let i = 0; i < groups * 3; i++) {
-                const inGroup = i % 3;
-                const accent = inGroup === 0 ? 1 : 0.55; // erste Zählzeit jeder Gruppe betont
+            // Gerader Beat über 2 Takte = 12 gleichmäßige Schläge.
+            // Auf JEDEM Schlag eine Hi-Hat. Kick auf Schlag 0 & 7,
+            // Snare (soft) auf Schlag 4 & 11.
+            const STEPS = 12;
+            const step = dur / STEPS;
+            const kicks = [0, 7];
+            const snares = [4, 11];
+            for (let i = 0; i < STEPS; i++) {
+                const accent = (kicks.includes(i) || snares.includes(i)) ? 1 : 0.6;
                 this._hihat(i * step, accent, false);
             }
-            for (let gp = 0; gp < groups; gp++) {
-                const base = gp * 3 * step;
-                this._kick(base);              // 1 jeder Gruppe
-                this._snare(base + step * 1.5); // „4" im 6/8 = Mitte der Gruppe
-            }
+            for (const i of kicks) this._kick(i * step);
+            for (const i of snares) this._snare(i * step);
         }
         // 'none' → keine Drums
 
