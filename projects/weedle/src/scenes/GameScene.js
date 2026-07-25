@@ -333,7 +333,7 @@ export default class GameScene extends Phaser.Scene {
         this.goals.tick(delta);
 
         if (this.levelConfig.freeplay) {
-            this.goalText.setText('FREEPLAY — kein Ziel, kein Zeitdruck');
+            this.goalText.setText('FREEPLAY');
             this.timerText.setText(`⏱ ${this.formatTime(this.goals.elapsedMs)} gespielt`);
             this.timerText.setColor('#00ffff');
         } else {
