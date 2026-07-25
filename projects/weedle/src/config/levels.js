@@ -58,8 +58,8 @@ export const LEVELS = [
         features: { upgrades: false, hiring: false, cashiers: false, trash: false },
         rotMultiplier: 1,
         goals: [
-            { kind: 'build', type: 'bed', count: 2 },
-            { kind: 'sell', variety: 'mint', count: 10 },
+            { kind: 'build', type: 'bed', count: 1 },
+            { kind: 'sell', variety: 'mint', count: 20 },
         ],
         quests: [
             { id: 'no_rage', label: 'Kein Kunde geht wütend', kind: 'noRage' },
