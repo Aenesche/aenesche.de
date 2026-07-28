@@ -122,7 +122,14 @@ export default class UpgradePopup {
         // Layout: Höhe abhängig von Zweigen
         const lineH = 16;
         const h = 30 + branches.length * lineH + 18;
-        const w = 240;
+        // Breite an den tatsächlichen Text anpassen — lange Zeilen wie
+        // "[2] BEET TIER Lv2 → Tier 3 — bis Crystal €800" sprengten die feste Breite.
+        const textW = Math.max(
+            this.titleText.width,
+            this.hintText.width,
+            ...this.optionTexts.filter(t => t.text).map(t => t.width),
+        );
+        const w = Math.max(240, Math.ceil(textW) + 32);
         const topY = -h + 10;
 
         this.titleText.setPosition(0, topY + 6);
