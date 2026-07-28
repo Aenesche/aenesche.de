@@ -31,6 +31,8 @@ import { Audio } from '../audio/AudioManager.js';
 import DialogueBox from '../entities/DialogueBox.js';
 import SettingsPanel from '../ui/SettingsPanel.js';
 import { getDialogue } from '../config/dialogues.js';
+import MobileControls from '../ui/MobileControls.js';
+import { AdReward } from '../ui/AdReward.js';
 
 const STATION_CLASSES = {
     SeedTerminal, Bed, Register, StorageTable, HiringStation, TrashCan,
@@ -123,6 +125,9 @@ export default class GameScene extends Phaser.Scene {
         this.settings = new SettingsPanel(this, () => { this.paused = this.pauseOpen; });
         this.paused = false;
         this.pauseOpen = false;
+
+        this.mobile = new MobileControls(this);
+        this.buildHelpButton();
 
         // Level-Intro nur beim frischen Start, nicht beim Fortsetzen
         if (!this.saveData) {
@@ -313,6 +318,10 @@ export default class GameScene extends Phaser.Scene {
         if (this.keys.W.isDown || this.keys.UP.isDown)    dirY = -1;
         if (this.keys.S.isDown || this.keys.DOWN.isDown)  dirY =  1;
 
+        // Touch-Joystick überschreibt die Tastatur, wenn er ausgelenkt ist
+        const md = this.mobile?.getDirection();
+        if (md && (md.x !== 0 || md.y !== 0)) { dirX = md.x; dirY = md.y; }
+
         this.player.update(delta, dirX, dirY, (x, y) => this.canMoveTo(x, y));
 
         this.stations.forEach(s => { if (s.update) s.update(delta); });
@@ -333,7 +342,7 @@ export default class GameScene extends Phaser.Scene {
         this.goals.tick(delta);
 
         if (this.levelConfig.freeplay) {
-            this.goalText.setText('FREEPLAY');
+            this.goalText.setText('FREEPLAY — kein Ziel, kein Zeitdruck');
             this.timerText.setText(`⏱ ${this.formatTime(this.goals.elapsedMs)} gespielt`);
             this.timerText.setColor('#00ffff');
         } else {
@@ -348,6 +357,12 @@ export default class GameScene extends Phaser.Scene {
                 this.completeLevel();
                 return;
             }
+        }
+
+        // Hilfe-Button (Cooldown-Anzeige) sekündlich auffrischen
+        if (this.helpBtn) {
+            this._helpAccum = (this._helpAccum ?? 0) + delta;
+            if (this._helpAccum > 1000) { this._helpAccum = 0; this.refreshHelpButton(); }
         }
 
         // Autosave
@@ -424,6 +439,55 @@ export default class GameScene extends Phaser.Scene {
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         btn.on('pointerdown', () => this.scene.start('LevelSelect', { user: this.user }));
         overlay.add(btn);
+    }
+
+    // Hilfe-/Werbe-Button: nur im Freeplay, langer Cooldown.
+    buildHelpButton() {
+        if (!this.levelConfig.freeplay) return;
+
+        this.helpBtn = this.add.text(GAME.WIDTH - 20, 70, '', {
+            font: '12px monospace',
+            color: '#00ffcc',
+            backgroundColor: '#00221e',
+            padding: { x: 8, y: 5 },
+        }).setOrigin(1, 0).setDepth(300000).setInteractive({ useHandCursor: true });
+
+        this.helpBtn.on('pointerdown', () => this.onHelpClick());
+        this.refreshHelpButton();
+
+        // Joystick darf hier nicht starten
+        const b = this.helpBtn.getBounds();
+        this.mobile?.addExclusion(b.x - 6, b.y - 6, b.width + 12, b.height + 12);
+    }
+
+    refreshHelpButton() {
+        if (!this.helpBtn) return;
+        if (AdReward.isReady()) {
+            this.helpBtn.setText('◈ FESTGEFAHREN? +100 €');
+            this.helpBtn.setColor('#00ffcc');
+            this.helpBtn.setAlpha(1);
+        } else {
+            this.helpBtn.setText(`◈ wieder in ${AdReward.formatRemaining()}`);
+            this.helpBtn.setColor('#4a7a72');
+            this.helpBtn.setAlpha(0.75);
+        }
+    }
+
+    onHelpClick() {
+        if (!AdReward.isReady()) return;
+        Audio.play('uiClick');
+        this.paused = true;
+        AdReward.open({
+            onReward: (amount) => {
+                this.state.earn(amount);
+                Audio.play('sell');
+                SaveManager.autosave(this, this.user?.id, true);
+            },
+            onClose: () => {
+                this.paused = this.pauseOpen;
+                this.refreshHelpButton();
+            },
+        });
     }
 
     onEsc() {
