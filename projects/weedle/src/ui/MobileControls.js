@@ -75,7 +75,7 @@ export default class MobileControls {
     // --- Buttons ---
 
     buildButtons() {
-        const mk = (label, sub, x, y, r, spec, color) => {
+        const mk = (label, sub, x, y, r, spec, color, onTap = null) => {
             const g = this.scene.add.graphics();
             const t = this.scene.add.text(x, y, label, {
                 font: `bold ${r > 44 ? 15 : 12}px monospace`,
@@ -90,7 +90,7 @@ export default class MobileControls {
                 }).setOrigin(0.5);
             }
 
-            const btn = { g, t, subText, x, y, r, spec, color, pressed: false };
+            const btn = { g, t, subText, x, y, r, spec, color, onTap, pressed: false };
             this.drawButton(btn);
             this.container.add(g);
             this.container.add(t);
@@ -106,6 +106,11 @@ export default class MobileControls {
         this.btnTwo     = mk('2', 'WAHL', 0, 0, 27, KEYS.two, '#ffcc44');
         // Pause/Menü — auf Touch gibt es kein ESC
         this.btnMenu    = mk('≡', null, 0, 0, 20, KEYS.menu, '#7fd8c8');
+        // Vollbild: schafft auf dem Handy spürbar mehr Platz
+        this.btnFull    = mk('⛶', null, 0, 0, 20, null, '#7fd8c8', () => this.toggleFullscreen());
+
+        // Diese beiden bleiben auch bei offenem Overlay bedienbar
+        this.alwaysActive = [this.btnMenu, this.btnFull];
     }
 
     drawButton(btn) {
@@ -150,7 +155,15 @@ export default class MobileControls {
         this.moveButton(this.btnUpgrade, bx - 96 * flip, by - 18);
         this.moveButton(this.btnOne,     bx - 66 * flip, by - 104);
         this.moveButton(this.btnTwo,     bx + 2 * flip,  by - 122);
-        this.moveButton(this.btnMenu,    GAME.WIDTH / 2, 30);
+        this.moveButton(this.btnMenu,    GAME.WIDTH / 2 - 26, 30);
+        this.moveButton(this.btnFull,    GAME.WIDTH / 2 + 26, 30);
+    }
+
+    toggleFullscreen() {
+        const scale = this.scene.scale;
+        if (!scale.fullscreen?.available) return;
+        if (scale.isFullscreen) scale.stopFullscreen();
+        else scale.startFullscreen();
     }
 
     // Rechteck sperren (Screen-Koordinaten)
@@ -188,14 +201,17 @@ export default class MobileControls {
     onPointerDown(pointer) {
         if (!this.enabled) return;
 
-        // Der Menü-Button funktioniert immer — sonst käme man auf Touch
+        // Menü und Vollbild funktionieren immer — sonst käme man auf Touch
         // nicht mehr aus der Pause heraus.
-        if (this.btnMenu && Math.hypot(pointer.x - this.btnMenu.x, pointer.y - this.btnMenu.y) <= this.btnMenu.r + 6) {
-            this.btnMenu.pressed = true;
-            this.btnMenu.pointerId = pointer.id;
-            this.drawButton(this.btnMenu);
-            sendKey('keydown', this.btnMenu.spec);
-            return;
+        for (const b of (this.alwaysActive || [])) {
+            if (Math.hypot(pointer.x - b.x, pointer.y - b.y) <= b.r + 6) {
+                b.pressed = true;
+                b.pointerId = pointer.id;
+                this.drawButton(b);
+                if (b.spec) sendKey('keydown', b.spec);
+                else b.onTap?.();
+                return;
+            }
         }
 
         if (this.blocked) return;
@@ -232,7 +248,7 @@ export default class MobileControls {
                 b.pressed = false;
                 b.pointerId = null;
                 this.drawButton(b);
-                sendKey('keyup', b.spec);
+                if (b.spec) sendKey('keyup', b.spec);
             }
         }
 
