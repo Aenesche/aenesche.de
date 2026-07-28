@@ -3,6 +3,7 @@
 // statt pro Station gezeichnet.
 
 import { COLORS, ISO, INTERACTION } from '../config/constants.js';
+import { fillPoly, strokePoly } from '../utils/iso.js';
 
 export default class HighlightOverlay {
     constructor(scene) {
@@ -35,21 +36,16 @@ export default class HighlightOverlay {
         const pulse = 0.4 + 0.3 * Math.sin(t / INTERACTION.HIGHLIGHT_PULSE * Math.PI * 2);
 
         this.tileGfx.clear();
-        this.tileGfx.fillStyle(COLORS.WALL, pulse * 0.3);
-        this.tileGfx.lineStyle(2, COLORS.WALL, pulse);
 
         const x = station.isoX;
         const y = station.isoY;
         const s = ISO.TILE_SIZE;
 
-        this.tileGfx.beginPath();
-        this.tileGfx.moveTo(x, y);
-        this.tileGfx.lineTo(x + s, y + s / 2);
-        this.tileGfx.lineTo(x, y + s);
-        this.tileGfx.lineTo(x - s, y + s / 2);
-        this.tileGfx.closePath();
-        this.tileGfx.fillPath();
-        this.tileGfx.strokePath();
+        // Fill und Stroke brauchen EIGENE Pfade (Phaser verwirft sonst
+        // sporadisch die Konturen) — fillPoly/strokePoly erledigen das.
+        const pts = [[x, y], [x + s, y + s / 2], [x, y + s], [x - s, y + s / 2]];
+        fillPoly(this.tileGfx, pts, COLORS.WALL, pulse * 0.3);
+        strokePoly(this.tileGfx, pts, COLORS.WALL, pulse, 2);
 
         // [E]-Hint über dem Objekt schweben lassen
         const hintX = station.isoX;
