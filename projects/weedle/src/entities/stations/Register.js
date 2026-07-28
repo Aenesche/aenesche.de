@@ -1,6 +1,6 @@
 import Station from './Station.js';
 import { COLORS, ISO, ITEMS } from '../../config/constants.js';
-import { drawIsoCube } from '../../utils/iso.js';
+import { drawIsoCube, fillPoly, strokePoly } from '../../utils/iso.js';
 import { Audio } from '../../audio/AudioManager.js';
 
 const TABLE_HEIGHT = 15;
@@ -12,22 +12,17 @@ export default class Register extends Station {
         const rx = this.isoX;
         const ry = this.isoY - TABLE_HEIGHT + ISO.TILE_SIZE / 2;
 
-        g.fillStyle(COLORS.REGISTER, 0.4);
-        g.lineStyle(1, COLORS.REGISTER, 1);
-        g.beginPath();
-        g.moveTo(rx, ry); g.lineTo(rx + 10, ry - 5);
-        g.lineTo(rx + 10, ry - 15); g.lineTo(rx, ry - 10);
-        g.closePath(); g.fillPath(); g.strokePath();
-        g.beginPath();
-        g.moveTo(rx, ry); g.lineTo(rx - 10, ry - 5);
-        g.lineTo(rx - 10, ry - 15); g.lineTo(rx, ry - 10);
-        g.closePath(); g.fillPath(); g.strokePath();
+        // Kassen-Körper: erst beide Flächen füllen, dann beide Konturen ziehen
+        const rightSide = [[rx, ry], [rx + 10, ry - 5], [rx + 10, ry - 15], [rx, ry - 10]];
+        const leftSide  = [[rx, ry], [rx - 10, ry - 5], [rx - 10, ry - 15], [rx, ry - 10]];
+        fillPoly(g, rightSide, COLORS.REGISTER, 0.4);
+        fillPoly(g, leftSide,  COLORS.REGISTER, 0.4);
+        strokePoly(g, rightSide, COLORS.REGISTER, 1, 1);
+        strokePoly(g, leftSide,  COLORS.REGISTER, 1, 1);
 
-        g.fillStyle(COLORS.WALL, 1);
-        g.beginPath();
-        g.moveTo(rx - 8, ry - 7); g.lineTo(rx - 2, ry - 4);
-        g.lineTo(rx - 2, ry - 10); g.lineTo(rx - 8, ry - 13);
-        g.closePath(); g.fillPath();
+        // Display
+        const display = [[rx - 8, ry - 7], [rx - 2, ry - 4], [rx - 2, ry - 10], [rx - 8, ry - 13]];
+        fillPoly(g, display, COLORS.WALL, 1);
 
         this.bounds = {
             left:   this.isoX - ISO.TILE_SIZE,
