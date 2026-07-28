@@ -5,6 +5,8 @@
 // StorageTable (und alles künftige, z.B. Regale) nutzt dieselbe Funktion —
 // so sehen Items überall identisch aus.
 
+import { fillPoly, strokePoly } from '../utils/iso.js';
+
 // Zeichnet ein Item-Icon bei (cx, cy) auf ein Graphics-Objekt.
 // scale: 1 = Standard (überm Kopf), Tische nutzen ~0.8
 export function drawItemIcon(g, itemDef, cx = 0, cy = 0, scale = 1) {
@@ -12,15 +14,13 @@ export function drawItemIcon(g, itemDef, cx = 0, cy = 0, scale = 1) {
 
     if (itemDef.id.startsWith('seed_')) {
         // Samen: gelber Tropfen (wie der Ur-Samen), Outline in Sorten-Farbe
-        g.fillStyle(0xffff00, 1);
-        g.lineStyle(2, itemDef.color, 1);
-        g.beginPath();
-        g.moveTo(cx, cy - 6 * scale);
-        g.lineTo(cx - 5 * scale, cy + 3 * scale);
-        g.lineTo(cx + 5 * scale, cy + 3 * scale);
-        g.closePath();
-        g.fillPath();
-        g.strokePath();
+        const pts = [
+            [cx, cy - 6 * scale],
+            [cx - 5 * scale, cy + 3 * scale],
+            [cx + 5 * scale, cy + 3 * scale],
+        ];
+        fillPoly(g, pts, 0xffff00, 1);
+        strokePoly(g, pts, itemDef.color, 1, 2);
     } else if (itemDef.id === 'rotten') {
         // Verfault: rotes X
         g.lineStyle(2.5, itemDef.color, 1);
