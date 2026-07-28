@@ -23,7 +23,7 @@ export default class SettingsPanel {
 
         const cx = GAME.WIDTH / 2;
         const cy = GAME.HEIGHT / 2;
-        const w = 440, h = 430;
+        const w = 440, h = 492;
         this.top = cy - h / 2;
 
         const dim = scene.add.graphics();
@@ -75,6 +75,25 @@ export default class SettingsPanel {
         this.sideToggle = this.makeToggle(cx, y, 'JOYSTICK-SEITE', ['LINKS', 'RECHTS'],
             () => (UiSettings.joystickSide === 'right' ? 1 : 0),
             i => { UiSettings.set('joystickSide', i === 1 ? 'right' : 'left'); Audio.play('uiClick'); this.refresh(); });
+        y += 58;
+
+        // Vollbild: auf dem Handy gewinnt man dadurch die Browserleisten dazu.
+        // iOS Safari kennt die Fullscreen-API nicht — dort bleibt die Zeile grau.
+        this.fullscreenToggle = this.makeToggle(cx, y, 'VOLLBILD', ['AUS', 'AN'],
+            () => (scene.scale.isFullscreen ? 1 : 0),
+            i => {
+                if (!scene.scale.fullscreen?.available) return;
+                if (i === 1 && !scene.scale.isFullscreen) scene.scale.startFullscreen();
+                if (i === 0 && scene.scale.isFullscreen) scene.scale.stopFullscreen();
+                Audio.play('uiClick');
+                this.refresh();
+            });
+
+        if (!scene.scale.fullscreen?.available) {
+            this.container.add(scene.add.text(cx + BAR_W / 2, y - 22, 'nicht verfügbar', {
+                font: '10px monospace', color: '#556',
+            }).setOrigin(1, 0));
+        }
 
         const close = scene.add.text(cx, this.top + h - 30, '[ SCHLIESSEN ]', {
             font: 'bold 15px monospace', color: '#00ff88',
