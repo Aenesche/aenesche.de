@@ -1,6 +1,6 @@
 import Station from './Station.js';
 import { COLORS, ISO, ITEMS, SEED_VARIETIES, GROWTH, UPGRADES } from '../../config/constants.js';
-import { drawIsoTile, drawIsoCube } from '../../utils/iso.js';
+import { drawIsoTile, drawIsoCube, fillPoly, strokePoly } from '../../utils/iso.js';
 import CarriedItem from '../CarriedItem.js';
 import PieTimer from '../PieTimer.js';
 import { Audio } from '../../audio/AudioManager.js';
@@ -79,16 +79,14 @@ export default class Bed extends Station {
         const cy = this.isoY + ISO.TILE_SIZE / 2 - HEIGHT;
         const h = 30 * scale;
         const w = 15 * scale;
-        g.lineStyle(2, color, 1);
-        g.fillStyle(color, 0.2);
-        g.beginPath();
-        g.moveTo(cx, cy);
-        g.lineTo(cx - w, cy - h / 2);
-        g.lineTo(cx, cy - h);
-        g.lineTo(cx + w, cy - h / 2);
-        g.closePath();
-        g.fillPath();
-        g.strokePath();
+        const pts = [
+            [cx, cy],
+            [cx - w, cy - h / 2],
+            [cx, cy - h],
+            [cx + w, cy - h / 2],
+        ];
+        fillPoly(g, pts, color, 0.2);
+        strokePoly(g, pts, color, 1, 2);
         g.fillStyle(color, 1);
         g.fillEllipse(cx, cy - h / 2, w / 2, h / 4);
     }
