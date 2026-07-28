@@ -1,6 +1,6 @@
 import Station from './Station.js';
 import { COLORS, ISO, BUILD } from '../../config/constants.js';
-import { drawIsoTile } from '../../utils/iso.js';
+import { drawIsoTile, fillPoly, strokePoly } from '../../utils/iso.js';
 
 // Farben pro Typ
 const TYPE_COLORS = {
@@ -68,17 +68,15 @@ export default class BuildSlot extends Station {
         const pulse = 0.3 + 0.2 * Math.sin(t / 6000 * Math.PI * 2);
 
         // Holographisches Boden-Tile: pulsierend, gestrichelt
-        g.lineStyle(2, color, pulse);
-        g.fillStyle(color, pulse * 0.15);
-
-        g.beginPath();
-        g.moveTo(this.isoX, this.isoY);
-        g.lineTo(this.isoX + ISO.TILE_SIZE, this.isoY + ISO.TILE_SIZE / 2);
-        g.lineTo(this.isoX, this.isoY + ISO.TILE_SIZE);
-        g.lineTo(this.isoX - ISO.TILE_SIZE, this.isoY + ISO.TILE_SIZE / 2);
-        g.closePath();
-        g.fillPath();
-        g.strokePath();
+        const T = ISO.TILE_SIZE;
+        const pts = [
+            [this.isoX, this.isoY],
+            [this.isoX + T, this.isoY + T / 2],
+            [this.isoX, this.isoY + T],
+            [this.isoX - T, this.isoY + T / 2],
+        ];
+        fillPoly(g, pts, color, pulse * 0.15);
+        strokePoly(g, pts, color, pulse, 2);
 
         // Holo-Plus-Zeichen in der Mitte
         const cx = this.isoX;
