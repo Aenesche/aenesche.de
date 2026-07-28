@@ -44,6 +44,7 @@ class WallSegment {
         this.height = height;
         this.occludable = occludable;
 
+        this.color = color;
         this.graphics = scene.add.graphics();
         this.graphics.setDepth(depth);
 
@@ -63,6 +64,7 @@ class WallSegment {
 
     draw(color) {
         const g = this.graphics;
+        g.clear();
         const { from, to, height } = this;
 
         // Oberkante hell
@@ -98,7 +100,13 @@ class WallSegment {
     }
 
     updateOcclusion(playerX, playerY) {
-        if (!this.occludable) return;
+        // Befehlspuffer jeden Frame neu aufbauen (siehe Station.js)
+        this.draw(this.color);
+
+        if (!this.occludable) {
+            this.graphics.setAlpha(this.currentAlpha);
+            return;
+        }
 
         // Vorderwände sind unten am Bildschirm. Player ist "dahinter" wenn er
         // weiter oben ist als die Wand-Bottom (kleinere Y).
