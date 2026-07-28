@@ -23,4 +23,11 @@ const config = {
     scene: [BootScene, MenuScene, LevelSelectScene, GameScene],
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+
+// Mobile Browserleisten tauchen beim Scrollen auf/ab und ändern die sichtbare
+// Höhe. visualViewport meldet das zuverlässiger als 'resize'.
+const refit = () => game.scale.refresh();
+window.addEventListener('resize', refit);
+window.addEventListener('orientationchange', () => setTimeout(refit, 200));
+window.visualViewport?.addEventListener('resize', refit);
