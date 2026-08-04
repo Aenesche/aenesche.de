@@ -236,7 +236,7 @@ class AudioManager {
                 this.tone({ freq: f(45), dur: 0.2, type: 'sine', gain: 0.14 });
                 break;
             case 'tick':     // Kunde wird ungeduldig: dezenter Klick
-                this.noise({ dur: 0.035, gain: 0.07, filterFreq: 3500 });
+                this.noise({ dur: 0.035, gain: 0.1, filterFreq: 3500 });
                 break;
             case 'error':    // Nicht möglich
                 this.tone({ freq: f(46), dur: 0.18, type: 'sine', gain: 0.16 });
