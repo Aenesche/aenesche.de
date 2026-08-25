@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Kino — Gruppe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/auth-global.js"></script>
+<script src="/projects/kino/js/tmdb.js"></script>
+<style>
+:root{
+  --bg:#0c0c0f; --surface:#16161a; --surface-2:#1e1e24;
+  --border:#2a2a32; --border-hover:#3a3a45;
+  --text:#ececf1; --muted:#72727e;
+  --accent:#f5c77e; --accent-dim:#8a6f45;
+  --up:#7fc98a; --down:#e06a5f;
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--text); font-family:'Sora',sans-serif;
+  min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:''; position:fixed; inset:0; opacity:.03; pointer-events:none; z-index:1;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px;
+}
+.wrap{max-width:820px; margin:0 auto; padding:40px 20px 120px; position:relative; z-index:2}
+.mono{font-family:'Space Mono',monospace}
+
+/* ── Header ── */
+.topbar{display:flex; justify-content:space-between; align-items:flex-start; gap:14px}
+.label{
+  font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px;
+  text-transform:uppercase; color:var(--muted); margin-bottom:10px;
+}
+h1{font-size:clamp(1.8rem,5vw,2.6rem); font-weight:700; letter-spacing:-1px; line-height:1.1}
+.who{font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); margin-top:8px}
+.who b{color:var(--accent); font-weight:400}
+
+/* ── Tabs ── */
+.tabs{
+  display:flex; gap:4px; margin:28px 0 22px; padding:4px;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:1; white-space:nowrap; padding:10px 14px; border-radius:9px;
+  font-size:13px; font-weight:600; color:var(--muted); cursor:pointer;
+  border:none; background:none; font-family:'Sora',sans-serif;
+  transition:background .18s ease, color .18s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--surface-2); color:var(--accent)}
+
+/* ── Panels ── */
+.panel{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:20px;
+}
+.panel + .panel{margin-top:14px}
+h2{
+  font-size:11px; font-family:'Space Mono',monospace; letter-spacing:2px;
+  text-transform:uppercase; color:var(--muted); font-weight:400; margin-bottom:16px;
+}
+
+/* ── Inputs / Buttons ── */
+input{
+  width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text);
+  font-family:'Sora',sans-serif; font-size:15px; padding:13px 15px;
+  border-radius:10px; outline:none; transition:border-color .2s ease;
+}
+input:focus{border-color:var(--accent-dim)}
+input::placeholder{color:#4a4a55}
+
+button{
+  font-family:'Sora',sans-serif; font-size:13px; font-weight:600;
+  border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+  padding:10px 15px; border-radius:9px; cursor:pointer;
+  transition:background .18s ease, border-color .18s ease, transform .1s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+button:hover{background:#26262e; border-color:var(--border-hover)}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.4; cursor:not-allowed}
+button.primary{background:var(--accent); border-color:var(--accent); color:#1a1408}
+button.primary:hover{background:#ffd692; border-color:#ffd692}
+button.ghost{background:transparent}
+button.sm{padding:7px 11px; font-size:12px}
+.row{display:flex; gap:8px; flex-wrap:wrap}
+
+/* ── Suchergebnisse ── */
+.results{margin-top:12px; display:flex; flex-direction:column; gap:8px}
+.res{
+  display:flex; gap:12px; align-items:center; padding:10px;
+  background:var(--bg); border:1px solid var(--border); border-radius:10px;
+  cursor:pointer; transition:border-color .18s ease;
+}
+.res:hover{border-color:var(--accent-dim)}
+.res img,.res .noimg{width:44px; height:66px; border-radius:6px; object-fit:cover; flex-shrink:0}
+.res .noimg{background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:18px}
+.res .rt{font-weight:600; font-size:14px; line-height:1.3}
+.res .rm{font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); margin-top:4px}
+.res .plus{margin-left:auto; color:var(--accent); font-size:20px; flex-shrink:0; padding-right:6px}
+
+/* ── Filmkarte ── */
+.movie{
+  display:flex; gap:14px; padding:14px;
+  background:var(--bg); border:1px solid var(--border); border-radius:12px;
+  transition:border-color .2s ease;
+}
+.movie + .movie{margin-top:10px}
+.movie:hover{border-color:var(--border-hover)}
+.movie .poster,.movie .noposter{
+  width:62px; height:93px; border-radius:8px; object-fit:cover; flex-shrink:0;
+}
+.movie .noposter{background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:22px}
+.movie .body{flex:1; min-width:0}
+.movie .title{font-weight:600; font-size:15px; line-height:1.3}
+.movie .title span{color:var(--muted); font-weight:400}
+.movie .meta{
+  font-family:'Space Mono',monospace; font-size:10.5px; color:var(--muted);
+  margin-top:6px; letter-spacing:.4px; line-height:1.6;
+}
+.movie .actions{margin-top:10px; display:flex; gap:6px; flex-wrap:wrap}
+
+/* ── Vote-Säule ── */
+.vote{
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  flex-shrink:0; justify-content:center;
+}
+.vote button{
+  border:none; background:none; padding:4px 8px; font-size:16px;
+  color:var(--muted); line-height:1; border-radius:6px;
+}
+.vote button:hover{background:var(--surface-2); color:var(--text)}
+.vote button.on.up{color:var(--up)}
+.vote button.on.down{color:var(--down)}
+.vote .score{
+  font-family:'Space Mono',monospace; font-weight:700; font-size:16px; min-width:26px;
+  text-align:center;
+}
+.vote .score.pos{color:var(--up)} .vote .score.neg{color:var(--down)}
+
+/* ── Sterne ── */
+.stars{display:inline-flex; gap:2px}
+.stars button{
+  border:none; background:none; padding:2px; font-size:19px; line-height:1;
+  color:#3a3a45;
+}
+.stars button.lit{color:var(--accent)}
+.stars button:hover{background:none; color:var(--accent)}
+.stars.ro{font-size:13px; color:var(--accent); font-family:'Space Mono',monospace}
+
+.rlist{margin-top:10px; border-top:1px solid var(--border); padding-top:10px}
+.rrow{
+  display:flex; align-items:center; gap:8px; font-size:12.5px;
+  padding:4px 0; color:var(--muted);
+}
+.rrow b{color:var(--text); font-weight:500; min-width:80px}
+.rrow .st{color:var(--accent); font-size:12px; letter-spacing:1px}
+.rrow .cm{font-style:italic; opacity:.8; min-width:0; overflow-wrap:anywhere}
+
+/* ── Chips ── */
+.chips{display:flex; flex-wrap:wrap; gap:7px; margin-top:12px}
+.chip{
+  font-size:12.5px; padding:7px 12px; border-radius:20px;
+  border:1px solid var(--border); background:var(--bg); color:var(--muted);
+  cursor:pointer; transition:all .18s ease; -webkit-tap-highlight-color:transparent;
+}
+.chip.on{border-color:var(--accent); color:var(--accent); background:rgba(245,199,126,.08)}
+
+/* ── Rad ── */
+.wheelbox{display:flex; flex-direction:column; align-items:center; padding:8px 0}
+.wheelstage{position:relative; width:100%; max-width:330px; aspect-ratio:1}
+#wheel{width:100%; height:100%; display:block}
+.pointer{
+  position:absolute; top:-4px; left:50%; transform:translateX(-50%);
+  width:0; height:0; border-left:11px solid transparent; border-right:11px solid transparent;
+  border-top:20px solid var(--accent); filter:drop-shadow(0 2px 4px rgba(0,0,0,.6)); z-index:3;
+}
+.winner{
+  margin-top:18px; text-align:center; width:100%;
+  padding:18px; border:1px solid var(--accent-dim); border-radius:12px;
+  background:rgba(245,199,126,.06);
+}
+.winner .wl{
+  font-family:'Space Mono',monospace; font-size:10px; letter-spacing:3px;
+  text-transform:uppercase; color:var(--accent); margin-bottom:8px;
+}
+.winner .wt{font-size:20px; font-weight:700; line-height:1.2}
+
+/* ── Diverses ── */
+.empty{color:var(--muted); font-size:13.5px; text-align:center; padding:30px 12px; line-height:1.6}
+.msg{
+  font-size:12.5px; margin-top:10px; padding:10px 13px; border-radius:9px;
+  border:1px solid var(--border); background:var(--bg); line-height:1.5;
+}
+.msg.err{border-color:#5a2f2b; color:var(--down)}
+.msg.ok{border-color:var(--accent-dim); color:var(--accent)}
+.loading{
+  text-align:center; padding:90px 20px; color:var(--muted);
+  font-family:'Space Mono',monospace; font-size:11px; letter-spacing:3px;
+}
+.person{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:11px 0; border-bottom:1px solid var(--border); font-size:14px;
+}
+.person:last-child{border-bottom:none}
+.person .pd{font-family:'Space Mono',monospace; font-size:11px; color:var(--muted)}
+@media(max-width:520px){
+  .wrap{padding:28px 15px 100px}
+  .panel{padding:16px}
+  .movie{padding:11px; gap:11px}
+  .movie .poster,.movie .noposter{width:52px; height:78px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="boot" class="loading">LÄDT …</div>
+
+  <div id="app" hidden>
+    <div class="topbar">
+      <div>
+        <div class="label">aenesche.de / kino</div>
+        <h1 id="gname">…</h1>
+        <div class="who">als <b id="whoName">…</b></div>
+      </div>
+      <button id="btnSwitch" class="ghost sm">Wechseln</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="suggest">Vorschläge</button>
+      <button class="tab" data-tab="wheel">Glücksrad</button>
+      <button class="tab" data-tab="watched">Geschaut</button>
+      <button class="tab" data-tab="group">Gruppe</button>
+    </div>
+
+    <!-- ══ VORSCHLÄGE ══ -->
+    <section id="tab-suggest">
+      <div class="panel">
+        <h2>Film vorschlagen</h2>
+        <input id="search" placeholder="Filmtitel suchen …" autocomplete="off">
+        <div id="results" class="results"></div>
+        <div id="addMsg" class="msg" hidden></div>
+      </div>
+      <div class="panel">
+        <h2>Auf der Liste <span id="cntOpen" class="mono"></span></h2>
+        <div id="openList"></div>
+      </div>
+    </section>
+
+    <!-- ══ GLÜCKSRAD ══ -->
+    <section id="tab-wheel" hidden>
+      <div class="panel">
+        <h2>Wer ist dabei?</h2>
+        <div class="row">
+          <button id="selAll" class="sm ghost">Alle</button>
+          <button id="selNone" class="sm ghost">Keine</button>
+          <button id="selTop" class="sm ghost">Top 5</button>
+        </div>
+        <div id="chips" class="chips"></div>
+      </div>
+      <div class="panel">
+        <div class="wheelbox">
+          <div class="wheelstage">
+            <div class="pointer"></div>
+            <canvas id="wheel"></canvas>
+          </div>
+          <button id="btnSpin" class="primary" style="margin-top:18px; padding:13px 34px; font-size:15px">Drehen</button>
+          <div id="winner" class="winner" hidden>
+            <div class="wl">Gewinner</div>
+            <div class="wt" id="winnerTitle"></div>
+            <div class="row" style="justify-content:center; margin-top:14px">
+              <button id="winWatched" class="sm">Als geschaut markieren</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ GESCHAUT ══ -->
+    <section id="tab-watched" hidden>
+      <div class="panel">
+        <h2>Bereits geschaut <span id="cntSeen" class="mono"></span></h2>
+        <div id="seenList"></div>
+      </div>
+    </section>
+
+    <!-- ══ GRUPPE ══ -->
+    <section id="tab-group" hidden>
+      <div class="panel">
+        <h2>Mitglieder <span id="cntPpl" class="mono"></span></h2>
+        <div id="pplList"></div>
+      </div>
+      <div class="panel">
+        <h2>Aktionen</h2>
+        <div class="row">
+          <button id="btnSwitch2" class="ghost">Gruppe wechseln</button>
+          <button id="btnLeave" class="ghost">Gruppe verlassen</button>
+          <button id="btnLogout" class="ghost">Logout</button>
+        </div>
+        <div id="grpMsg" class="msg" hidden></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(async function () {
+  const $  = id => document.getElementById(id);
+  const sb = window.sbClient;
+
+  const GID = new URLSearchParams(location.search).get('g');
+  if (!GID) { location.replace('index.html?stay=1'); return; }
+
+  /* ───────── State ───────── */
+  const S = {
+    me: null, username: '', group: null,
+    movies: [], votes: [], ratings: [], people: new Map(),
+    tab: 'suggest',
+    wheelSel: new Set(), wheelInit: false,
+    rot: 0, spinning: false, winnerId: null
+  };
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const note = (el, text, kind) => {
+    if (!text) { el.hidden = true; return; }
+    el.textContent = text; el.className = 'msg' + (kind ? ' ' + kind : ''); el.hidden = false;
+  };
+  const nameOf = uid => S.people.get(uid) || 'Unbekannt';
+  const dstr = ts => ts ? new Date(ts).toLocaleDateString('de-DE',
+    { day:'2-digit', month:'2-digit', year:'numeric' }) : '';
+
+  /* ───────── Boot ───────── */
+  const session = await window.aeAuth.getSession();
+  if (!session) { location.replace('index.html'); return; }
+  S.me = session.user;
+
+  const { data: grp } = await sb
+    .from('kino_groups').select('id,name,owner_id').eq('id', GID).maybeSingle();
+  if (!grp) { location.replace('index.html?stay=1'); return; }
+  S.group = grp;
+
+  const { data: prof } = await sb
+    .from('profiles').select('username').eq('id', S.me.id).maybeSingle();
+  S.username = (prof && prof.username) || (S.me.email || 'Anon').split('@')[0];
+
+  $('gname').textContent   = grp.name;
+  $('whoName').textContent = S.username;
+  document.title = 'Kino — ' + grp.name;
+
+  await loadData();
+  $('boot').hidden = true;
+  $('app').hidden  = false;
+  renderAll();
+  subscribeRealtime();
+
+  /* ───────── Daten ───────── */
+  async function loadData() {
+    const [mv, ppl] = await Promise.all([
+      sb.from('kino_movies').select('*').eq('group_id', GID).order('created_at', { ascending: false }),
+      sb.rpc('kino_group_people', { p_group_id: GID })
+    ]);
+    S.movies = mv.data || [];
+
+    S.people = new Map();
+    (ppl.data || []).forEach(p => S.people.set(p.user_id, p.username));
+
+    const ids = S.movies.map(m => m.id);
+    if (ids.length) {
+      const [vt, rt] = await Promise.all([
+        sb.from('kino_votes').select('*').in('movie_id', ids),
+        sb.from('kino_ratings').select('*').in('movie_id', ids)
+      ]);
+      S.votes   = vt.data || [];
+      S.ratings = rt.data || [];
+    } else {
+      S.votes = []; S.ratings = [];
+    }
+  }
+
+  /* Abgeleitete Werte pro Film */
+  function decorate(m) {
+    const v  = S.votes.filter(x => x.movie_id === m.id);
+    const r  = S.ratings.filter(x => x.movie_id === m.id);
+    const my = v.find(x => x.user_id === S.me.id);
+    const mine = r.find(x => x.user_id === S.me.id);
+    return {
+      ...m,
+      score:   v.reduce((a, x) => a + x.value, 0),
+      myVote:  my ? my.value : 0,
+      ratings: r,
+      myStars: mine ? mine.stars : 0,
+      avg:     r.length ? r.reduce((a, x) => a + x.stars, 0) / r.length : null
+    };
+  }
+  const openMovies = () => S.movies.filter(m => !m.watched).map(decorate)
+    .sort((a, b) => b.score - a.score || (a.title < b.title ? -1 : 1));
+  const seenMovies = () => S.movies.filter(m => m.watched).map(decorate)
+    .sort((a, b) => new Date(b.watched_at || 0) - new Date(a.watched_at || 0));
+
+  /* ───────── Tabs ───────── */
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.onclick = () => {
+      S.tab = btn.dataset.tab;
+      document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b === btn));
+      ['suggest','wheel','watched','group'].forEach(t => {
+        $('tab-' + t).hidden = (t !== S.tab);
+      });
+      if (S.tab === 'wheel') { initWheelSel(); renderWheel(); }
+      renderAll();
+    };
+  });
+
+  function renderAll() {
+    renderOpen();
+    renderSeen();
+    renderPeople();
+    if (S.tab === 'wheel') renderChips();
+  }
+
+  /* ───────── Vorschlagsliste ───────── */
+  function movieCard(m, mode) {
+    const el = document.createElement('div');
+    el.className = 'movie';
+
+    const p = window.tmdb.poster(m.poster_path, 'w185');
+    const bits = [];
+    if (m.genres && m.genres.length) bits.push(m.genres.slice(0, 3).join(' · '));
+    if (m.tmdb_rating) bits.push('TMDB ' + m.tmdb_rating.toFixed(1));
+
+    let right = '';
+    if (mode === 'open') {
+      const cls = m.score > 0 ? 'pos' : (m.score < 0 ? 'neg' : '');
+      right =
+        '<div class="vote">' +
+          '<button class="up'   + (m.myVote === 1  ? ' on' : '') + '" data-act="up">▲</button>' +
+          '<div class="score ' + cls + '">' + (m.score > 0 ? '+' : '') + m.score + '</div>' +
+          '<button class="down' + (m.myVote === -1 ? ' on' : '') + '" data-act="down">▼</button>' +
+        '</div>';
+    }
+
+    const canDelete = m.added_by === S.me.id || S.group.owner_id === S.me.id;
+
+    el.innerHTML =
+      (p ? '<img class="poster" src="' + p + '" alt="" loading="lazy">'
+         : '<div class="noposter">🎬</div>') +
+      '<div class="body">' +
+        '<div class="title">' + esc(m.title) +
+          (m.year ? ' <span>(' + m.year + ')</span>' : '') + '</div>' +
+        '<div class="meta">' + esc(bits.join('  ·  ')) +
+          (bits.length ? '<br>' : '') +
+          'vorgeschlagen von ' + esc(nameOf(m.added_by)) +
+          (mode === 'seen' && m.watched_at ? '  ·  geschaut am ' + dstr(m.watched_at) : '') +
+        '</div>' +
+        '<div class="actions">' +
+          (mode === 'open'
+            ? '<button class="sm" data-act="watched">Geschaut ✓</button>'
+            : '<button class="sm ghost" data-act="unwatch">Zurück zur Liste</button>') +
+          (canDelete ? '<button class="sm ghost" data-act="del">Entfernen</button>' : '') +
+        '</div>' +
+      '</div>' +
+      right;
+
+    // Bewertungsbereich für geschaute Filme
+    if (mode === 'seen') {
+      const box = document.createElement('div');
+      box.className = 'rlist';
+
+      const starsHtml = [1,2,3,4,5].map(n =>
+        '<button data-star="' + n + '" class="' + (n <= m.myStars ? 'lit' : '') + '">★</button>').join('');
+
+      let others = '';
+      m.ratings.forEach(r => {
+        others +=
+          '<div class="rrow">' +
+            '<b>' + esc(nameOf(r.user_id)) + '</b>' +
+            '<span class="st">' + '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars) + '</span>' +
+            (r.comment ? '<span class="cm">„' + esc(r.comment) + '"</span>' : '') +
+          '</div>';
+      });
+
+      box.innerHTML =
+        '<div class="rrow" style="padding-bottom:8px">' +
+          '<b>Deine Wertung</b><span class="stars">' + starsHtml + '</span>' +
+        '</div>' +
+        (m.avg !== null
+          ? '<div class="rrow"><b>Schnitt</b><span class="st">' + m.avg.toFixed(1) +
+            ' / 5</span><span class="cm">(' + m.ratings.length + ')</span></div>'
+          : '') +
+        others;
+
+      box.querySelectorAll('[data-star]').forEach(b => {
+        b.onclick = () => rate(m, parseInt(b.dataset.star, 10));
+      });
+      el.querySelector('.body').appendChild(box);
+    }
+
+    el.querySelectorAll('[data-act]').forEach(b => {
+      b.onclick = () => {
+        const a = b.dataset.act;
+        if (a === 'up')       vote(m, 1);
+        else if (a === 'down') vote(m, -1);
+        else if (a === 'watched') setWatched(m, true);
+        else if (a === 'unwatch') setWatched(m, false);
+        else if (a === 'del')     removeMovie(m);
+      };
+    });
+
+    return el;
+  }
+
+  function renderOpen() {
+    const box = $('openList');
+    const list = openMovies();
+    $('cntOpen').textContent = list.length ? '(' + list.length + ')' : '';
+    box.innerHTML = '';
+    if (!list.length) {
+      box.innerHTML = '<div class="empty">Noch nichts vorgeschlagen.<br>Such oben einen Film und tipp ihn an.</div>';
+      return;
+    }
+    list.forEach(m => box.appendChild(movieCard(m, 'open')));
+  }
+
+  function renderSeen() {
+    const box = $('seenList');
+    const list = seenMovies();
+    $('cntSeen').textContent = list.length ? '(' + list.length + ')' : '';
+    box.innerHTML = '';
+    if (!list.length) {
+      box.innerHTML = '<div class="empty">Noch keinen Film als geschaut markiert.</div>';
+      return;
+    }
+    list.forEach(m => box.appendChild(movieCard(m, 'seen')));
+  }
+
+  function renderPeople() {
+    const box = $('pplList');
+    $('cntPpl').textContent = '(' + S.people.size + ')';
+    box.innerHTML = '';
+    S.people.forEach((uname, uid) => {
+      const added = S.movies.filter(m => m.added_by === uid).length;
+      const rated = S.ratings.filter(r => r.user_id === uid).length;
+      const d = document.createElement('div');
+      d.className = 'person';
+      d.innerHTML =
+        '<span>' + esc(uname) + (uid === S.group.owner_id ? ' 👑' : '') +
+          (uid === S.me.id ? ' <span style="color:var(--muted)">(du)</span>' : '') + '</span>' +
+        '<span class="pd">' + added + ' VORSCHLÄGE · ' + rated + ' WERTUNGEN</span>';
+      box.appendChild(d);
+    });
+  }
+
+  /* ───────── Aktionen ───────── */
+  async function vote(m, val) {
+    const newVal = (m.myVote === val) ? 0 : val;
+
+    // Optimistisch lokal anwenden
+    S.votes = S.votes.filter(v => !(v.movie_id === m.id && v.user_id === S.me.id));
+    if (newVal !== 0) S.votes.push({ movie_id: m.id, user_id: S.me.id, value: newVal });
+    renderOpen();
+
+    if (newVal === 0) {
+      await sb.from('kino_votes').delete().eq('movie_id', m.id).eq('user_id', S.me.id);
+    } else {
+      await sb.from('kino_votes')
+        .upsert({ movie_id: m.id, user_id: S.me.id, value: newVal },
+                { onConflict: 'movie_id,user_id' });
+    }
+  }
+
+  async function rate(m, stars) {
+    const same = m.myStars === stars;
+    S.ratings = S.ratings.filter(r => !(r.movie_id === m.id && r.user_id === S.me.id));
+    if (!same) S.ratings.push({ movie_id: m.id, user_id: S.me.id, stars, comment: null });
+    renderSeen();
+
+    if (same) {
+      await sb.from('kino_ratings').delete().eq('movie_id', m.id).eq('user_id', S.me.id);
+    } else {
+      await sb.from('kino_ratings')
+        .upsert({ movie_id: m.id, user_id: S.me.id, stars, updated_at: new Date().toISOString() },
+                { onConflict: 'movie_id,user_id' });
+    }
+  }
+
+  async function setWatched(m, on) {
+    const target = S.movies.find(x => x.id === m.id);
+    if (target) { target.watched = on; target.watched_at = on ? new Date().toISOString() : null; }
+    S.wheelSel.delete(m.id);
+    renderAll();
+    await sb.from('kino_movies')
+      .update({ watched: on, watched_at: on ? new Date().toISOString() : null })
+      .eq('id', m.id);
+  }
+
+  async function removeMovie(m) {
+    if (!confirm('„' + m.title + '" wirklich entfernen?')) return;
+    S.movies = S.movies.filter(x => x.id !== m.id);
+    S.wheelSel.delete(m.id);
+    renderAll();
+    await sb.from('kino_movies').delete().eq('id', m.id);
+  }
+
+  /* ───────── Suche ───────── */
+  let searchTimer = null;
+  $('search').oninput = () => {
+    clearTimeout(searchTimer);
+    const q = $('search').value.trim();
+    note($('addMsg'), '');
+    if (q.length < 2) { $('results').innerHTML = ''; return; }
+    searchTimer = setTimeout(() => runSearch(q), 350);
+  };
+
+  async function runSearch(q) {
+    const box = $('results');
+    box.innerHTML = '<div class="empty" style="padding:14px">suche …</div>';
+    let res;
+    try {
+      res = await window.tmdb.search(q, 8);
+    } catch (e) {
+      box.innerHTML = '<div class="empty" style="padding:14px">TMDb nicht erreichbar.</div>';
+      return;
+    }
+    if ($('search').value.trim() !== q) return;   // veraltetes Ergebnis
+    if (!res.length) {
+      box.innerHTML = '<div class="empty" style="padding:14px">Nichts gefunden.</div>';
+      return;
+    }
+
+    const have = new Set(S.movies.map(m => m.tmdb_id));
+    box.innerHTML = '';
+    res.forEach(r => {
+      const p = window.tmdb.poster(r.poster_path, 'w92');
+      const dup = have.has(r.tmdb_id);
+      const el = document.createElement('div');
+      el.className = 'res';
+      if (dup) el.style.opacity = '.45';
+      el.innerHTML =
+        (p ? '<img src="' + p + '" alt="" loading="lazy">' : '<div class="noimg">🎬</div>') +
+        '<div>' +
+          '<div class="rt">' + esc(r.title) + '</div>' +
+          '<div class="rm">' + (r.year || '—') +
+            (r.tmdb_rating ? '  ·  ★ ' + r.tmdb_rating.toFixed(1) : '') + '</div>' +
+        '</div>' +
+        '<div class="plus">' + (dup ? '✓' : '+') + '</div>';
+      el.onclick = () => { if (!dup) addMovie(r); };
+      box.appendChild(el);
+    });
+  }
+
+  async function addMovie(r) {
+    const { data, error } = await sb.from('kino_movies').insert({
+      group_id:      GID,
+      added_by:      S.me.id,
+      tmdb_id:       r.tmdb_id,
+      title:         r.title,
+      year:          r.year,
+      poster_path:   r.poster_path,
+      backdrop_path: r.backdrop_path,
+      overview:      r.overview,
+      genres:        r.genres,
+      tmdb_rating:   r.tmdb_rating
+    }).select().single();
+
+    if (error) {
+      const dup = /duplicate key/i.test(error.message);
+      note($('addMsg'), dup ? 'Steht schon auf der Liste.' : error.message, 'err');
+      return;
+    }
+
+    // Eigener Vorschlag = automatisch ein Upvote
+    await sb.from('kino_votes')
+      .upsert({ movie_id: data.id, user_id: S.me.id, value: 1 }, { onConflict: 'movie_id,user_id' });
+
+    S.movies.unshift(data);
+    S.votes.push({ movie_id: data.id, user_id: S.me.id, value: 1 });
+    S.wheelSel.add(data.id);
+
+    note($('addMsg'), '„' + r.title + '" hinzugefügt.', 'ok');
+    $('search').value = '';
+    $('results').innerHTML = '';
+    renderAll();
+  }
+
+  /* ═════════ GLÜCKSRAD ═════════ */
+  const cv = $('wheel');
+  const ctx = cv.getContext('2d');
+  const PALETTE = ['#2b2118','#3d2f1f','#1f2a24','#2a2030','#243040','#33241c','#1e2b32','#302a1c'];
+
+  function initWheelSel() {
+    if (S.wheelInit) return;
+    openMovies().forEach(m => S.wheelSel.add(m.id));
+    S.wheelInit = true;
+  }
+
+  function wheelMovies() {
+    return openMovies().filter(m => S.wheelSel.has(m.id));
+  }
+
+  function renderChips() {
+    const box = $('chips');
+    const list = openMovies();
+    box.innerHTML = '';
+    if (!list.length) {
+      box.innerHTML = '<div class="empty" style="width:100%">Keine Filme auf der Liste.</div>';
+      return;
+    }
+    list.forEach(m => {
+      const c = document.createElement('div');
+      c.className = 'chip' + (S.wheelSel.has(m.id) ? ' on' : '');
+      c.textContent = m.title;
+      c.onclick = () => {
+        if (S.spinning) return;
+        if (S.wheelSel.has(m.id)) S.wheelSel.delete(m.id); else S.wheelSel.add(m.id);
+        renderChips(); renderWheel();
+      };
+      box.appendChild(c);
+    });
+  }
+
+  $('selAll').onclick  = () => { openMovies().forEach(m => S.wheelSel.add(m.id)); renderChips(); renderWheel(); };
+  $('selNone').onclick = () => { S.wheelSel.clear(); renderChips(); renderWheel(); };
+  $('selTop').onclick  = () => {
+    S.wheelSel.clear();
+    openMovies().slice(0, 5).forEach(m => S.wheelSel.add(m.id));
+    renderChips(); renderWheel();
+  };
+
+  function sizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = cv.getBoundingClientRect();
+    const size = Math.max(1, Math.round(rect.width));
+    cv.width  = size * dpr;
+    cv.height = size * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return size;
+  }
+
+  function renderWheel() {
+    const size = sizeCanvas();
+    const cx = size / 2, cy = size / 2, R = size / 2 - 6;
+    ctx.clearRect(0, 0, size, size);
+
+    const list = wheelMovies();
+
+    // Grundkreis
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.fillStyle = '#16161a';
+    ctx.fill();
+
+    if (!list.length) {
+      ctx.fillStyle = '#72727e';
+      ctx.font = '12px "Space Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('KEINE FILME', cx, cy);
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.strokeStyle = '#2a2a32';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      return;
+    }
+
+    const n = list.length, arc = (Math.PI * 2) / n;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(S.rot);
+
+    for (let i = 0; i < n; i++) {
+      const a0 = i * arc;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, R, a0, a0 + arc);
+      ctx.closePath();
+      ctx.fillStyle = PALETTE[i % PALETTE.length];
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, R, a0, a0 + arc);
+      ctx.closePath();
+      ctx.strokeStyle = 'rgba(245,199,126,.22)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Beschriftung
+    for (let i = 0; i < n; i++) {
+      ctx.save();
+      ctx.rotate(i * arc + arc / 2);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#ececf1';
+      const fs = n > 14 ? 9 : (n > 9 ? 10.5 : 12);
+      ctx.font = fs + 'px Sora, sans-serif';
+      let t = list[i].title;
+      const maxChars = n > 14 ? 12 : (n > 9 ? 16 : 20);
+      if (t.length > maxChars) t = t.slice(0, maxChars - 1) + '…';
+      ctx.fillText(t, R - 12, 0);
+      ctx.restore();
+    }
+    ctx.restore();
+
+    // Rand + Nabe
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.strokeStyle = '#3a3a45';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 15, 0, Math.PI * 2);
+    ctx.fillStyle = '#0c0c0f';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx, cy, 15, 0, Math.PI * 2);
+    ctx.strokeStyle = '#f5c77e';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  $('btnSpin').onclick = () => {
+    if (S.spinning) return;
+    const list = wheelMovies();
+    if (!list.length) return;
+    if (list.length === 1) { showWinner(list[0]); return; }
+
+    S.spinning = true;
+    $('btnSpin').disabled = true;
+    $('winner').hidden = true;
+
+    const n = list.length, arc = (Math.PI * 2) / n;
+    const target = S.rot + Math.PI * 2 * (5 + Math.random() * 3) + Math.random() * Math.PI * 2;
+    const start = S.rot, delta = target - start;
+    const dur = 4200, t0 = performance.now();
+
+    function frame(now) {
+      const p = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 4);            // easeOutQuart
+      S.rot = start + delta * e;
+      renderWheel();
+      if (p < 1) { requestAnimationFrame(frame); return; }
+
+      S.rot = ((target % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      renderWheel();
+
+      // Zeiger sitzt oben (−90°): welches Segment liegt dort?
+      const a = ((-Math.PI / 2 - S.rot) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+      const idx = Math.min(n - 1, Math.floor(a / arc));
+
+      S.spinning = false;
+      $('btnSpin').disabled = false;
+      showWinner(list[idx]);
+    }
+    requestAnimationFrame(frame);
+  };
+
+  function showWinner(m) {
+    S.winnerId = m.id;
+    $('winnerTitle').textContent = m.title + (m.year ? ' (' + m.year + ')' : '');
+    $('winner').hidden = false;
+  }
+
+  $('winWatched').onclick = async () => {
+    const m = S.movies.find(x => x.id === S.winnerId);
+    if (!m) return;
+    await setWatched(m, true);
+    $('winner').hidden = true;
+    renderChips();
+    renderWheel();
+  };
+
+  window.addEventListener('resize', () => { if (S.tab === 'wheel') renderWheel(); });
+
+  /* ═════════ Gruppen-Aktionen ═════════ */
+  const goSwitch = () => { location.href = 'index.html?stay=1'; };
+  $('btnSwitch').onclick  = goSwitch;
+  $('btnSwitch2').onclick = goSwitch;
+
+  $('btnLogout').onclick = async () => {
+    await window.aeAuth.signOut();
+    location.href = 'index.html';
+  };
+
+  $('btnLeave').onclick = async () => {
+    if (!confirm('Gruppe „' + S.group.name + '" wirklich verlassen?')) return;
+    const { error } = await sb.from('kino_members')
+      .delete().eq('group_id', GID).eq('user_id', S.me.id);
+    if (error) return note($('grpMsg'), error.message, 'err');
+    location.href = 'index.html?stay=1';
+  };
+
+  /* ═════════ Realtime ═════════ */
+  let refreshTimer = null;
+  function scheduleRefresh() {
+    if (S.spinning) return;
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(async () => {
+      await loadData();
+      renderAll();
+      if (S.tab === 'wheel') renderWheel();
+    }, 450);
+  }
+
+  function subscribeRealtime() {
+    sb.channel('kino:' + GID)
+      .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'kino_movies', filter: 'group_id=eq.' + GID },
+          scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kino_votes'   }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kino_ratings' }, scheduleRefresh)
+      .subscribe();
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) scheduleRefresh();
+  });
+})();
+</script>
+</body>
+</html>
