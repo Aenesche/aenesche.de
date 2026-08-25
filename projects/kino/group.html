@@ -340,29 +340,31 @@ button.sm{padding:7px 11px; font-size:12px}
   const dstr = ts => ts ? new Date(ts).toLocaleDateString('de-DE',
     { day:'2-digit', month:'2-digit', year:'numeric' }) : '';
 
-  /* ───────── Boot ───────── */
-  const session = await window.aeAuth.getSession();
-  if (!session) { location.replace('index.html'); return; }
-  S.me = session.user;
+  /* ───────── Boot (läuft ganz unten, nach allen Deklarationen) ───────── */
+  async function start() {
+    const session = await window.aeAuth.getSession();
+    if (!session) { location.replace('index.html'); return; }
+    S.me = session.user;
 
-  const { data: grp } = await sb
-    .from('kino_groups').select('id,name,owner_id').eq('id', GID).maybeSingle();
-  if (!grp) { location.replace('index.html?stay=1'); return; }
-  S.group = grp;
+    const { data: grp } = await sb
+      .from('kino_groups').select('id,name,owner_id').eq('id', GID).maybeSingle();
+    if (!grp) { location.replace('index.html?stay=1'); return; }
+    S.group = grp;
 
-  const { data: prof } = await sb
-    .from('profiles').select('username').eq('id', S.me.id).maybeSingle();
-  S.username = (prof && prof.username) || (S.me.email || 'Anon').split('@')[0];
+    const { data: prof } = await sb
+      .from('profiles').select('username').eq('id', S.me.id).maybeSingle();
+    S.username = (prof && prof.username) || (S.me.email || 'Anon').split('@')[0];
 
-  $('gname').textContent   = grp.name;
-  $('whoName').textContent = S.username;
-  document.title = 'Kino — ' + grp.name;
+    $('gname').textContent   = grp.name;
+    $('whoName').textContent = S.username;
+    document.title = 'Kino — ' + grp.name;
 
-  await loadData();
-  $('boot').hidden = true;
-  $('app').hidden  = false;
-  renderAll();
-  subscribeRealtime();
+    await loadData();
+    $('boot').hidden = true;
+    $('app').hidden  = false;
+    renderAll();
+    subscribeRealtime();
+  }
 
   /* ───────── Daten ───────── */
   async function loadData() {
@@ -403,10 +405,14 @@ button.sm{padding:7px 11px; font-size:12px}
       avg:     r.length ? r.reduce((a, x) => a + x.stars, 0) / r.length : null
     };
   }
-  const openMovies = () => S.movies.filter(m => !m.watched).map(decorate)
-    .sort((a, b) => b.score - a.score || (a.title < b.title ? -1 : 1));
-  const seenMovies = () => S.movies.filter(m => m.watched).map(decorate)
-    .sort((a, b) => new Date(b.watched_at || 0) - new Date(a.watched_at || 0));
+  function openMovies() {
+    return S.movies.filter(m => !m.watched).map(decorate)
+      .sort((a, b) => b.score - a.score || (a.title < b.title ? -1 : 1));
+  }
+  function seenMovies() {
+    return S.movies.filter(m => m.watched).map(decorate)
+      .sort((a, b) => new Date(b.watched_at || 0) - new Date(a.watched_at || 0));
+  }
 
   /* ───────── Tabs ───────── */
   document.querySelectorAll('.tab').forEach(btn => {
@@ -555,7 +561,8 @@ button.sm{padding:7px 11px; font-size:12px}
       d.innerHTML =
         '<span>' + esc(uname) + (uid === S.group.owner_id ? ' 👑' : '') +
           (uid === S.me.id ? ' <span style="color:var(--muted)">(du)</span>' : '') + '</span>' +
-        '<span class="pd">' + added + ' VORSCHLÄGE · ' + rated + ' WERTUNGEN</span>';
+        '<span class="pd">' + added + (added === 1 ? ' VORSCHLAG · ' : ' VORSCHLÄGE · ') +
+          rated + (rated === 1 ? ' WERTUNG' : ' WERTUNGEN') + '</span>';
       box.appendChild(d);
     });
   }
@@ -928,6 +935,9 @@ button.sm{padding:7px 11px; font-size:12px}
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) scheduleRefresh();
   });
+
+  /* ═════════ Los geht's ═════════ */
+  await start();
 })();
 </script>
 </body>
