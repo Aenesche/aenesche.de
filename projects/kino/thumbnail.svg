@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" role="img" aria-label="Kino">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#f5c77e" stop-opacity=".14"/>
+      <stop offset="100%" stop-color="#f5c77e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="320" height="200" fill="#111114"/>
+  <circle cx="160" cy="100" r="86" fill="url(#glow)"/>
+
+  <!-- Filmstreifen -->
+  <rect x="0" y="0" width="320" height="19" fill="#0c0c0f"/>
+  <rect x="0" y="181" width="320" height="19" fill="#0c0c0f"/>
+    <rect x="10" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="32" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="54" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="76" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="98" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="120" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="142" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="164" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="186" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="208" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="230" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="252" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="274" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="296" y="5" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="10" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="32" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="54" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="76" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="98" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="120" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="142" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="164" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="186" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="208" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="230" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="252" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="274" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+  <rect x="296" y="186" width="12" height="9" rx="2.5" fill="#16161a"/>
+
+  <!-- Rad -->
+    <path d="M160 100 L160.00 42.00 A58 58 0 0 1 201.01 58.99 Z" fill="#2b2118" stroke="#f5c77e" stroke-opacity=".28" stroke-width="1"/>
+  <path d="M160 100 L201.01 58.99 A58 58 0 0 1 218.00 100.00 Z" fill="#3d2f1f" stroke="#f5c77e" stroke-opacity=".28" stroke-width="1"/>
+  <path d="M160 100 L218.00 100.00 A58 58 0 0 1 201.01 141.01 Z" fill="#1f2a24" stroke="#f5c77e" stroke-opacity=".28" stroke-width="1"/>
+  <path d="M160 100 L201.01 141.01 A58 58 0 0 1 160.00 158.00 Z" fill="#2a2030" stroke="#f5c77e" stroke-opacity=".28" stroke-width="1"/>
+  <path d="M160 100 L160.00 158.00 A58 58 0 0 1 118.99 141.01 Z" fill="#243040" stroke="#f5c77e" stroke-opacity=".28" stroke-width="1"/>
+  <path d="M160 100 L118.99 141.01 A58 58 0 0 1 102.00 100.00 Z" fill="#33241c" stroke="#f5c77e" stroke-opacity=".28" stroke-width="1"/>
+  <path d="M160 100 L102.00 100.00 A58 58 0 0 1 118.99 58.99 Z" fill="#1e2b32" stroke="#f5c77e" stroke-opacity=".28" stroke-width="1"/>
+  <path d="M160 100 L118.99 58.99 A58 58 0 0 1 160.00 42.00 Z" fill="#302a1c" stroke="#f5c77e" stroke-opacity=".28" stroke-width="1"/>
+  <circle cx="160" cy="100" r="58" fill="none" stroke="#3a3a45" stroke-width="1.5"/>
+  <circle cx="160" cy="100" r="11" fill="#0c0c0f" stroke="#f5c77e" stroke-width="1.5"/>
+
+  <!-- Zeiger -->
+  <path d="M152 31 L168 31 L160 46 Z" fill="#f5c77e"/>
+</svg>
