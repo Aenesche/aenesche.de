@@ -294,6 +294,14 @@
             color: var(--accent-warm);
         }
 
+        /* Alias-Button nur fuer eingeloggte Nutzer */
+        body.logged-out #aliasBtn { display: none; }
+
+        .auth-user b {
+            color: var(--accent-warm);
+            font-weight: 400;
+        }
+
         /* ── Lock-Badge auf geschützten Karten ── */
         .card-lock {
             position: absolute;
@@ -518,6 +526,7 @@
 
     <div class="auth-corner">
         <span class="auth-user" id="authUser"></span>
+        <button class="auth-btn" id="aliasBtn">Alias</button>
         <button class="auth-btn" id="authBtn">Login</button>
     </div>
 
@@ -533,6 +542,19 @@
                 <button class="auth-btn" id="btnSignUp">Registrieren</button>
             </div>
             <div class="modal-msg" id="authMsg"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="aliasModal">
+        <div class="modal">
+            <button class="modal-close" id="aliasClose">&times;</button>
+            <h2>Alias</h2>
+            <p class="modal-sub">Dein Anzeigename &mdash; so sehen dich andere in Kino, Suffkalender &amp; Co. Im Drone Lab wird er auch als Leaderboard-Name genutzt, ausser du bist dort auf &bdquo;anonym&ldquo; gestellt.</p>
+            <input type="text" id="aliasInput" placeholder="z.B. Aenesche" maxlength="24" autocomplete="nickname">
+            <div class="modal-actions">
+                <button class="auth-btn primary" id="btnAliasSave">Speichern</button>
+            </div>
+            <div class="modal-msg" id="aliasMsg"></div>
         </div>
     </div>
 
@@ -854,13 +876,124 @@
             loggedIn = !!session;
             document.body.classList.toggle('logged-out', !loggedIn);
             if (loggedIn) {
-                authUser.textContent = session.user.email;
+                currentUserId = session.user.id;
+                currentEmail = session.user.email;
+                authUser.textContent = currentEmail;
                 authBtn.textContent = 'Logout';
+                loadAlias();
             } else {
+                currentUserId = null;
+                currentEmail = null;
+                currentAlias = null;
                 authUser.textContent = '';
                 authBtn.textContent = 'Login';
             }
         }
+
+        /* ══════════════ Alias ══════════════
+           profiles.username ist der globale Alias (Kino, Suffkalender, …).
+           game_state.display_name ist der Leaderboard-Name im Drone Lab und
+           wird mitgezogen — ausser der Spieler steht dort auf "anonym"
+           (leaderboard_opt_in = false), dann bleibt er unangetastet.        */
+        const ANON = '[ UNKNOWN ANOMALY ]';
+        const aliasModal = document.getElementById('aliasModal');
+        const aliasInput = document.getElementById('aliasInput');
+        const aliasMsg   = document.getElementById('aliasMsg');
+
+        let currentUserId = null;
+        let currentEmail  = null;
+        let currentAlias  = null;
+
+        function setAliasMsg(text, type) {
+            aliasMsg.textContent = text || '';
+            aliasMsg.className = 'modal-msg' + (type ? ' ' + type : '');
+        }
+
+        function renderCorner() {
+            authUser.textContent = '';
+            if (currentAlias) {
+                const b = document.createElement('b');
+                b.textContent = currentAlias;
+                authUser.appendChild(b);
+            } else {
+                authUser.textContent = currentEmail || '';
+            }
+        }
+
+        async function loadAlias() {
+            if (!currentUserId) return;
+            try {
+                const { data } = await sbClient
+                    .from('profiles').select('username').eq('id', currentUserId).maybeSingle();
+                currentAlias = (data && data.username) || null;
+
+                // Kein globaler Alias, aber im Drone Lab schon einen gesetzt?
+                // Dann den einmalig übernehmen, statt zwei Namen zu führen.
+                if (!currentAlias) {
+                    const { data: gs } = await sbClient
+                        .from('game_state').select('display_name')
+                        .eq('user_id', currentUserId).maybeSingle();
+                    const gname = gs && gs.display_name;
+                    if (gname && gname !== ANON) {
+                        const { error } = await sbClient
+                            .from('profiles').upsert({ id: currentUserId, username: gname });
+                        if (!error) currentAlias = gname;
+                    }
+                }
+                renderCorner();
+            } catch (err) {
+                /* Alias ist optional — Fehler still schlucken */
+            }
+        }
+
+        function openAliasModal() {
+            setAliasMsg('');
+            aliasInput.value = currentAlias || '';
+            aliasModal.classList.add('open');
+            aliasInput.focus();
+            aliasInput.select();
+        }
+
+        function closeAliasModal() { aliasModal.classList.remove('open'); }
+
+        document.getElementById('aliasBtn').addEventListener('click', openAliasModal);
+        document.getElementById('aliasClose').addEventListener('click', closeAliasModal);
+        aliasModal.addEventListener('click', (e) => { if (e.target === aliasModal) closeAliasModal(); });
+
+        document.getElementById('btnAliasSave').addEventListener('click', async () => {
+            const name = aliasInput.value.trim();
+            if (name.length < 3)  { setAliasMsg('Mindestens 3 Zeichen.', 'error'); return; }
+            if (name.length > 24) { setAliasMsg('Maximal 24 Zeichen.', 'error'); return; }
+            if (name === ANON)    { setAliasMsg('Der Name ist reserviert.', 'error'); return; }
+            if (!currentUserId)   { setAliasMsg('Nicht eingeloggt.', 'error'); return; }
+
+            setAliasMsg('Speichern…');
+            const { error } = await sbClient
+                .from('profiles').upsert({ id: currentUserId, username: name });
+
+            if (error) {
+                const taken = /duplicate key|unique/i.test(error.message);
+                setAliasMsg(taken ? 'Der Alias ist schon vergeben.' : 'Fehler: ' + error.message, 'error');
+                return;
+            }
+
+            // Leaderboard im Drone Lab nachziehen, aber Anonymität respektieren
+            try {
+                await sbClient.from('game_state')
+                    .update({ display_name: name })
+                    .eq('user_id', currentUserId)
+                    .eq('leaderboard_opt_in', true);
+            } catch (e) { /* Spiel evtl. nie gestartet — egal */ }
+
+            currentAlias = name;
+            renderCorner();
+            setAliasMsg('Gespeichert!', 'ok');
+            setTimeout(closeAliasModal, 700);
+        });
+
+        aliasInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('btnAliasSave').click();
+        });
 
         authBtn.addEventListener('click', async () => {
             if (loggedIn) {
