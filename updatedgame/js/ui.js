@@ -1078,6 +1078,19 @@ window.submitAlias = function() {
     if (typeof saveToServer === "function") {
         saveToServer();
     }
+
+    // Den Namen auch global setzen (profiles.username), damit Kino,
+    // Suffkalender & Co. denselben Alias zeigen. Bei "anonym" nicht —
+    // das betrifft nur die Leaderboard-Anzeige, nicht die Identitaet.
+    if (!optOut && typeof supabaseClient !== "undefined" && user) {
+        supabaseClient.from('profiles')
+            .upsert({ id: user.id, username: nameInput })
+            .then(({ error }) => {
+                if (error && /duplicate key|unique/i.test(error.message)) {
+                    alert("Der Alias ist global schon vergeben — im Leaderboard steht er trotzdem.");
+                }
+            });
+    }
 };
 // ==========================================
 // 🤖 AUTO-PROTOCOL LOGIK
