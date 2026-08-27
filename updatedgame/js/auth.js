@@ -22,6 +22,19 @@ function defaultState(){
   };
 }
 
+/* Globaler Alias aus profiles.username — geteilt mit /projects/ und den
+   anderen Projekten. Fehler sind unkritisch: dann bleibt es beim Default. */
+const ANON_NAME = "[ UNKNOWN ANOMALY ]";
+
+async function getGlobalAlias() {
+    try {
+        if (!user) return null;
+        const { data } = await supabaseClient
+            .from('profiles').select('username').eq('id', user.id).maybeSingle();
+        return (data && data.username) || null;
+    } catch (e) { return null; }
+}
+
 async function signUp() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -66,13 +79,29 @@ async function loadGameFromServer() {
             }
         }
         state.lastTick = nowMs;
+
+        // Noch kein Leaderboard-Name, aber global schon ein Alias gesetzt?
+        // Dann den uebernehmen, statt erneut nach einem Namen zu fragen.
+        if (!state.displayName || (state.displayName === ANON_NAME && state.leaderboardOptIn !== false)) {
+            const alias = await getGlobalAlias();
+            if (alias) {
+                state.displayName = alias;
+                state.leaderboardOptIn = true;
+                await supabaseClient.from('game_state')
+                    .update({ display_name: alias, leaderboard_opt_in: true })
+                    .eq('user_id', user.id);
+            }
+        }
     } else {
         state = defaultState();
-        // NEU: Beim allerersten Speichern auch die Leaderboard-Spalten füllen!
+        // Beim allerersten Speichern die Leaderboard-Spalten füllen —
+        // falls global schon ein Alias existiert, direkt den nehmen.
+        const alias = await getGlobalAlias();
+        if (alias) state.displayName = alias;
         await supabaseClient.from('game_state').insert([{ 
             user_id: user.id, 
             state_json: state,
-            display_name: "[ UNKNOWN ANOMALY ]",
+            display_name: alias || ANON_NAME,
             leaderboard_opt_in: true,
             score_cp: 0,
             score_po: 0
@@ -96,7 +125,7 @@ async function saveToServer() {
     const { error } = await supabaseClient.from('game_state').update({ 
         state_json: state, 
         updated_at: new Date(),
-        display_name: state.displayName || "[ UNKNOWN ANOMALY ]",
+        display_name: state.displayName || ANON_NAME,
         leaderboard_opt_in: state.leaderboardOptIn !== false, // Ist default true
         score_cp: state.coins || 0,
         score_po: (state.newWorld && state.newWorld.po) ? state.newWorld.po : 0
