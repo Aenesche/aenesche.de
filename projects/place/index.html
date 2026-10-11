@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0c0c0e">
+<title>Place — aenesche.de</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/projects/">PLA<span>CE</span></a>
+  <div class="stats mono">
+    <span class="online"><i></i><b id="onlineCount">–</b> online</span>
+    <span class="sep">·</span>
+    <span><b id="myTotal">0</b> Pixel</span>
+  </div>
+</header>
+
+<div class="stage" id="stage">
+  <canvas id="view"></canvas>
+  <div class="loading mono" id="loading">Lade Canvas…</div>
+
+  <div class="zoom">
+    <button id="zoomIn" aria-label="Reinzoomen">+</button>
+    <button id="zoomOut" aria-label="Rauszoomen">−</button>
+    <button id="zoomFit" aria-label="Ganzes Bild">⤢</button>
+  </div>
+</div>
+
+<footer class="panel">
+  <div class="info">
+    <span class="coords mono" id="coords">—</span>
+    <span class="owner" id="owner">Tippe auf ein Feld</span>
+  </div>
+  <div class="palette" id="palette"></div>
+  <button class="place-btn" id="placeBtn" disabled>
+    <span class="fill"></span>
+    <span class="label" id="placeLabel">Feld wählen</span>
+  </button>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/auth-global.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
