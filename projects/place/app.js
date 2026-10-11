@@ -2,7 +2,9 @@
 (async function () {
   'use strict';
 
-  const SIZE = 500;
+  const SIZE = 100;
+  const SB_URL = 'https://usihbregbanpfspblrnw.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY';
   const COOLDOWN = 30; // Sekunden – muss zur DB passen (place_pixel)
   const PALETTE = [
     '#ffffff', '#e4e4e4', '#888888', '#222222',
@@ -12,13 +14,11 @@
   ];
   const MIN_SCALE = 0.5;
   const MAX_SCALE = 64;
-  const TAP_ZOOM = 12;     // Zoomstufe nach Tap im rausgezoomten Zustand
+  const TAP_ZOOM = 18;     // Zoomstufe nach Tap im rausgezoomten Zustand
   const TAP_SLOP = 7;      // px Bewegung, ab der es kein Tap mehr ist
 
-  const session = await aeAuth.requireAuth();
-  if (!session) return;
   const db = window.sbClient;
-  const userId = session.user.id;
+  let userId = null;       // gesetzt, sobald der Login da ist
 
   const $ = (id) => document.getElementById(id);
   const stage = $('stage');
@@ -55,6 +55,8 @@
   // ---------- View-State ----------
   let W = 0, H = 0, dpr = 1;
   let scale = 1, ox = 0, oy = 0;
+  let live = false;             // Canvas geladen?
+  const buffered = [];          // Realtime-Events während eines Ladevorgangs
   let sel = null;               // {x, y}
   let color = null;             // Palettenindex
   try {
@@ -374,12 +376,15 @@
     const r = remaining();
     btn.classList.toggle('cooling', r > 0);
     btn.style.setProperty('--p', r > 0 ? (100 - (r / COOLDOWN) * 100) + '%' : '0%');
-    if (r > 0) label.textContent = `0:${String(r).padStart(2, '0')}`;
+    const ready = live && userId;
+    if (!live) label.textContent = 'Lädt…';
+    else if (!userId) label.textContent = 'Login…';
+    else if (r > 0) label.textContent = `0:${String(r).padStart(2, '0')}`;
     else if (placing) label.textContent = 'Setze…';
     else if (!sel) label.textContent = 'Feld wählen';
     else if (color === null) label.textContent = 'Farbe wählen';
     else label.textContent = 'Pixel setzen';
-    btn.disabled = r > 0 || placing || !sel || color === null;
+    btn.disabled = !ready || r > 0 || placing || !sel || color === null;
   }
   setInterval(updateButton, 250);
 
@@ -421,18 +426,15 @@
   });
 
   let toastTimer = null;
-  function toast(msg) {
+  function toast(msg, ms = 2600) {
     const t = $('toast');
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+    toastTimer = setTimeout(() => t.classList.remove('show'), ms);
   }
 
   // ---------- Daten laden + Realtime ----------
-  let live = false;
-  const buffered = [];
-
   function onRemote(n) {
     if (!n || n.x == null) return;
     if (!live) { buffered.push(n); return; }
@@ -440,22 +442,71 @@
     if (sel && sel.x === n.x && sel.y === n.y) loadInfo();
   }
 
+  // Canvas direkt per fetch mit dem Anon-Key holen – unabhängig vom
+  // Login-Lock von supabase-js, mit Timeout und Neuversuchen
+  async function fetchSnapshot() {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const ac = new AbortController();
+      const timer = setTimeout(() => ac.abort(), 8000);
+      try {
+        const res = await fetch(SB_URL + '/rest/v1/rpc/place_snapshot', {
+          method: 'POST',
+          headers: {
+            apikey: SB_KEY,
+            Authorization: 'Bearer ' + SB_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: '{}',
+          cache: 'no-store',
+          signal: ac.signal
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (typeof data === 'string') return data;
+        }
+      } catch (_) {
+        /* Timeout oder Netzfehler – nochmal */
+      } finally {
+        clearTimeout(timer);
+      }
+      await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+    }
+    return null;
+  }
+
+  let hasData = false;
+  let loadSeq = 0;
+
   async function loadSnapshot() {
+    const seq = ++loadSeq;
     live = false;
     buffered.length = 0;
-    const { data, error } = await db.rpc('place_snapshot');
-    if (error || typeof data !== 'string') {
-      $('loading').textContent = 'Konnte Canvas nicht laden';
-      $('loading').hidden = false;
+    updateButton();
+
+    const data = await fetchSnapshot();
+    if (seq !== loadSeq) return; // ein neuerer Ladevorgang läuft schon
+
+    if (data === null) {
+      live = hasData; // alten Stand weiter anzeigen, falls vorhanden
+      if (hasData) {
+        buffered.splice(0).forEach(onRemote);
+        toast('Sync fehlgeschlagen – zeige letzten Stand');
+      } else {
+        $('loading').textContent = 'Canvas lädt nicht – Seite neu laden';
+      }
+      updateButton();
       return;
     }
+
     const bin = atob(data.replace(/\s/g, ''));
     const n = Math.min(bin.length, pixels.length);
     for (let i = 0; i < n; i++) pixels[i] = bin.charCodeAt(i);
     paintAll();
+    hasData = true;
     live = true;
     buffered.splice(0).forEach(onRemote);
     $('loading').hidden = true;
+    updateButton();
     requestRender();
   }
 
@@ -467,25 +518,40 @@
     updateButton();
   }
 
-  const channel = db.channel('place', { config: { presence: { key: userId } } });
-  channel
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'place_pixels' }, (p) => onRemote(p.new))
-    .on('presence', { event: 'sync' }, () => {
-      $('onlineCount').textContent = Object.keys(channel.presenceState()).length;
-    })
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') channel.track({ at: Date.now() });
-    });
+  async function initAuth() {
+    const slow = setTimeout(() => toast('Login hängt… ggf. Seite neu laden', 8000), 10000);
+    const session = await aeAuth.requireAuth();
+    clearTimeout(slow);
+    if (!session) return;
+    userId = session.user.id;
+    updateButton();
+    loadStatus();
 
-  // Nach längerer Abwesenheit (iPad im Standby) neu synchronisieren
+    const channel = db.channel('place', { config: { presence: { key: userId } } });
+    channel
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'place_pixels' }, (p) => onRemote(p.new))
+      .on('presence', { event: 'sync' }, () => {
+        $('onlineCount').textContent = Object.keys(channel.presenceState()).length;
+      })
+      .subscribe((status) => {
+        if (status !== 'SUBSCRIBED') return;
+        channel.track({ at: Date.now() });
+        loadSnapshot(); // ab jetzt kommen alle Änderungen live → einmal sauber nachladen
+      });
+  }
+
+  // Nach längerer Abwesenheit (Standby, anderer Tab) neu synchronisieren
   let hiddenAt = 0;
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { hiddenAt = Date.now(); return; }
-    if (hiddenAt && Date.now() - hiddenAt > 20000) { loadSnapshot(); loadStatus(); }
+    if (hiddenAt && Date.now() - hiddenAt > 20000) {
+      loadSnapshot();
+      if (userId) loadStatus();
+    }
   });
 
   window.addEventListener('resize', resize);
   resize();
-  paintAll();
-  await Promise.all([loadSnapshot(), loadStatus()]);
+  loadSnapshot(); // startet sofort, wartet nicht auf den Login
+  initAuth();
 })();
