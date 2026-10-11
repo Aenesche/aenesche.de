@@ -362,7 +362,6 @@
     updateButton();
     requestRender();
   }
-  if (color !== null) setColor(color);
 
   // ---------- Cooldown & Setzen ----------
   const btn = $('placeBtn');
@@ -552,6 +551,10 @@
 
   window.addEventListener('resize', resize);
   resize();
+  // Gespeicherte Farbe erst hier wiederherstellen – vorher sind Button &
+  // Cooldown-Variablen noch nicht initialisiert (das war der Reload-Crash)
+  if (color !== null) setColor(color);
+  updateButton();
   loadSnapshot(); // startet sofort, wartet nicht auf den Login
   initAuth();
 })();
