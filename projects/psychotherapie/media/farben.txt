@@ -1,0 +1,25 @@
+Psychotherapie Nicasi – Farben
+================================
+
+Markenfarben (aus dem Logo)
+---------------------------
+Sonnengelb   #F8DA8E   RGB 248 218 142
+Taupe        #A0856E   RGB 160 133 110
+Salbei       #A1BD90   RGB 161 189 144
+
+Website-Palette
+---------------
+Dunkelgrün       #1F3328   RGB 31 51 40
+Waldgrün         #38583F   RGB 56 88 63
+Grün             #4A7355   RGB 74 115 85
+Salbei hell      #A7C59C   RGB 167 197 156
+Taupe dunkel     #6F553F   RGB 111 85 63
+Sonnengelb satt  #E4B94F   RGB 228 185 79
+Papier           #FBF9F5   RGB 251 249 245
+Sand             #F3EEE6   RGB 243 238 230
+Tinte (Text)     #24302A   RGB 36 48 42
+
+Schriften
+---------
+Überschriften: Fraunces (Google Fonts, SIL Open Font License)
+Fließtext:     Figtree  (Google Fonts, SIL Open Font License)
