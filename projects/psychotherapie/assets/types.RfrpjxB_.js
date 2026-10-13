@@ -1,0 +1,1 @@
+var e={gkv:{title:`Gesetzlich versichert`,desc:`z. B. AOK, TK, Barmer, DAK`},privat:{title:`Privat versichert`,desc:`inkl. Beihilfe`},selbst:{title:`Selbstzahler*in`,desc:`Sie zahlen die Sitzungen selbst`},mkk:{title:`MKK – Meine Krankenkasse`,desc:`Freie Plätze ohne Wartezeit`}};export{e as t};
