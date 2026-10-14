@@ -249,8 +249,19 @@
         /* ── Responsive ── */
         @media (max-width: 700px) {
             header { padding: 50px 20px 16px; }
-            .divider, .project-count, .grid { padding-left: 20px; padding-right: 20px; }
-            .grid { grid-template-columns: 1fr; }
+            .divider, .project-count, .grid { padding-left: 16px; padding-right: 16px; }
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .card-thumb { aspect-ratio: 4 / 3; }
+            .card-thumb .placeholder { font-size: 1.6rem; }
+            .card-body { padding: 12px 14px; gap: 4px; }
+            .card-title { font-size: 0.85rem; }
+            .card-desc { font-size: 0.72rem; line-height: 1.4; }
+            .card-meta { padding-top: 8px; }
+            .tag { font-size: 8px; padding: 3px 7px; }
+            .card-arrow { display: none; }
         }
 
         /* ── Auth button (oben rechts) ── */
