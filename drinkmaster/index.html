@@ -107,7 +107,7 @@
   <div style="margin-top: 2rem;">
     <button class="btn btn-join" onclick="toggleJoinForm()">Mit Code beitreten</button>
     <div class="input-group" id="joinForm">
-      <input type="text" id="roomCodeInput" placeholder="Raum-Code (z.B. AB12C)" style="text-transform: uppercase;">
+      <input type="text" id="roomCodeInput" placeholder="Raum-Code (z.B. AB12C)" style="text-transform: uppercase;" autocomplete="off" autocapitalize="characters" enterkeyhint="go" onkeydown="if(event.key==='Enter') joinRoom()">
       <button class="btn" style="border-color: white;" onclick="joinRoom()">Los</button>
     </div>
   </div>

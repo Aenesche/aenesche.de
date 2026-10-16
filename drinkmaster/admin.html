@@ -33,7 +33,7 @@
   <div class="container" id="login-box">
     <h1>ADMIN LOGIN</h1>
     <input type="text" id="adminRoom" placeholder="Raum-Code (z.B. C640U)">
-    <input type="password" id="adminPass" placeholder="Admin Passwort">
+    <input type="password" id="adminPass" placeholder="Admin Passwort" onkeydown="if(event.key==='Enter') loginAdmin()">
     <button onclick="loginAdmin()">EINLOGGEN</button>
   </div>
 
@@ -92,10 +92,16 @@
     const prefillRoom = adminUrlParams.get('room');
     if (prefillRoom) document.getElementById('adminRoom').value = prefillRoom;
 
+    // Namen kommen von Gästen -> niemals ungefiltert als HTML einfügen
+    function esc(str) {
+      return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
     async function loginAdmin() {
-      const room = document.getElementById('adminRoom').value.toUpperCase();
+      if (adminRoomId) return;
+      const room = document.getElementById('adminRoom').value.trim().toUpperCase();
       const pass = document.getElementById('adminPass').value;
-      const { data } = await client.from('party_rooms').select('id, admin_password').eq('room_code', room).single();
+      const { data } = await client.from('party_rooms').select('id, admin_password').eq('room_code', room).maybeSingle();
       
       if (!data || data.admin_password !== pass) { alert("Falsch!"); return; }
 
@@ -103,7 +109,12 @@
       document.getElementById('login-box').style.display = 'none';
       document.getElementById('admin-dashboard').style.display = 'block';
       
-      adminChannel = client.channel('party_channel');
+      // FIX: Kanal pro Raum (muss zum Beamer passen) + Listen aktualisieren sich live
+      let reloadTimer = null;
+      const scheduleReload = () => { clearTimeout(reloadTimer); reloadTimer = setTimeout(loadAllData, 300); };
+      adminChannel = client.channel(`party_${room}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'party_drinks', filter: `room_id=eq.${adminRoomId}` }, scheduleReload)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'party_reactions', filter: `room_id=eq.${adminRoomId}` }, scheduleReload);
       adminChannel.subscribe();
 
       loadAllData();
@@ -148,7 +159,8 @@
       sortedDrinks.forEach(d => {
         const div = document.createElement('div');
         div.className = 'data-row';
-        div.innerHTML = `<div><strong>${d.party_users?.display_name || 'Unbekannt'}</strong><br><span style="color:#aaa; font-size:0.8rem;">${d.volume_ml}ml | ${d.alcohol_percent}%</span></div><button class="del-btn" onclick="deleteEntry('party_drinks', '${d.id}')">X</button>`;
+        const t = d.created_at ? new Date(d.created_at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : '';
+        div.innerHTML = `<div><strong>${esc(d.party_users?.display_name || 'Unbekannt')}</strong><br><span style="color:#aaa; font-size:0.8rem;">${esc(d.volume_ml)}ml | ${esc(d.alcohol_percent)}% · ${t}</span></div><button class="del-btn" onclick="deleteEntry('party_drinks', '${esc(d.id)}')">X</button>`;
         list.appendChild(div);
       });
     }
@@ -173,7 +185,7 @@
       sortedReactions.forEach(r => {
         const div = document.createElement('div');
         div.className = 'data-row reaction';
-        div.innerHTML = `<div><strong>${r.party_users?.display_name || 'Unbekannt'}</strong><br><span style="color:#aaa; font-size:0.8rem;">${r.reaction_time_ms} ms (Total Reinalkohol: ${Math.round(r.pure_alcohol_ml)}ml)</span></div><button class="del-btn" onclick="deleteEntry('party_reactions', '${r.id}')">X</button>`;
+        div.innerHTML = `<div><strong>${esc(r.party_users?.display_name || 'Unbekannt')}</strong><br><span style="color:#aaa; font-size:0.8rem;">${esc(r.reaction_time_ms)} ms (Total Reinalkohol: ${Math.round(r.pure_alcohol_ml)}ml)</span></div><button class="del-btn" onclick="deleteEntry('party_reactions', '${esc(r.id)}')">X</button>`;
         list.appendChild(div);
       });
     }

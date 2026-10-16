@@ -3,13 +3,13 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const urlParams = new URLSearchParams(window.location.search);
-const currentRoomCode = urlParams.get('room');
+const currentRoomCode = (urlParams.get('room') || '').trim().toUpperCase();
 
 if (!currentRoomCode) window.location.href = 'index.html';
 
 document.getElementById('roomCodeDisplay').innerText = currentRoomCode;
 new QRCode(document.getElementById("qrcode"), { 
-  text: `https://aenesche.de/drinkmaster/party.html?room=${currentRoomCode}`, 
+  text: `https://aenesche.de/drinkmaster/party.html?room=${encodeURIComponent(currentRoomCode)}`, 
   width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H 
 });
 
@@ -26,25 +26,28 @@ let autoSwitchTimer = null;
 let autoScrollTimer = null;
 let scrollDirection = 1; // 1 = rechts, -1 = links
 let scrollSpeed = 1;
+let scrollPauseTimer = null;
 
 async function initLeaderboard() {
-  const { data: roomData } = await client.from('party_rooms').select('id').eq('room_code', currentRoomCode).single();
-  if (!roomData) return;
+  const { data: roomData } = await client.from('party_rooms').select('id').eq('room_code', currentRoomCode).maybeSingle();
+  if (!roomData) { document.getElementById('roomCodeDisplay').innerText = '???'; alert('Raum nicht gefunden!'); return; }
   currentRoomId = roomData.id;
 
   await loadInitialData();
 
-  client.channel('party_channel')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'party_drinks', filter: `room_id=eq.${currentRoomId}` }, () => { loadInitialData(); })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'party_reactions', filter: `room_id=eq.${currentRoomId}` }, () => { loadInitialData(); })
+  // FIX: Kanal pro Raum – vorher steuerte ein Admin ALLE Beamer aller Räume
+  client.channel(`party_${currentRoomCode}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'party_drinks', filter: `room_id=eq.${currentRoomId}` }, scheduleReload)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'party_reactions', filter: `room_id=eq.${currentRoomId}` }, scheduleReload)
     .on('broadcast', { event: 'autoswitch' }, (payload) => {
       clearInterval(autoSwitchTimer);
       if (payload.payload.active) {
-        autoSwitchTimer = setInterval(toggleView, payload.payload.seconds * 1000);
+        autoSwitchTimer = setInterval(toggleView, Math.max(3, payload.payload.seconds) * 1000);
       }
     })
     .on('broadcast', { event: 'autoscroll' }, (payload) => {
       clearInterval(autoScrollTimer);
+      clearTimeout(scrollPauseTimer);
       if (payload.payload.active) {
         scrollSpeed = payload.payload.speed || 1;
         startAutoScroll();
@@ -53,29 +56,43 @@ async function initLeaderboard() {
     .subscribe();
 }
 
+// Viele Änderungen kurz hintereinander -> nur einmal neu laden
+let reloadTimer = null;
+function scheduleReload() {
+  clearTimeout(reloadTimer);
+  reloadTimer = setTimeout(loadInitialData, 300);
+}
+
+let loadSeq = 0;
 async function loadInitialData() {
-  const { data: users } = await client.from('party_users').select('id, display_name').eq('room_id', currentRoomId);
+  const seq = ++loadSeq;
+  const [{ data: users }, { data: drinks }, { data: reactions }] = await Promise.all([
+    client.from('party_users').select('id, display_name').eq('room_id', currentRoomId),
+    client.from('party_drinks').select('*').eq('room_id', currentRoomId).order('created_at', { ascending: true }),
+    client.from('party_reactions').select('*, party_users(display_name)').eq('room_id', currentRoomId)
+  ]);
+  if (seq !== loadSeq) return; // ein neuerer Ladevorgang läuft schon
+
   userDataMap = {};
   userDrinksMap = {};
 
   if (users) {
     users.forEach(u => {
-      userDataMap[u.id] = { name: u.display_name, score: 0 };
+      userDataMap[u.id] = { name: u.display_name, score: 0, drinks: 0 };
       userDrinksMap[u.id] = [];
     });
   }
 
-  const { data: drinks } = await client.from('party_drinks').select('*').eq('room_id', currentRoomId).order('created_at', { ascending: true });
   if (drinks) {
     drinks.forEach(d => {
       if(userDataMap[d.user_id]) {
         userDataMap[d.user_id].score += calculateScore(d.volume_ml, d.alcohol_percent);
+        userDataMap[d.user_id].drinks += 1;
         userDrinksMap[d.user_id].push(d);
       }
     });
   }
 
-  const { data: reactions } = await client.from('party_reactions').select('*, party_users(display_name)').eq('room_id', currentRoomId);
   globalReactions = reactions || [];
 
   if (isGraphView) renderGlobalChart(); else renderLeaderboard();
@@ -130,7 +147,8 @@ function startAutoScroll() {
 
 function pauseAndResumeScroll() {
   clearInterval(autoScrollTimer);
-  setTimeout(() => { startAutoScroll(); }, 2000); 
+  clearTimeout(scrollPauseTimer);
+  scrollPauseTimer = setTimeout(() => { startAutoScroll(); }, 2000); 
 }
 
 function renderGlobalChart() {
@@ -213,50 +231,60 @@ function getContinuousColor(alc) {
 // ==========================================
 // WICHTIG: DIE SKALIERUNGS-LOGIK
 // ==========================================
+const MIN_BLOCK_PX = 15;   // Mindesthöhe eines Blocks (vor Skalierung)
+function rawBlockHeight(drink) { return Math.max(MIN_BLOCK_PX, drink.volume_ml * 0.2); }
+
 function renderLeaderboard() {
   const container = document.getElementById('live-stats');
   container.innerHTML = '';
   const sortedUserIds = Object.keys(userDataMap).sort((a, b) => userDataMap[b].score - userDataMap[a].score);
+  const visibleIds = sortedUserIds.filter(id => userDataMap[id].score > 0 && userDataMap[id].drinks > 0);
 
-  // 1. ZUERST: Den absolut höchsten Turm finden (Roh-Pixel)
-  let maxRawTowerHeight = 0;
-  sortedUserIds.forEach(userId => {
-    let rawHeight = 0;
-    userDrinksMap[userId].forEach(drink => { rawHeight += Math.max(15, drink.volume_ml * 0.2) + 2; });
-    if (rawHeight > maxRawTowerHeight) maxRawTowerHeight = rawHeight;
-  });
+  // 1. Verfügbare Höhe messen: Testspalte inkl. Score-Label einhängen
+  const probe = document.createElement('div');
+  probe.className = 'player-column';
+  probe.style.visibility = 'hidden';
+  const probeScore = document.createElement('div');
+  probeScore.className = 'player-score';
+  probeScore.innerText = '999';
+  probe.appendChild(probeScore);
+  container.appendChild(probe);
 
-  // 2. SKALIERUNGS-FAKTOR BERECHNEN:
-  // Wir messen, wie viel Platz die Spalte für den Turm hat (height minus padding-bottom).
-  const colElement = document.createElement('div');
-  colElement.className = 'player-column';
-  container.appendChild(colElement);
-  
-  // Die tatsächliche Höhe der flexiblen Spalte (das was flex-end nutzt)
-  const availableHeightForStack = colElement.clientHeight - 120; // 120px ist das padding-bottom für die Namen
-  container.removeChild(colElement);
+  const colStyle = getComputedStyle(probe);
+  const scoreStyle = getComputedStyle(probeScore);
+  const scoreSpace = probeScore.offsetHeight + parseFloat(scoreStyle.marginTop) + parseFloat(scoreStyle.marginBottom);
+  const colInner = probe.clientHeight - parseFloat(colStyle.paddingTop) - parseFloat(colStyle.paddingBottom);
+  container.removeChild(probe);
 
-  // Wir wollen den höchsten Turm auf max. 80% dieser verfügbaren Höhe begrenzen
-  const maxAllowedPixels = availableHeightForStack * 0.8; 
-  
-  // Wenn der höchste Roh-Turm höher als erlaubt ist, berechnen wir den Verkürzungs-Faktor
+  // Was für den Turm selbst bleibt (+ kleiner Sicherheitsabstand nach oben)
+  const available = Math.max(50, colInner - scoreSpace - 10);
+
+  // 2. Abstand zwischen Blöcken: bei sehr vielen Drinks schrumpfen, sonst sprengen allein die Abstände den Bildschirm
+  const maxBlocks = Math.max(0, ...visibleIds.map(id => userDrinksMap[id].length));
+  let gap = 2;
+  if (maxBlocks * 2 > available * 0.25) gap = 1;
+  if (maxBlocks * 1 > available * 0.25) gap = 0;
+
+  // 3. Skalierungsfaktor: JEDER Turm (Blöcke + Abstände) muss reinpassen
+  //    FIX: früher wurden Abstände und Score-Zahl nicht mitgerechnet -> Türme ragten oben raus
   let scaleFactor = 1;
-  if (maxRawTowerHeight > maxAllowedPixels) {
-    scaleFactor = maxAllowedPixels / maxRawTowerHeight;
-  }
-  
-  // Wir skalieren aber niemals GRÖSSER als 1.2 (Sicherheitsgrenze)
-  if (scaleFactor > 1.2) scaleFactor = 1.2; 
+  visibleIds.forEach(id => {
+    const drinks = userDrinksMap[id];
+    const rawSum = drinks.reduce((sum, d) => sum + rawBlockHeight(d), 0);
+    if (rawSum <= 0) return;
+    const fit = (available - drinks.length * gap) / rawSum;
+    if (fit < scaleFactor) scaleFactor = fit;
+  });
+  scaleFactor = Math.max(scaleFactor, 0.01);
 
-  sortedUserIds.forEach((userId) => {
+  visibleIds.forEach((userId) => {
     const user = userDataMap[userId];
     const drinks = userDrinksMap[userId];
-    if (user.score === 0 || drinks.length === 0) return;
 
     const col = document.createElement('div');
     col.className = 'player-column';
-    
-    // WIEDER DA: Gesamt-Zahl ganz oben
+
+    // Gesamt-Zahl ganz oben
     const scoreLabel = document.createElement('div');
     scoreLabel.className = 'player-score';
     scoreLabel.innerText = Math.round(user.score);
@@ -269,19 +297,18 @@ function renderLeaderboard() {
       const block = document.createElement('div');
       block.className = 'drink-block';
       block.title = `${drink.volume_ml} ml | ${drink.alcohol_percent}% Vol.`;
-      
-      let rawH = Math.max(15, drink.volume_ml * 0.2);
-      
-      // HIER WIRD SKALIERT (VERKÜRZT)
-      block.style.height = `${rawH * scaleFactor}px`;
-      
+
+      block.style.height = `${rawBlockHeight(drink) * scaleFactor}px`;
+      block.style.marginBottom = `${gap}px`;
+      if (gap === 0) block.style.borderRadius = '1px';
+
       let blockW = 40 + (drink.volume_ml / 500) * 70;
-      blockW = Math.max(Math.min(blockW, 110), 40); 
+      blockW = Math.max(Math.min(blockW, 110), 40);
       block.style.width = `${blockW}px`;
-      
+
       const hexColor = getContinuousColor(drink.alcohol_percent);
       block.style.backgroundColor = hexColor;
-      block.style.boxShadow = `0 0 12px ${hexColor}80`; 
+      block.style.boxShadow = `0 0 12px ${hexColor}80`;
 
       tower.appendChild(block);
     });
@@ -297,6 +324,10 @@ function renderLeaderboard() {
   });
 }
 
-window.addEventListener('resize', () => { if (isGraphView) renderGlobalChart(); else renderLeaderboard(); });
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (isGraphView) renderGlobalChart(); else renderLeaderboard(); }, 150);
+});
 
 initLeaderboard();

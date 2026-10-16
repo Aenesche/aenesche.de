@@ -3,7 +3,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const urlParams = new URLSearchParams(window.location.search);
-const roomCode = urlParams.get('room');
+const roomCode = (urlParams.get('room') || '').trim().toUpperCase();
 
 let currentRoomId = null;
 let currentUserId = null;
@@ -20,70 +20,121 @@ const statsSection = document.getElementById('stats-section');
 const volSlider = document.getElementById('volumeSlider');
 const alcSlider = document.getElementById('alcSlider');
 
+let personalChannel = null;
+let isJoining = false;
+
 async function init() {
   if (!roomCode) { alert("Kein Raum angegeben!"); return; }
   document.getElementById('room-display').innerText = roomCode;
-  document.getElementById('link-to-presentation').href = `presentation.html?room=${roomCode}`;
+  document.getElementById('link-to-presentation').href = `presentation.html?room=${encodeURIComponent(roomCode)}`;
 
-  const { data: roomData, error: roomError } = await client.from('party_rooms').select('id').eq('room_code', roomCode).single();
+  const { data: roomData, error: roomError } = await client.from('party_rooms').select('id').eq('room_code', roomCode).maybeSingle();
   if (roomError || !roomData) { alert("Raum nicht gefunden!"); return; }
   currentRoomId = roomData.id;
 
   const savedToken = localStorage.getItem(`token_${roomCode}`);
   if (savedToken) {
-    const { data: userData } = await client.from('party_users').select('id, display_name').eq('local_token', savedToken).maybeSingle();
+    // Token muss zu DIESEM Raum gehören
+    const { data: userData } = await client.from('party_users').select('id, display_name').eq('local_token', savedToken).eq('room_id', currentRoomId).maybeSingle();
     if (userData) {
-      currentUserId = userData.id;
-      document.getElementById('display-name').innerText = userData.display_name;
-      await loadUserStats();
-
-      // NEU: Das Handy lauscht jetzt auf Änderungen an den EIGENEN Daten!
-      client.channel('user_personal_updates')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'party_drinks', filter: `user_id=eq.${currentUserId}` }, () => { loadUserStats(); })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'party_reactions', filter: `user_id=eq.${currentUserId}` }, () => { loadUserStats(); })
-        .subscribe();
-
-      showDashboard();
+      await startSession(userData.id, userData.display_name, savedToken);
       return;
     }
+    localStorage.removeItem(`token_${roomCode}`); // veralteter Token
   }
   loginSection.classList.remove('hidden');
 }
 
+// Gemeinsamer Einstieg nach Login/Registrierung/Wiederkehr
+async function startSession(userId, name, token) {
+  currentUserId = userId;
+  localStorage.setItem(`token_${roomCode}`, token);
+  document.getElementById('display-name').innerText = name;
+  await loadUserStats();
+
+  // Handy lauscht auf Änderungen an den EIGENEN Daten (z.B. Admin löscht einen Drink)
+  if (personalChannel) client.removeChannel(personalChannel);
+  personalChannel = client.channel(`user_${currentUserId}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'party_drinks', filter: `user_id=eq.${currentUserId}` }, () => { loadUserStats(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'party_reactions', filter: `user_id=eq.${currentUserId}` }, () => { loadUserStats(); })
+    .subscribe();
+
+  showDashboard();
+}
+
 async function joinParty() {
-  const username = document.getElementById('usernameInput').value.trim();
-  const password = document.getElementById('passwordInput').value.trim(); 
+  if (isJoining || !currentRoomId) return;
+  const username = document.getElementById('usernameInput').value.trim().replace(/\s+/g, ' ');
+  const password = document.getElementById('passwordInput').value.trim();
 
   if (username.length < 2) { alert("Bitte gib einen Namen ein (min. 2 Zeichen)."); return; }
+  if (username.length > 24) { alert("Name ist zu lang (max. 24 Zeichen)."); return; }
 
-  const { data: existingUser } = await client.from('party_users').select('id, password_hash, local_token').eq('room_id', currentRoomId).eq('display_name', username).maybeSingle();
+  const joinBtn = document.getElementById('joinBtn');
+  isJoining = true;
+  joinBtn.disabled = true;
+  joinBtn.innerText = '...';
 
-  if (existingUser) {
-    if (existingUser.password_hash && existingUser.password_hash !== password) {
-      alert("Dieser Name ist durch ein Passwort geschützt!");
-      return;
-    } else if (!existingUser.password_hash && password !== "") {
-      alert("Dieser Name hat kein Passwort. Lass das Feld frei.");
+  try {
+    // Gleicher Name in anderer Schreibweise ("max" vs "Max") zählt auch als vergeben
+    const { data: roomUsers, error: listError } = await client.from('party_users').select('id, display_name, password_hash, local_token').eq('room_id', currentRoomId);
+    if (listError) { alert("Verbindungsfehler. Versuch's nochmal."); return; }
+    const existingUser = (roomUsers || []).find(u => u.display_name.toLowerCase() === username.toLowerCase());
+
+    if (existingUser) {
+      if (existingUser.password_hash) {
+        if (existingUser.password_hash !== password) {
+          alert(`„${existingUser.display_name}" ist schon vergeben und mit Passwort geschützt.\n\nFalsches Passwort – oder wähl einen anderen Namen.`);
+          return;
+        }
+      } else {
+        // FIX: Früher wurde man hier still in den fremden Account eingeloggt
+        const isMe = confirm(`„${existingUser.display_name}" ist schon vergeben!\n\nOK = Das bin ICH (z.B. neues Handy/Browser)\nAbbrechen = Ich wähle einen anderen Namen`);
+        if (!isMe) {
+          document.getElementById('usernameInput').focus();
+          return;
+        }
+      }
+      await startSession(existingUser.id, existingUser.display_name, existingUser.local_token);
       return;
     }
-    localStorage.setItem(`token_${roomCode}`, existingUser.local_token);
-    currentUserId = existingUser.id;
-    document.getElementById('display-name').innerText = username;
-    await loadUserStats();
-    showDashboard();
-    return;
+
+    const localToken = crypto.randomUUID();
+    const { data, error } = await client.from('party_users').insert([{ room_id: currentRoomId, display_name: username, local_token: localToken, password_hash: password || null }]).select('id, display_name').single();
+
+    if (error) {
+      if (error.code === '23505') {
+        // Zwei Leute haben exakt gleichzeitig denselben Namen gewählt
+        alert(`„${username}" wurde gerade von jemand anderem genommen. Wähl bitte einen anderen Namen.`);
+      } else {
+        alert("Fehler beim Beitreten.");
+      }
+      return;
+    }
+
+    await startSession(data.id, data.display_name, localToken);
+  } finally {
+    isJoining = false;
+    joinBtn.disabled = false;
+    joinBtn.innerText = "Let's Go";
   }
+}
 
-  const localToken = crypto.randomUUID();
-  const { data, error } = await client.from('party_users').insert([{ room_id: currentRoomId, display_name: username, local_token: localToken, password_hash: password || null }]).select().single();
-
-  if (error) { alert("Fehler beim Beitreten."); return; }
-
-  localStorage.setItem(`token_${roomCode}`, localToken);
-  currentUserId = data.id;
-  document.getElementById('display-name').innerText = username;
-  await loadUserStats();
-  showDashboard();
+function logoutUser() {
+  if (!confirm("Abmelden? Deine Drinks bleiben gespeichert – du kannst dich mit deinem Namen wieder einloggen.")) return;
+  localStorage.removeItem(`token_${roomCode}`);
+  if (personalChannel) { client.removeChannel(personalChannel); personalChannel = null; }
+  currentUserId = null;
+  totalPureAlcohol = 0;
+  currentBucket = 0;
+  completedBuckets = [];
+  userReactions = [];
+  closeReactionTest();
+  dashboardSection.classList.add('hidden');
+  statsSection.classList.add('hidden');
+  document.getElementById('usernameInput').value = '';
+  document.getElementById('passwordInput').value = '';
+  loginSection.classList.remove('hidden');
 }
 
 async function loadUserStats() {
@@ -354,88 +405,62 @@ function resetReactionPad() {
   }, randomDelay);
 }
 
+let isSaving = false;
+
+// FIX: Früher hingen ZWEI Click-Handler am Pad (alter + neuer Code), jetzt nur noch einer
 document.getElementById('reaction-pad').addEventListener('click', async () => {
-  // Wenn der 3s Timer abgelaufen ist, startet ein Klick das Spiel einfach neu
+  // Nach Auto-Fail startet ein Klick das Spiel einfach neu
   if (isFailed) {
     resetReactionPad();
     return;
   }
 
-  if (!isWaiting && !isGreen) return; 
+  if (isSaving || (!isWaiting && !isGreen)) return;
 
   const pad = document.getElementById('reaction-pad');
   const title = document.getElementById('reaction-title');
 
   if (!isGreen) {
-    title.innerText = 'Zu früh! Noch ein Versuch...';
     resetReactionPad();
+    title.innerText = 'Zu früh! Warte auf GRÜN...';
     return;
   }
 
   // Erfolgreich gedrückt!
-  const reactionTime = Date.now() - reactionStartTime;
-  clearTimeout(reactionTimer); // Stoppt den bösen 3-Sekunden Fail-Timer
-  isGreen = false;
-  
-  pad.style.background = '#3182ce'; 
-  pad.style.boxShadow = '0 0 30px #3182ce80';
-  pad.innerText = 'GESPEICHERT';
-  title.innerText = `${reactionTime} Millisekunden! ⚡`;
-
-  // Speichern in Supabase
-  await client.from('party_reactions').insert([{
-    user_id: currentUserId,
-    room_id: currentRoomId,
-    alcohol_bucket: currentBucket,
-    pure_alcohol_ml: totalPureAlcohol,
-    reaction_time_ms: reactionTime
-  }]);
-
-  setTimeout(() => {
-    closeReactionTest();
-    loadUserStats();
-  }, 2000);
-});
-
-document.getElementById('reaction-pad').addEventListener('click', async () => {
-  if (!isWaiting && !isGreen) return; 
-
-  const pad = document.getElementById('reaction-pad');
-  const title = document.getElementById('reaction-title');
-
-  if (!isGreen) {
-    title.innerText = 'Zu früh! Noch ein Versuch...';
-    resetReactionPad();
-    return;
-  }
-
   const rawReactionTime = Date.now() - reactionStartTime;
-  clearTimeout(reactionTimer);
+  clearTimeout(reactionTimer); // Stoppt den 3-Sekunden Fail-Timer
   isGreen = false;
-  
-  pad.style.background = '#3182ce'; 
+  isSaving = true;
+
+  pad.style.background = '#3182ce';
   pad.style.boxShadow = '0 0 30px #3182ce80';
   pad.innerText = 'GESPEICHERT';
 
-  // Cap bei 3000ms und lustige Sprüche
-  let finalTime = rawReactionTime;
-  if (rawReactionTime > 3000) {
-    finalTime = 3000;
-    title.innerText = '3000+ ms... Mad cuz bad! 🐌';
-  } else if (rawReactionTime > 1000) {
+  // Cap bei 3000ms und Sprüche
+  const finalTime = Math.min(rawReactionTime, 3000);
+  if (rawReactionTime > 1000) {
     title.innerText = `${finalTime} ms. Ein bisschen lahm, oder? 🐢`;
   } else {
     title.innerText = `${finalTime} Millisekunden! ⚡`;
   }
 
-  await client.from('party_reactions').insert([{
+  const { error } = await client.from('party_reactions').insert([{
     user_id: currentUserId,
     room_id: currentRoomId,
     alcohol_bucket: currentBucket,
     pure_alcohol_ml: totalPureAlcohol,
-    reaction_time_ms: finalTime // Hier speichern wir die gecappte Zeit
+    reaction_time_ms: finalTime
   }]);
+
+  if (error) {
+    pad.innerText = 'FEHLER';
+    title.innerText = error.code === '23505'
+      ? 'Diese Stufe hast du schon gespielt.'
+      : 'Konnte nicht gespeichert werden 😕';
+  }
+
   setTimeout(() => {
+    isSaving = false;
     closeReactionTest();
     loadUserStats();
   }, 2500);

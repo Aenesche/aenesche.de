@@ -76,7 +76,7 @@
       border-bottom: 1px solid #333;
     }
 
-    .user-name { font-size: 1.5rem; color: var(--neon-pink); font-weight: bold; }
+    .user-name { font-size: 1.5rem; color: var(--neon-pink); font-weight: bold; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
     
     .link-beamer {
       color: #aaa; text-decoration: none; font-size: 0.9rem;
@@ -136,16 +136,19 @@
     <h1>Join <span class="neon-text" id="room-display">...</span></h1>
     <p style="margin-bottom: 20px; color: #888;">Gib deinen Namen ein, um zu starten.</p>
     
-    <input type="text" id="usernameInput" placeholder="Dein Name" autocomplete="off">
-    <input type="password" id="passwordInput" placeholder="Passwort (Optional)" autocomplete="off">
+    <input type="text" id="usernameInput" placeholder="Dein Name" autocomplete="off" maxlength="24" enterkeyhint="go" onkeydown="if(event.key==='Enter') joinParty()">
+    <input type="password" id="passwordInput" placeholder="Passwort (Optional)" autocomplete="off" enterkeyhint="go" onkeydown="if(event.key==='Enter') joinParty()">
     
-    <button class="btn" onclick="joinParty()">Let's Go</button>
+    <button class="btn" id="joinBtn" onclick="joinParty()">Let's Go</button>
   </div>
 
   <div id="dashboard-section" class="hidden">
     <div class="header-bar">
       <div class="user-name" id="display-name">Name</div>
-      <a href="#" id="link-to-presentation" target="_blank" class="link-beamer">Live-Ansicht</a>
+      <div style="display: flex; gap: 8px; flex-shrink: 0;">
+        <a href="#" id="link-to-presentation" target="_blank" class="link-beamer">Live-Ansicht</a>
+        <a href="#" onclick="logoutUser(); return false;" class="link-beamer">Abmelden</a>
+      </div>
     </div>
 
     <div style="display: flex; gap: 10px; justify-content: space-between; margin-bottom: 20px;">

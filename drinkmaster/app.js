@@ -13,23 +13,31 @@ async function createRoom() {
     return;
   }
 
-  // HIER wird die Variable definiert: Sie heißt 'roomCode'
-  const roomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+  // FIX: Immer genau 5 Zeichen, ohne verwechselbare Zeichen (0/O, 1/I),
+  // und bei (seltener) Kollision mit bestehendem Code einfach neu würfeln
+  const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let roomCode = null;
+  let roomData = null;
 
-  const { data, error } = await client
-    .from('party_rooms')
-    .insert([
-      { room_code: roomCode, admin_password: adminPassword }
-    ])
-    .select();
+  for (let attempt = 0; attempt < 5 && !roomData; attempt++) {
+    const rnd = crypto.getRandomValues(new Uint32Array(5));
+    roomCode = Array.from(rnd, n => ALPHABET[n % ALPHABET.length]).join('');
 
-  if (error) {
-    console.error("Fehler beim Erstellen:", error);
-    alert("Konnte den Raum nicht erstellen. Check die Konsole.");
-    return;
+    const { data, error } = await client
+      .from('party_rooms')
+      .insert([{ room_code: roomCode, admin_password: adminPassword }])
+      .select('id')
+      .single();
+
+    if (!error) { roomData = data; break; }
+    if (error.code !== '23505') {
+      console.error("Fehler beim Erstellen:", error);
+      alert("Konnte den Raum nicht erstellen. Check die Konsole.");
+      return;
+    }
   }
 
-  const roomData = data[0];
+  if (!roomData) { alert("Konnte keinen freien Raum-Code finden. Nochmal versuchen!"); return; }
 
   localStorage.setItem('isAdmin', 'true');
   localStorage.setItem('adminRoomId', roomData.id);
@@ -45,11 +53,12 @@ async function createRoom() {
 function toggleJoinForm() {
   const form = document.getElementById('joinForm');
   form.style.display = form.style.display === 'block' ? 'none' : 'block';
+  if (form.style.display === 'block') document.getElementById('roomCodeInput').focus();
 }
 
 function joinRoom() {
-  const code = document.getElementById('roomCodeInput').value.toUpperCase();
+  const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
   if (code.length > 0) {
-    window.location.href = `party.html?room=${code}`;
+    window.location.href = `party.html?room=${encodeURIComponent(code)}`;
   }
 }
