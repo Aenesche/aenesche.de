@@ -13,31 +13,17 @@ async function createRoom() {
     return;
   }
 
-  // FIX: Immer genau 5 Zeichen, ohne verwechselbare Zeichen (0/O, 1/I),
-  // und bei (seltener) Kollision mit bestehendem Code einfach neu würfeln
-  const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let roomCode = null;
-  let roomData = null;
+  // Raum-Code (5 Zeichen, ohne 0/O/1/I) und Passwort-Hash entstehen in der Datenbank
+  const { data, error } = await client.rpc('party_create_room', { p_password: adminPassword });
 
-  for (let attempt = 0; attempt < 5 && !roomData; attempt++) {
-    const rnd = crypto.getRandomValues(new Uint32Array(5));
-    roomCode = Array.from(rnd, n => ALPHABET[n % ALPHABET.length]).join('');
-
-    const { data, error } = await client
-      .from('party_rooms')
-      .insert([{ room_code: roomCode, admin_password: adminPassword }])
-      .select('id')
-      .single();
-
-    if (!error) { roomData = data; break; }
-    if (error.code !== '23505') {
-      console.error("Fehler beim Erstellen:", error);
-      alert("Konnte den Raum nicht erstellen. Check die Konsole.");
-      return;
-    }
+  if (error || !data || !data[0]) {
+    console.error("Fehler beim Erstellen:", error);
+    alert("Konnte den Raum nicht erstellen. Check die Konsole.");
+    return;
   }
 
-  if (!roomData) { alert("Konnte keinen freien Raum-Code finden. Nochmal versuchen!"); return; }
+  const roomData = { id: data[0].room_id };
+  const roomCode = data[0].room_code;
 
   localStorage.setItem('isAdmin', 'true');
   localStorage.setItem('adminRoomId', roomData.id);

@@ -35,9 +35,9 @@ async function init() {
   const savedToken = localStorage.getItem(`token_${roomCode}`);
   if (savedToken) {
     // Token muss zu DIESEM Raum gehören
-    const { data: userData } = await client.from('party_users').select('id, display_name').eq('local_token', savedToken).eq('room_id', currentRoomId).maybeSingle();
+    const { data: userData } = await client.rpc('party_resume', { p_room_code: roomCode, p_token: savedToken });
     if (userData) {
-      await startSession(userData.id, userData.display_name, savedToken);
+      await startSession(userData.id, userData.name, savedToken);
       return;
     }
     localStorage.removeItem(`token_${roomCode}`); // veralteter Token
@@ -76,43 +76,29 @@ async function joinParty() {
   joinBtn.innerText = '...';
 
   try {
-    // Gleicher Name in anderer Schreibweise ("max" vs "Max") zählt auch als vergeben
-    const { data: roomUsers, error: listError } = await client.from('party_users').select('id, display_name, password_hash, local_token').eq('room_id', currentRoomId);
-    if (listError) { alert("Verbindungsfehler. Versuch's nochmal."); return; }
-    const existingUser = (roomUsers || []).find(u => u.display_name.toLowerCase() === username.toLowerCase());
+    // Prüfen + Anlegen passiert atomar in der Datenbank (party_join)
+    const join = (claim) => client.rpc('party_join', { p_room_code: roomCode, p_name: username, p_password: password || null, p_claim: claim });
 
-    if (existingUser) {
-      if (existingUser.password_hash) {
-        if (existingUser.password_hash !== password) {
-          alert(`„${existingUser.display_name}" ist schon vergeben und mit Passwort geschützt.\n\nFalsches Passwort – oder wähl einen anderen Namen.`);
-          return;
-        }
-      } else {
-        // FIX: Früher wurde man hier still in den fremden Account eingeloggt
-        const isMe = confirm(`„${existingUser.display_name}" ist schon vergeben!\n\nOK = Das bin ICH (z.B. neues Handy/Browser)\nAbbrechen = Ich wähle einen anderen Namen`);
-        if (!isMe) {
-          document.getElementById('usernameInput').focus();
-          return;
-        }
-      }
-      await startSession(existingUser.id, existingUser.display_name, existingUser.local_token);
-      return;
+    let { data: res, error } = await join(false);
+    if (error || !res) { alert("Verbindungsfehler. Versuch's nochmal."); return; }
+
+    if (res.status === 'taken') {
+      // FIX: Früher wurde man hier still in den fremden Account eingeloggt
+      const isMe = confirm(`„${res.name}" ist schon vergeben!\n\nOK = Das bin ICH (z.B. neues Handy/Browser)\nAbbrechen = Ich wähle einen anderen Namen`);
+      if (!isMe) { document.getElementById('usernameInput').focus(); return; }
+      ({ data: res, error } = await join(true));
+      if (error || !res) { alert("Verbindungsfehler. Versuch's nochmal."); return; }
     }
 
-    const localToken = crypto.randomUUID();
-    const { data, error } = await client.from('party_users').insert([{ room_id: currentRoomId, display_name: username, local_token: localToken, password_hash: password || null }]).select('id, display_name').single();
-
-    if (error) {
-      if (error.code === '23505') {
-        // Zwei Leute haben exakt gleichzeitig denselben Namen gewählt
-        alert(`„${username}" wurde gerade von jemand anderem genommen. Wähl bitte einen anderen Namen.`);
-      } else {
-        alert("Fehler beim Beitreten.");
-      }
+    if (res.status === 'wrong_password') {
+      alert(`„${res.name}" ist schon vergeben und mit Passwort geschützt.\n\nFalsches Passwort – oder wähl einen anderen Namen.`);
       return;
     }
+    if (res.status === 'bad_name') { alert("Name muss 2–24 Zeichen lang sein."); return; }
+    if (res.status === 'no_room') { alert("Raum nicht gefunden!"); return; }
+    if (res.status !== 'ok' && res.status !== 'created') { alert("Fehler beim Beitreten."); return; }
 
-    await startSession(data.id, data.display_name, localToken);
+    await startSession(res.id, res.name, res.token);
   } finally {
     isJoining = false;
     joinBtn.disabled = false;

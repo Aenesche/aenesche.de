@@ -86,6 +86,8 @@
   <script>
     const client = supabase.createClient('https://usihbregbanpfspblrnw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY');
     let adminRoomId = null;
+    let adminRoomCode = null;
+    let adminPassword = null; // nur im Speicher dieses Tabs, fürs Löschen
     let adminChannel = null; 
     
     const adminUrlParams = new URLSearchParams(window.location.search);
@@ -101,11 +103,14 @@
       if (adminRoomId) return;
       const room = document.getElementById('adminRoom').value.trim().toUpperCase();
       const pass = document.getElementById('adminPass').value;
-      const { data } = await client.from('party_rooms').select('id, admin_password').eq('room_code', room).maybeSingle();
-      
-      if (!data || data.admin_password !== pass) { alert("Falsch!"); return; }
+      // Passwort wird in der Datenbank geprüft (gehasht), nicht mehr im Browser
+      const { data, error } = await client.rpc('party_admin_login', { p_room_code: room, p_password: pass });
+      if (error) { alert("Verbindungsfehler!"); return; }
+      if (!data) { alert("Falsch!"); return; }
 
-      adminRoomId = data.id;
+      adminRoomId = data;
+      adminRoomCode = room;
+      adminPassword = pass;
       document.getElementById('login-box').style.display = 'none';
       document.getElementById('admin-dashboard').style.display = 'block';
       
@@ -192,8 +197,10 @@
 
     async function deleteEntry(table, id) {
       if(!confirm("Eintrag wirklich löschen?")) return;
-      const { error } = await client.from(table).delete().eq('id', id);
-      if (error) { alert("Fehler: " + error.message); } else { loadAllData(); }
+      const { data, error } = await client.rpc('party_admin_delete', { p_room_code: adminRoomCode, p_password: adminPassword, p_table: table, p_id: id });
+      if (error) { alert("Fehler: " + error.message); }
+      else if (!data) { alert("Konnte nicht gelöscht werden (schon weg?)."); loadAllData(); }
+      else { loadAllData(); }
     }
   </script>
 </body>
