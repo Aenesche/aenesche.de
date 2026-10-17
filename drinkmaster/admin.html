@@ -23,6 +23,7 @@
 
     .data-row { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 10px; margin-bottom: 10px; border-radius: 5px; border-left: 4px solid var(--neon-cyan);}
     .data-row.reaction { border-left-color: var(--neon-pink); }
+    button:disabled { opacity: 0.6; cursor: wait; }
     .del-btn { background: #e53e3e; width: auto; margin: 0; padding: 5px 10px; font-size: 0.9rem;}
     
     .control-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px;}
@@ -60,6 +61,15 @@
       </div>
     </div>
 
+    <div class="list-section" style="border-color: #f6e05e;">
+      <h2 style="color: #f6e05e;">📸 Endergebnis als Bild</h2>
+      <div class="control-row">
+        <button id="exportTowersBtn" onclick="exportTowers()" style="margin: 0; background: #f6e05e; color: #000; flex: 1;">🍺 Jenga-Türme</button>
+        <button id="exportReactionsBtn" onclick="exportReactions()" style="margin: 0; background: #f6e05e; color: #000; flex: 1;">⚡ Reaktionstests</button>
+      </div>
+      <p style="color: #777; font-size: 0.8rem;">Lädt das komplette Ergebnis als PNG herunter – alle Türme bzw. alle Leute, nicht nur den sichtbaren Ausschnitt.</p>
+    </div>
+
     <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; background: #222; padding: 10px; border-radius: 8px;">
       <span style="white-space: nowrap; color: #aaa;">Sortieren nach:</span>
       <select id="sortSelect" onchange="loadAllData()" style="margin: 0;">
@@ -83,6 +93,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     const client = supabase.createClient('https://usihbregbanpfspblrnw.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWhicmVnYmFucGZzcGJscm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMDkyNzEsImV4cCI6MjA4NzY4NTI3MX0.U_f2brykxMbegtddye-hpy0lcJgtEzl1AB9lQGpd5UY');
     let adminRoomId = null;
@@ -203,5 +214,6 @@
       else { loadAllData(); }
     }
   </script>
+  <script src="export.js"></script>
 </body>
 </html>
