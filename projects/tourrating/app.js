@@ -174,10 +174,32 @@
   async function viewGroups() {
     render('<div class="loading mono">Lade Gruppen…</div>');
     await loadNames([me]);
-    const { data, error } = await db.rpc('tour_my_groups');
+    const { data, error } = await db.rpc('tour_list_groups');
     if (error) throw error;
-    const groups = data || [];
+    const all = data || [];
+    const mine = all.filter((g) => g.is_member);
+    const others = all.filter((g) => !g.is_member);
     const myName = S.names.get(me);
+
+    const groupLink = (g) =>
+      '<a class="item group" href="#/g/' + g.id + '">' +
+        '<div class="item-main"><div class="item-title">' + esc(g.name) + '</div>' +
+        '<div class="item-meta mono">' + g.members + ' Leute</div></div>' +
+        '<span class="chev">›</span>' +
+      '</a>';
+
+    const groupJoin = (g) =>
+      '<div class="item group joinable" data-gid="' + g.id + '">' +
+        '<button type="button" class="join-head" data-open="' + g.id + '">' +
+          '<div class="item-main"><div class="item-title">' + esc(g.name) + '</div>' +
+          '<div class="item-meta mono">' + g.members + ' Leute</div></div>' +
+          '<span class="lock mono">Beitreten</span>' +
+        '</button>' +
+        '<form class="join-form" data-join="' + g.id + '" autocomplete="off" hidden>' +
+          '<input type="password" class="join-pass" placeholder="Passwort" maxlength="60" autocapitalize="off" required>' +
+          '<button class="btn primary">Rein</button>' +
+        '</form>' +
+      '</div>';
 
     render(
       '<header class="top">' +
@@ -189,38 +211,56 @@
         '<p class="sub">Wo wir gepennt, gegessen und gespielt haben – und wie\'s war.</p>' +
       '</section>' +
 
-      (groups.length
-        ? '<h3 class="label mono">Deine Gruppen</h3><div class="list">' +
-          groups.map((g) =>
-            '<a class="item group" href="#/g/' + g.id + '">' +
-              '<div class="item-main"><div class="item-title">' + esc(g.name) + '</div>' +
-              '<div class="item-meta mono">' + g.members + ' Leute · ' + g.places + ' Orte</div></div>' +
-              '<span class="chev">›</span>' +
-            '</a>').join('') +
-          '</div>'
-        : '<p class="hint">Noch in keiner Gruppe. Tritt der Gruppe deiner Band bei oder mach eine neue auf.</p>') +
+      (mine.length
+        ? '<h3 class="label mono">Deine Gruppen</h3><div class="list">' + mine.map(groupLink).join('') + '</div>'
+        : '') +
 
-      '<div class="tabs" id="gTabs">' +
-        '<button class="tab on" data-mode="join">Beitreten</button>' +
-        '<button class="tab" data-mode="create">Neue Gruppe</button>' +
-      '</div>' +
+      (others.length
+        ? '<h3 class="label mono">' + (mine.length ? 'Andere Gruppen' : 'Gruppen') + '</h3>' +
+          '<div class="list" id="otherGroups">' + others.map(groupJoin).join('') + '</div>'
+        : (mine.length ? '' : '<p class="hint">Noch keine Gruppen da. Leg die erste an.</p>')) +
+
+      '<h3 class="label mono">Neue Gruppe</h3>' +
       '<form class="card form" id="groupForm" autocomplete="off">' +
         '<label class="field"><span>Gruppenname</span>' +
-          '<input id="gName" maxlength="40" placeholder="z.B. Youlity" required autocapitalize="off"></label>' +
+          '<input id="gName" maxlength="40" placeholder="Name der Band / Tour" required></label>' +
         '<label class="field"><span>Passwort</span>' +
-          '<input id="gPass" maxlength="60" placeholder="z.B. Gabi" required autocapitalize="off"></label>' +
-        '<button class="btn primary wide" id="gSubmit">Beitreten</button>' +
+          '<input id="gPass" maxlength="60" placeholder="Simples Passwort für alle" required autocapitalize="off"></label>' +
+        '<button class="btn wide" id="gSubmit">Gruppe erstellen</button>' +
       '</form>'
     );
 
-    let mode = 'join';
-    $('gTabs').addEventListener('click', (e) => {
-      const b = e.target.closest('.tab');
-      if (!b) return;
-      mode = b.dataset.mode;
-      document.querySelectorAll('#gTabs .tab').forEach((t) => t.classList.toggle('on', t === b));
-      $('gSubmit').textContent = mode === 'join' ? 'Beitreten' : 'Gruppe erstellen';
-    });
+    const og = $('otherGroups');
+    if (og) {
+      og.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-open]');
+        if (!b) return;
+        const id = b.dataset.open;
+        og.querySelectorAll('.join-form').forEach((f) => {
+          const open = f.dataset.join === id && f.hidden;
+          f.hidden = !open;
+          f.closest('.joinable').classList.toggle('open', open);
+          if (open) f.querySelector('input').focus();
+        });
+      });
+      og.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const f = e.target.closest('[data-join]');
+        if (!f) return;
+        const btn = f.querySelector('button');
+        btn.disabled = true;
+        const { data: gid, error: err } = await db.rpc('tour_join_group_id',
+          { p_group_id: f.dataset.join, p_password: f.querySelector('input').value });
+        btn.disabled = false;
+        if (err) {
+          toast(errMsg(err));
+          f.querySelector('input').select();
+          return;
+        }
+        go('#/g/' + gid);
+      });
+    }
+
     $('groupForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = $('gName').value.trim();
@@ -228,9 +268,7 @@
       if (!name || !pass) return;
       const btn = $('gSubmit');
       btn.disabled = true;
-      const { data: gid, error: err } = await db.rpc(
-        mode === 'join' ? 'tour_join_group' : 'tour_create_group',
-        { p_name: name, p_password: pass });
+      const { data: gid, error: err } = await db.rpc('tour_create_group', { p_name: name, p_password: pass });
       btn.disabled = false;
       if (err) { toast(errMsg(err)); return; }
       go('#/g/' + gid);
