@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0c0c0e">
+<title>Tour Rating — aenesche.de</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main id="app">
+  <div class="loading mono">Lade…</div>
+</main>
+
+<!-- Ort hinzufügen / bearbeiten -->
+<div class="sheet-wrap" id="placeSheet" hidden>
+  <form class="sheet" id="placeForm" autocomplete="off">
+    <div class="sheet-head">
+      <h2 id="placeSheetTitle">Neuer Ort</h2>
+      <button type="button" class="x" data-close aria-label="Schließen">×</button>
+    </div>
+    <label class="field">
+      <span>Name</span>
+      <input id="pfName" maxlength="80" placeholder="z.B. Jugendzentrum Kraut" required>
+    </label>
+    <div class="row2">
+      <label class="field">
+        <span>Stadt</span>
+        <input id="pfCity" maxlength="60" placeholder="Leipzig">
+      </label>
+      <label class="field">
+        <span>Datum</span>
+        <input id="pfDate" type="date">
+      </label>
+    </div>
+    <button class="btn primary wide" id="pfSubmit">Hinzufügen & bewerten</button>
+    <button type="button" class="link-danger" id="pfDelete" hidden>Ort löschen</button>
+  </form>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/auth-global.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

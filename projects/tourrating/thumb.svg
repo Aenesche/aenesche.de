@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#0c0c0e"/>
+  <g fill="none" stroke="rgba(255,255,255,0.08)">
+    <rect x="70" y="70" width="260" height="56" rx="12" fill="#141417"/>
+    <rect x="70" y="138" width="260" height="56" rx="12" fill="#141417"/>
+    <rect x="70" y="206" width="260" height="56" rx="12" fill="#141417"/>
+  </g>
+  <g font-family="Sora, sans-serif" font-weight="700" font-size="15" fill="#ece9e4">
+    <text x="88" y="104">JUZ Kraut</text>
+    <text x="88" y="172">Alte Mühle</text>
+    <text x="88" y="240">Schule Nord</text>
+  </g>
+  <g font-family="Space Mono, monospace" font-weight="700" font-size="20" fill="#ffb340" text-anchor="end">
+    <text x="312" y="105">4,5</text>
+    <text x="312" y="173">3,8</text>
+    <text x="312" y="241">2,0</text>
+  </g>
+  <g font-size="12" fill="#ffb340" text-anchor="end">
+    <text x="262" y="104">★★★★★</text>
+    <text x="262" y="172">★★★★<tspan fill="#2a2a2e">★</tspan></text>
+    <text x="262" y="240">★★<tspan fill="#2a2a2e">★★★</tspan></text>
+  </g>
+  <text x="70" y="48" font-family="Sora, sans-serif" font-weight="700" font-size="18" letter-spacing="3" fill="#ece9e4">TOUR<tspan fill="#ffb340">RATING</tspan></text>
+</svg>
