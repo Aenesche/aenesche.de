@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passwort zurücksetzen · aenesche.de</title>
+    <meta name="robots" content="noindex">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Hash merken, BEVOR supabase-js ihn aus der URL entfernt.
+        // Recovery-Link: #access_token=…&type=recovery
+        // Abgelaufener Link: #error=access_denied&error_code=otp_expired…
+        window.__resetHash = new URLSearchParams(location.hash.slice(1));
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/auth-global.js"></script>
+    <style>
+        :root {
+            --bg: #0c0c0f;
+            --surface: #16161a;
+            --border: #2a2a32;
+            --text: #ececf1;
+            --text-muted: #72727e;
+            --accent: #e8e4dd;
+            --accent-warm: #f5c77e;
+            --radius: 14px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Sora', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .label {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+
+        .sub {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-weight: 300;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .sub b { color: var(--text); font-weight: 600; }
+
+        input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            color: var(--text);
+            font-family: 'Sora', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        input:focus { outline: none; border-color: var(--accent-warm); }
+
+        button {
+            width: 100%;
+            margin-top: 6px;
+            background: var(--accent-warm);
+            border: 1px solid var(--accent-warm);
+            color: #1a1408;
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            padding: 11px 14px;
+            cursor: pointer;
+        }
+
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: default; }
+
+        .msg {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            margin-top: 14px;
+            min-height: 16px;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+            line-height: 1.5;
+        }
+
+        .msg.error { color: #ff6b6b; }
+        .msg.ok { color: #7ee2a8; }
+
+        .back {
+            display: inline-block;
+            margin-top: 18px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .back:hover { color: var(--text); }
+
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+    <main class="box">
+        <div class="label">aenesche.de</div>
+
+        <!-- Schritt 1: Link anfordern -->
+        <section id="requestView" hidden>
+            <h1>Passwort vergessen?</h1>
+            <p class="sub" id="requestSub">E-Mail eingeben, du bekommst einen Link zum Zurücksetzen.</p>
+            <input type="email" id="email" placeholder="E-Mail" autocomplete="email">
+            <button id="btnRequest">Link schicken</button>
+            <div class="msg" id="requestMsg"></div>
+        </section>
+
+        <!-- Schritt 2: Neues Passwort setzen (nach Klick auf den Mail-Link) -->
+        <section id="setView" hidden>
+            <h1>Neues Passwort</h1>
+            <p class="sub" id="setSub"></p>
+            <input type="password" id="pw1" placeholder="Neues Passwort" autocomplete="new-password">
+            <input type="password" id="pw2" placeholder="Wiederholen" autocomplete="new-password">
+            <button id="btnSet">Passwort speichern</button>
+            <div class="msg" id="setMsg"></div>
+        </section>
+
+        <a class="back" href="/projects/">← Zurück zu den Projekten</a>
+    </main>
+
+    <script>
+        const REDIRECT_TO = location.origin + '/reset-password/';
+        const hash = window.__resetHash;
+
+        const requestView = document.getElementById('requestView');
+        const setView     = document.getElementById('setView');
+
+        function msg(id, text, type) {
+            const el = document.getElementById(id);
+            el.textContent = text || '';
+            el.className = 'msg' + (type ? ' ' + type : '');
+        }
+
+        function showRequest(note) {
+            setView.hidden = true;
+            requestView.hidden = false;
+            if (note) msg('requestMsg', note, 'error');
+            document.getElementById('email').focus();
+        }
+
+        function showSet(email) {
+            requestView.hidden = true;
+            setView.hidden = false;
+            const sub = document.getElementById('setSub');
+            sub.textContent = 'Für ';
+            const b = document.createElement('b');
+            b.textContent = email;
+            sub.appendChild(b);
+            document.getElementById('pw1').focus();
+        }
+
+        // ── Link anfordern ──
+        document.getElementById('btnRequest').addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+            if (!email) { msg('requestMsg', 'E-Mail eingeben.', 'error'); return; }
+            const btn = document.getElementById('btnRequest');
+            btn.disabled = true;
+            msg('requestMsg', 'Wird gesendet…');
+            const { error } = await aeAuth.client.auth.resetPasswordForEmail(email, { redirectTo: REDIRECT_TO });
+            btn.disabled = false;
+            if (error) {
+                const wait = /rate limit|seconds/i.test(error.message);
+                msg('requestMsg', wait ? 'Zu viele Anfragen, kurz warten und nochmal.' : 'Fehler: ' + error.message, 'error');
+                return;
+            }
+            // Bewusst neutral: verrät nicht, ob die Adresse registriert ist
+            msg('requestMsg', 'Falls ein Account existiert, ist jetzt eine Mail unterwegs. Auch im Spam schauen.', 'ok');
+        });
+
+        document.getElementById('email').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('btnRequest').click();
+        });
+
+        // ── Neues Passwort speichern ──
+        document.getElementById('btnSet').addEventListener('click', async () => {
+            const pw1 = document.getElementById('pw1').value;
+            const pw2 = document.getElementById('pw2').value;
+            if (pw1.length < 6) { msg('setMsg', 'Mindestens 6 Zeichen.', 'error'); return; }
+            if (pw1 !== pw2)    { msg('setMsg', 'Passwörter stimmen nicht überein.', 'error'); return; }
+
+            const btn = document.getElementById('btnSet');
+            btn.disabled = true;
+            msg('setMsg', 'Speichern…');
+            const { error } = await aeAuth.client.auth.updateUser({ password: pw1 });
+            if (error) {
+                btn.disabled = false;
+                const same = /different from the old|same/i.test(error.message);
+                msg('setMsg', same ? 'Das ist dein altes Passwort, nimm ein neues.' : 'Fehler: ' + error.message, 'error');
+                return;
+            }
+            msg('setMsg', 'Gespeichert! Du bist eingeloggt, weiter zu den Projekten…', 'ok');
+            setTimeout(() => location.replace('/projects/'), 1500);
+        });
+
+        document.getElementById('pw2').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('btnSet').click();
+        });
+
+        // ── Start: kommt man vom Mail-Link oder nicht? ──
+        (async () => {
+            if (hash.get('error')) {
+                const expired = hash.get('error_code') === 'otp_expired';
+                showRequest(expired
+                    ? 'Der Link ist abgelaufen oder wurde schon benutzt. Fordere einfach einen neuen an.'
+                    : 'Link ungültig: ' + (hash.get('error_description') || hash.get('error')));
+                return;
+            }
+
+            if (hash.get('type') === 'recovery') {
+                // supabase-js liest den Token aus der URL; getSession wartet darauf
+                const session = await aeAuth.getSession();
+                if (session) { showSet(session.user.email); return; }
+                showRequest('Link konnte nicht gelesen werden. Fordere einen neuen an.');
+                return;
+            }
+
+            // Normaler Aufruf: E-Mail vorausfüllen, falls übergeben
+            const pre = new URLSearchParams(location.search).get('email');
+            if (pre) document.getElementById('email').value = pre;
+            showRequest();
+        })();
+    </script>
+</body>
+</html>

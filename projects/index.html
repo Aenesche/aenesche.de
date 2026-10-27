@@ -431,6 +431,16 @@
 
         .modal-close:hover { color: var(--text); }
 
+        .forgot-link {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .forgot-link:hover { color: var(--text); }
+
         @media (max-width: 700px) {
             .auth-corner { top: 16px; right: 20px; }
             .auth-user { display: none; }
@@ -553,6 +563,7 @@
                 <button class="auth-btn" id="btnSignUp">Registrieren</button>
             </div>
             <div class="modal-msg" id="authMsg"></div>
+            <a class="forgot-link" id="forgotLink" href="/reset-password/">Passwort vergessen?</a>
         </div>
     </div>
 
@@ -1082,6 +1093,15 @@
                 setMsg('Registriert! Du kannst dich jetzt einloggen.', 'ok');
             } catch (err) {
                 setMsg('Fehler: ' + err.message, 'error');
+            }
+        });
+
+        // "Passwort vergessen?" → eingetippte E-Mail mitnehmen
+        document.getElementById('forgotLink').addEventListener('click', (e) => {
+            const email = document.getElementById('authEmail').value.trim();
+            if (email) {
+                e.preventDefault();
+                location.href = '/reset-password/?email=' + encodeURIComponent(email);
             }
         });
 
