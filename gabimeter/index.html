@@ -34,6 +34,8 @@
     padding: max(20px, env(safe-area-inset-top)) 16px calc(20px + var(--safe-b));
     user-select: none;
     -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
   }
   .mono { font-family: 'Space Mono', ui-monospace, monospace; }
   button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
@@ -106,9 +108,10 @@
     font-size: 20px;
     font-weight: 700;
     overflow: hidden;
-    transition: transform 0.08s, border-color 0.15s;
+    touch-action: manipulation;
+    transition: border-color 0.15s, background 0.15s;
   }
-  .pad button:active { transform: scale(0.94); }
+  .pad button.press { background: #22171c; }
   .pad button .w {
     position: absolute;
     inset: auto 0 0 0;
@@ -120,7 +123,6 @@
   .pad button b { position: relative; }
   .pad button.mine { border-color: var(--pink); }
   .pad button.mine b { color: var(--text); }
-  .pad button:disabled { opacity: 0.6; }
 
   .mine-line { margin-top: 16px; font-size: 11.5px; color: var(--muted); height: 16px; text-align: center; }
   .mine-line b { color: var(--text); font-weight: 700; }
@@ -213,30 +215,61 @@
     b.innerHTML = '<span class="w"></span><b>' + i + '</b>';
     pad.appendChild(b);
   }
-  pad.addEventListener('click', async (e) => {
-    const b = e.target.closest('button');
-    if (!b) return;
-    const v = +b.dataset.v;
-    // sofort lokal anzeigen
-    const prev = { votes: votes.slice(), mine };
+  // Sofort beim Antippen (pointerdown) – kein Warten aufs Loslassen.
+  // Schnelles Umentscheiden: nur der letzte Wert wird gesendet.
+  let pending = null, sending = false, lastSent = 0;
+  const GAP = 1100; // ms – Server erlaubt 1 Stimme pro Sekunde
+
+  function vote(v) {
+    // lokal sofort anzeigen
     const el = (performance.now() - receivedAt) / 1000;
     votes = votes.map((x) => ({ v: x.v, age: x.age + el }));
     if (mine) {
-      const i = votes.findIndex((x) => x.v === mine.v && Math.abs(x.age - (mine.age + el)) < 1);
-      if (i >= 0) votes.splice(i, 1);
+      const myAge = mine.age + el;
+      let best = -1, d = 1e9;
+      votes.forEach((x, i) => {
+        const dd = Math.abs(x.age - myAge);
+        if (x.v === mine.v && dd < d) { d = dd; best = i; }
+      });
+      if (best >= 0) votes.splice(best, 1);
     }
     votes.push({ v, age: 0 });
     mine = { v, age: 0 };
     receivedAt = performance.now();
     render();
+    pending = v;
+    flush();
+  }
+
+  async function flush() {
+    if (sending || pending == null) return;
+    const wait = lastSent + GAP - Date.now();
+    if (wait > 0) { setTimeout(flush, wait); return; }
+    const v = pending;
+    pending = null;
+    sending = true;
+    lastSent = Date.now();
     try {
-      apply(await rpc('gabi_vote', { p_key: KEY, p_value: v }));
+      const st = await rpc('gabi_vote', { p_key: KEY, p_value: v });
+      if (pending == null) apply(st);
     } catch (err) {
-      votes = prev.votes; mine = prev.mine;
-      render();
       showErr(err.message);
+      if (pending == null) refresh();
+    } finally {
+      sending = false;
+      if (pending != null) flush();
     }
+  }
+
+  pad.addEventListener('pointerdown', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    e.preventDefault();
+    b.classList.add('press');
+    setTimeout(() => b.classList.remove('press'), 150);
+    vote(+b.dataset.v);
   });
+  pad.addEventListener('contextmenu', (e) => e.preventDefault());
 
   // ---------- Rendern ----------
   function render() {
@@ -275,7 +308,7 @@
     });
     if (myW > 0) {
       const left = Math.ceil(DECAY * myW / 60);
-      $('mine').innerHTML = 'Dein Wert <b>' + mine.v + '</b> · zählt noch ' + Math.round(myW * 100) + '% · ' + left + ' min';
+      $('mine').innerHTML = 'Dein Wert <b>' + mine.v + '</b> · noch ' + left + ' min';
     } else {
       $('mine').innerHTML = '&nbsp;';
     }
@@ -283,7 +316,10 @@
 
   // ---------- Sync ----------
   async function refresh() {
-    try { apply(await rpc('gabi_state', { p_key: KEY })); }
+    try {
+      const st = await rpc('gabi_state', { p_key: KEY });
+      if (!sending && pending == null) apply(st);
+    }
     catch (e) { showErr('Offline?'); }
   }
   refresh();
