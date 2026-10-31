@@ -29,9 +29,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     min-height: 100dvh;
-    padding: max(20px, env(safe-area-inset-top)) 16px calc(20px + var(--safe-b));
+    padding: max(20px, env(safe-area-inset-top)) 16px calc(28px + var(--safe-b));
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
@@ -40,7 +39,8 @@
   .mono { font-family: 'Space Mono', ui-monospace, monospace; }
   button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
 
-  .wrap { width: 100%; max-width: 460px; display: flex; flex-direction: column; align-items: center; }
+  .wrap { width: 100%; max-width: 460px; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: calc(76dvh - 20px); }
 
   h1 {
     font-size: 13px;
@@ -127,6 +127,34 @@
   .mine-line { margin-top: 16px; font-size: 11.5px; color: var(--muted); height: 16px; text-align: center; }
   .mine-line b { color: var(--text); font-weight: 700; }
 
+  /* Verlauf */
+  .hist { width: 100%; max-width: 460px; margin-top: 24px; }
+  .hist-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .hist-head h2 { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; color: var(--muted); }
+  .seg { display: flex; gap: 2px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+  .seg button { font-family: 'Space Mono', monospace; font-size: 11.5px; padding: 5px 11px; border-radius: 7px; color: var(--muted); }
+  .seg button.on { background: rgba(255, 92, 138, 0.16); color: var(--text); }
+  .chart {
+    position: relative;
+    height: 190px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+  .chart svg { display: block; width: 100%; height: 100%; }
+  .chart .lbl { font-family: 'Space Mono', monospace; font-size: 10px; fill: var(--muted); }
+  .chart .grid { stroke: rgba(255, 255, 255, 0.06); stroke-width: 1; }
+  .chart .line { fill: none; stroke: var(--pink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .chart .area { fill: url(#gArea); }
+  .chart .cursor { stroke: rgba(255, 255, 255, 0.25); stroke-width: 1; }
+  .chart .dot { fill: var(--text); stroke: var(--pink); stroke-width: 2; }
+  .chart .empty-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 11.5px; color: var(--muted); pointer-events: none; }
+  .readout { height: 16px; margin-top: 8px; font-size: 11.5px; color: var(--muted); text-align: center; }
+  .readout b { color: var(--text); }
+
   .err { position: fixed; bottom: calc(16px + var(--safe-b)); left: 50%; transform: translateX(-50%);
     font-size: 12px; color: var(--muted); opacity: 0; transition: opacity 0.2s; }
   .err.show { opacity: 1; }
@@ -144,6 +172,17 @@
   <div class="pad" id="pad"></div>
   <div class="mine-line mono" id="mine">&nbsp;</div>
 </div>
+<section class="hist">
+  <div class="hist-head">
+    <h2>VERLAUF</h2>
+    <div class="seg" id="seg">
+      <button data-range="day">24 h</button>
+      <button data-range="week">7 Tage</button>
+    </div>
+  </div>
+  <div class="chart" id="chart"><svg id="svg"></svg><div class="empty-msg mono" id="chartEmpty">Lade…</div></div>
+  <div class="readout mono" id="readout">&nbsp;</div>
+</section>
 <div class="err mono" id="err"></div>
 
 <script>
@@ -325,7 +364,171 @@
   refresh();
   setInterval(() => { if (!document.hidden) refresh(); }, POLL);
   setInterval(render, 1000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { refresh(); loadHistory(); } });
+
+  // ============================================================
+  //  Verlauf (Datenpunkte speichert Supabase per pg_cron:
+  //  24 h → alle 2 min, 7 Tage → alle 30 min, alte werden gelöscht)
+  // ============================================================
+  const RANGES = {
+    day:  { span: 24 * 3600e3, step: 2 * 60e3 },
+    week: { span: 7 * 24 * 3600e3, step: 30 * 60e3 }
+  };
+  let range = 'day';
+  try { if (localStorage.getItem('gabimeter_range') === 'week') range = 'week'; } catch (e) { /* egal */ }
+  let hist = [];            // [[ms, wert|null], ...]
+  let histT0 = 0, histT1 = 0;
+  let geo = null;           // Geometrie fürs Antippen
+
+  const svg = $('svg');
+  const chart = $('chart');
+  const NS = 'http://www.w3.org/2000/svg';
+
+  function paintSeg() {
+    $('seg').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.range === range));
+  }
+  paintSeg();
+  $('seg').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-range]');
+    if (!b || b.dataset.range === range) return;
+    range = b.dataset.range;
+    try { localStorage.setItem('gabimeter_range', range); } catch (err) { /* egal */ }
+    paintSeg();
+    hist = [];
+    drawChart();
+    loadHistory();
+  });
+
+  async function loadHistory() {
+    try {
+      const data = await rpc('gabi_history', { p_range: range });
+      hist = Array.isArray(data) ? data.map((p) => [+p[0], p[1] == null ? null : +p[1]]) : [];
+      drawChart();
+    } catch (e) {
+      hist = [];
+      drawChart('Verlauf nicht verfügbar');
+    }
+  }
+
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const DAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+
+  function el(tag, attrs, text) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function drawChart(msg) {
+    const W = chart.clientWidth, H = chart.clientHeight;
+    if (!W) return;
+    const L = 26, R = 10, T = 12, B = 22;
+    const iw = W - L - R, ih = H - T - B;
+    const cfg = RANGES[range];
+    histT1 = Date.now();
+    histT0 = histT1 - cfg.span;
+    const x = (t) => L + ((t - histT0) / cfg.span) * iw;
+    const y = (v) => T + (1 - (v - 1) / 9) * ih;
+    geo = { L, iw, x, y };
+
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.innerHTML = '';
+    const defs = el('defs', {});
+    const grad = el('linearGradient', { id: 'gArea', x1: 0, y1: 0, x2: 0, y2: 1 });
+    grad.appendChild(el('stop', { offset: '0%', 'stop-color': '#ff5c8a', 'stop-opacity': 0.32 }));
+    grad.appendChild(el('stop', { offset: '100%', 'stop-color': '#ff5c8a', 'stop-opacity': 0 }));
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    // Raster 1 / 5 / 10
+    [1, 5, 10].forEach((v) => {
+      svg.appendChild(el('line', { class: 'grid', x1: L, x2: W - R, y1: y(v), y2: y(v) }));
+      svg.appendChild(el('text', { class: 'lbl', x: L - 6, y: y(v) + 3.5, 'text-anchor': 'end' }, v));
+    });
+
+    // Zeitachse
+    const ticks = [];
+    if (range === 'day') {
+      const d = new Date(histT0);
+      d.setMinutes(0, 0, 0);
+      d.setHours(d.getHours() + 1);
+      while (d.getHours() % 6) d.setHours(d.getHours() + 1);
+      for (; d.getTime() <= histT1; d.setHours(d.getHours() + 6)) {
+        ticks.push([d.getTime(), pad2(d.getHours()) + ':00']);
+      }
+    } else {
+      const d = new Date(histT0);
+      d.setHours(24, 0, 0, 0);
+      for (; d.getTime() <= histT1; d.setDate(d.getDate() + 1)) ticks.push([d.getTime(), DAYS[d.getDay()]]);
+    }
+    ticks.forEach(([t, label]) => {
+      const xx = x(t);
+      if (xx < L + 8 || xx > W - R - 8) return;
+      svg.appendChild(el('line', { class: 'grid', x1: xx, x2: xx, y1: T, y2: T + ih }));
+      svg.appendChild(el('text', { class: 'lbl', x: xx, y: H - 7, 'text-anchor': 'middle' }, label));
+    });
+
+    // Linie in Segmente zerlegen (Lücke bei null oder fehlenden Punkten)
+    const pts = hist.filter((p) => p[0] >= histT0 - cfg.step);
+    const segs = [];
+    let cur = null, prevT = null;
+    pts.forEach(([t, v]) => {
+      const gap = prevT != null && t - prevT > cfg.step * 2.5;
+      if (v == null || gap) { if (cur && cur.length) segs.push(cur); cur = null; }
+      if (v != null) { (cur = cur || []).push([x(Math.max(t, histT0)), y(v)]); }
+      prevT = t;
+    });
+    if (cur && cur.length) segs.push(cur);
+
+    segs.forEach((sg) => {
+      if (sg.length === 1) sg = [[sg[0][0] - 1.5, sg[0][1]], [sg[0][0] + 1.5, sg[0][1]]];
+      const line = sg.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+      const area = line + ' L' + sg[sg.length - 1][0].toFixed(1) + ' ' + (T + ih) + ' L' + sg[0][0].toFixed(1) + ' ' + (T + ih) + ' Z';
+      svg.appendChild(el('path', { class: 'area', d: area }));
+      svg.appendChild(el('path', { class: 'line', d: line }));
+    });
+
+    const has = pts.some((p) => p[1] != null);
+    const em = $('chartEmpty');
+    em.textContent = msg || (has ? '' : (hist.length ? 'Keine Stimmen in diesem Zeitraum' : 'Noch keine Daten'));
+    em.style.display = em.textContent ? '' : 'none';
+    $('readout').innerHTML = '&nbsp;';
+  }
+
+  // Antippen / Hovern zeigt den Wert zum Zeitpunkt
+  function showAt(clientX) {
+    if (!geo || !hist.length) return;
+    const r = chart.getBoundingClientRect();
+    const t = histT0 + ((clientX - r.left - geo.L) / geo.iw) * (histT1 - histT0);
+    let best = null, bd = Infinity;
+    hist.forEach((p) => {
+      if (p[1] == null || p[0] < histT0) return;
+      const d = Math.abs(p[0] - t);
+      if (d < bd) { bd = d; best = p; }
+    });
+    svg.querySelectorAll('.cursor,.dot').forEach((n) => n.remove());
+    if (!best || bd > RANGES[range].step * 3) { $('readout').innerHTML = '&nbsp;'; return; }
+    const cx = geo.x(best[0]), cy = geo.y(best[1]);
+    svg.appendChild(el('line', { class: 'cursor', x1: cx, x2: cx, y1: 12, y2: chart.clientHeight - 22 }));
+    svg.appendChild(el('circle', { class: 'dot', cx, cy, r: 4 }));
+    const d = new Date(best[0]);
+    const when = (range === 'week' ? DAYS[d.getDay()] + ' ' : '') + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    $('readout').innerHTML = when + ' · <b>' + best[1].toFixed(1).replace('.', ',') + '</b>';
+  }
+  chart.addEventListener('pointermove', (e) => showAt(e.clientX));
+  chart.addEventListener('pointerdown', (e) => showAt(e.clientX));
+  chart.addEventListener('pointerleave', (e) => {
+    if (e.pointerType === 'mouse') {
+      svg.querySelectorAll('.cursor,.dot').forEach((n) => n.remove());
+      $('readout').innerHTML = '&nbsp;';
+    }
+  });
+
+  let rsT;
+  window.addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => drawChart(), 150); });
+  loadHistory();
+  setInterval(() => { if (!document.hidden) loadHistory(); }, 60e3);
 })();
 </script>
 </body>
